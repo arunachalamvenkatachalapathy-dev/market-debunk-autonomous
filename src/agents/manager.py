@@ -278,9 +278,18 @@ class ManagerAgent:
             try:
                 from src.publisher import publish_video
                 title = publish_metadata.get("youtube_titles", [topic])[0]
+                youtube_description = publish_metadata.get("youtube_description", "")
+                youtube_tags = publish_metadata.get("youtube_tags", [])
+                telegram_caption = publish_metadata.get("telegram_caption", "")
+                category_id = publish_metadata.get("category_id", "27")
+                
                 publish_results = publish_video(
                     video_path=final_video_path,
                     title=title,
+                    youtube_description=youtube_description,
+                    youtube_tags=youtube_tags,
+                    telegram_caption=telegram_caption,
+                    category_id=category_id,
                     publish_youtube=publish_youtube,
                     publish_telegram=publish_telegram
                 )
