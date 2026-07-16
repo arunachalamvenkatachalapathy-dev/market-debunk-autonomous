@@ -1,0 +1,12 @@
+google-genai
+google-cloud-secret-manager
+google-cloud-firestore
+google-cloud-texttospeech
+google-api-python-client
+google-auth-oauthlib
+requests
+Flask
+gunicorn
+pydantic
+Pillow
+imagehash

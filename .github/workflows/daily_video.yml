@@ -1,0 +1,62 @@
+name: Autonomous Market Debunk Pipeline
+
+on:
+  schedule:
+    # 03:30 UTC = 09:00 AM IST. Runs every day.
+    - cron: '30 3 * * *'
+  workflow_dispatch: # Allows manual triggering from the GitHub UI
+
+jobs:
+  generate-and-publish:
+    runs-on: ubuntu-latest
+    
+    # Required permissions to commit the used_topics.json back to the repo
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip' # Automatically caches pip dependencies
+
+      - name: Setup FFmpeg
+        uses: FedericoCarboni/setup-ffmpeg@v3
+        with:
+          ffmpeg-version: release
+          
+      - name: Install Python Dependencies
+        run: pip install -r requirements.txt
+        
+      - name: Run Autonomous Pipeline
+        env:
+          LLM_API_KEYS: ${{ secrets.LLM_API_KEYS }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_OAUTH_JSON: ${{ secrets.YOUTUBE_OAUTH_JSON }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          python github_action_run.py
+
+      - name: Persist AI Memory (Commit used_topics.json)
+        # Always run this step even if publishing fails, so we don't repeat topics!
+        if: always()
+        run: |
+          git config --global user.name "MarketDebunk-AI-Bot"
+          git config --global user.email "bot@marketdebunk.com"
+          
+          # Only commit if used_topics.json actually changed
+          if git diff --quiet used_topics.json; then
+            echo "No new topics used today. Nothing to commit."
+          else
+            git add used_topics.json
+            git commit -m "chore: persist AI memory to avoid topic repetition"
+            git push
+            echo "Successfully committed used_topics.json memory!"
+          fi
