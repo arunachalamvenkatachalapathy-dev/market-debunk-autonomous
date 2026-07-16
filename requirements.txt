@@ -10,3 +10,4 @@ gunicorn
 pydantic
 Pillow
 imagehash
+python-dotenv
