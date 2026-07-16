@@ -11,3 +11,4 @@ pydantic
 Pillow
 imagehash
 python-dotenv
+edge-tts
