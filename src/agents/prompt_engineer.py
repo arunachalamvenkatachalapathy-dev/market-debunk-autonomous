@@ -108,24 +108,30 @@ class PromptEngineerAgent:
         return False
 
     def fetch_fresh_topic(self):
-        """Fetches a fresh financial topic from multiple sources, falling back gracefully."""
-        logger.info("🔍 PE Agent [TOPIC]: Searching for a fresh topic...")
+        """Fetches the latest topic directly from PR Sundar's YouTube channel."""
+        logger.info("🔍 PE Agent [TOPIC]: Searching PR Sundar's YouTube channel for the latest topic...")
 
-        # Source 1: Moneycontrol Business News RSS
+        # Source 1: PR Sundar's YouTube RSS feed
         try:
-            rss_url = "https://www.moneycontrol.com/rss/business.xml"
+            # PR Sundar Channel ID: UCaw-1cUd74wvEatvZna0TzQ
+            rss_url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCaw-1cUd74wvEatvZna0TzQ"
             response = requests.get(rss_url, timeout=10)
             if response.status_code == 200:
                 root = ET.fromstring(response.content)
-                items = root.findall(".//item")
-                for item in items[:15]:  # Check top 15 for freshness
-                    title = item.findtext("title")
-                    desc = item.findtext("description")
+                # YouTube RSS uses a default namespace
+                ns = {'yt': 'http://www.youtube.com/xml/schemas/2015', 'default': 'http://www.w3.org/2005/Atom'}
+                entries = root.findall("default:entry", ns)
+                
+                for entry in entries[:5]:  # Check top 5 for freshness
+                    title = entry.findtext("default:title", namespaces=ns)
+                    link = entry.find("default:link", namespaces=ns)
+                    video_url = link.attrib['href'] if link is not None else ""
+                    
                     if title and not self._is_topic_used(title):
-                        logger.info(f"🔍 PE Agent [TOPIC]: Found fresh topic via RSS: {title}")
-                        return f"{title} - {desc or ''}"
+                        logger.info(f"🔍 PE Agent [TOPIC]: Found fresh PR Sundar video: {title}")
+                        return f"PR Sundar latest analysis on: {title} (Video URL: {video_url})"
         except Exception as e:
-            logger.warning(f"🔍 PE Agent [TOPIC]: RSS fetch failed: {e}")
+            logger.warning(f"🔍 PE Agent [TOPIC]: PR Sundar RSS fetch failed: {e}")
 
         # Source 2: Reddit scraping would go here (requires API keys)
         # Source 3: Google Trends would go here
@@ -152,7 +158,8 @@ class PromptEngineerAgent:
 
         system_prompt = (
             FRAMEWORK_RULES +
-            "\nYour task: Generate a complete 5-12 scene video script for the given topic.\n"
+            "\nYour task: Generate a complete 5-12 scene video script for the given PR Sundar video topic.\n"
+            "CRITICAL: You must use your internal knowledge (Gemini) to find the absolute latest real-world information, stock prices, or news related to this exact topic to build the script. Do NOT just invent generic advice.\n"
             "Requirements:\n"
             "- Between 5 and 12 scenes\n"
             "- Hook (scene 1 narration opening) MUST be ≤8 words\n"
