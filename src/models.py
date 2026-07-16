@@ -192,17 +192,16 @@ class PublishMetadata(BaseModel):
         "First should be the most clickable."
     )
     youtube_description: str = Field(
-        description="YouTube description. Include topic summary and 5-8 relevant hashtags. "
-        "No citations. Max 500 chars."
+        description="YouTube description. Must be highly engaging, SEO-optimized targeting relevant keywords, and include 5-8 hashtags at the end. No citations. Max 600 chars."
     )
     youtube_tags: list[str] = Field(
         description="5-15 YouTube tags for SEO. Include: shorts, finance, market, myth, India"
     )
     telegram_caption: str = Field(
-        description="Telegram caption with emojis and 3-5 hashtags. Max 200 chars."
+        description="Telegram caption. SEO-optimized and highly engaging with emojis and 3-5 hashtags. Max 250 chars."
     )
     instagram_description: str = Field(
-        description="Instagram caption with emojis and 10-15 hashtags. Max 500 chars."
+        description="Instagram caption. SEO-optimized and highly engaging with emojis and 10-15 hashtags. Max 600 chars."
     )
     category_id: str = Field(
         description="YouTube category ID. '27' for Education, '25' for News. Recommended: '27'."
