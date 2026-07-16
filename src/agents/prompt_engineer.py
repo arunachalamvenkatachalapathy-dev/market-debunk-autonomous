@@ -88,6 +88,25 @@ class PromptEngineerAgent:
     #  SECTION 1: TOPIC DISCOVERY
     # ──────────────────────────────────────────────
 
+    def _is_topic_used(self, title):
+        import os, json
+        if not os.path.exists("used_topics.json"):
+            return False
+        try:
+            with open("used_topics.json", "r") as f:
+                used = json.load(f)
+            title_words = set(title.lower().split())
+            for entry in used:
+                prev_words = set(entry.get("topic", "").lower().split())
+                if title_words and prev_words:
+                    intersection = title_words & prev_words
+                    union = title_words | prev_words
+                    if len(intersection) / len(union) >= 0.75:
+                        return True
+        except:
+            pass
+        return False
+
     def fetch_fresh_topic(self):
         """Fetches a fresh financial topic from multiple sources, falling back gracefully."""
         logger.info("🔍 PE Agent [TOPIC]: Searching for a fresh topic...")
@@ -99,11 +118,11 @@ class PromptEngineerAgent:
             if response.status_code == 200:
                 root = ET.fromstring(response.content)
                 items = root.findall(".//item")
-                for item in items[:5]:  # Check top 5 for freshness
+                for item in items[:15]:  # Check top 15 for freshness
                     title = item.findtext("title")
                     desc = item.findtext("description")
-                    if title:
-                        logger.info(f"🔍 PE Agent [TOPIC]: Found via RSS: {title}")
+                    if title and not self._is_topic_used(title):
+                        logger.info(f"🔍 PE Agent [TOPIC]: Found fresh topic via RSS: {title}")
                         return f"{title} - {desc or ''}"
         except Exception as e:
             logger.warning(f"🔍 PE Agent [TOPIC]: RSS fetch failed: {e}")
