@@ -84,12 +84,12 @@ def generate_scene_voice(tts_client, text, scene_index, voice_config_scene=None)
     audio_path = os.path.join(OUTPUT_DIR, f"scene_{scene_index}.mp3")
     
     # Use edge-tts to generate audio and retrieve word boundary JSON
-    # We use the en-US-ChristopherNeural voice for a solid narrator sound
+    # We use the en-IN-NeerjaNeural voice for a natural, easily understood Indian accent
     try:
         logger.info(f"Synthesizing voice for Scene {scene_index} using edge-tts...")
         # We capture the JSON metadata stream from edge-tts
         result = subprocess.run(
-            ["python", "-m", "edge_tts", "--voice", "en-US-ChristopherNeural", "--text", text, "--write-media", audio_path],
+            ["python", "-m", "edge_tts", "--voice", "en-IN-NeerjaNeural", "--text", text, "--write-media", audio_path],
             capture_output=True, text=True, check=True
         )
         
