@@ -58,6 +58,7 @@ jobs:
           else
             git add used_topics.json
             git commit -m "chore: persist AI memory to avoid topic repetition"
+            git pull --rebase
             git push
             echo "Successfully committed used_topics.json memory!"
           fi
