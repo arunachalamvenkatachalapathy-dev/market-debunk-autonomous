@@ -147,12 +147,11 @@ def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
         )
         
     # Pexels Integration for Real Images
-    from config import get_secret
     visual_category = visual_config_scene.get("visual_category", "ai_illustration") if visual_config_scene else "ai_illustration"
     
     if visual_category in ["stock_image", "stock_video"]:
         logger.info(f"📸 Fetching REAL IMAGE from Pexels for Scene {scene_index} using prompt: {visual_prompt}")
-        pexels_key = get_secret("PEXELS_API_KEY")
+        pexels_key = os.getenv("PEXELS_API_KEY")
         if pexels_key:
             try:
                 headers = {"Authorization": pexels_key}
