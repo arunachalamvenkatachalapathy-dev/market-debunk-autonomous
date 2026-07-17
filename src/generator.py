@@ -83,9 +83,9 @@ def generate_scene_voice(tts_client, text, scene_index, voice_config_scene=None,
     
     audio_path = os.path.join(OUTPUT_DIR, f"scene_{scene_index}.mp3")
     
-    # Red Arrow (arrow_down) asks questions -> Male voice (PrabhatNeural)
-    # Green Arrow (arrow_up) answers -> Female voice (NeerjaNeural)
-    voice_name = "en-IN-PrabhatNeural" if arrow_state == "arrow_down" else "en-IN-NeerjaNeural"
+    # Red Arrow (arrow_down) asks questions -> Natural Male Voice (GuyNeural)
+    # Green Arrow (arrow_up) answers -> Natural Female Voice (NeerjaNeural)
+    voice_name = "en-US-GuyNeural" if arrow_state == "arrow_down" else "en-IN-NeerjaNeural"
     
     try:
         logger.info(f"Synthesizing voice for Scene {scene_index} (Arrow: {arrow_state}) using {voice_name} at +30% speed...")
@@ -145,6 +145,30 @@ def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
             f"{visual_prompt}, highly detailed, cinematic lighting, "
             "dramatic shadows, 8k resolution"
         )
+        
+    # Pexels Integration for Real Images
+    from config import get_secret
+    visual_category = visual_config_scene.get("visual_category", "ai_illustration") if visual_config_scene else "ai_illustration"
+    
+    if visual_category in ["stock_image", "stock_video"]:
+        logger.info(f"📸 Fetching REAL IMAGE from Pexels for Scene {scene_index} using prompt: {visual_prompt}")
+        pexels_key = get_secret("PEXELS_API_KEY")
+        if pexels_key:
+            try:
+                headers = {"Authorization": pexels_key}
+                # Use a simpler query for Pexels search
+                search_query = visual_prompt.split(",")[0][:40] 
+                res = requests.get(f"https://api.pexels.com/v1/search?query={urllib.parse.quote(search_query)}&per_page=1&orientation=portrait", headers=headers, timeout=10)
+                if res.status_code == 200 and res.json().get("photos"):
+                    img_url = res.json()["photos"][0]["src"]["large2x"]
+                    img_res = requests.get(img_url, timeout=10)
+                    if img_res.status_code == 200:
+                        with open(image_path, "wb") as f:
+                            f.write(img_res.content)
+                        logger.info(f"✅ Real Image saved from Pexels to {image_path} for Scene {scene_index}")
+                        return {"type": "image", "path": image_path}
+            except Exception as e:
+                logger.warning(f"Pexels fetch failed, falling back to AI generation: {e}")
     
     negative = ""
     if visual_config_scene and visual_config_scene.get("negative_prompt"):
