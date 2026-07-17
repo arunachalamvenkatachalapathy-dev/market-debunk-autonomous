@@ -423,7 +423,7 @@ def assemble_final_video(processed_scenes, subtitle_style=None, assembly_config=
         next_v = f"v{input_idx}"
         y_expr = f"{pos_y}+15*sin(t*5)" # Bobbing animation
         filter_chains.append(
-            f"[{input_idx}:v]colorkey=white:0.1:0.2,scale=-1:400[m_{input_idx}];"
+            f"[{input_idx}:v]format=rgba,scale=-1:400[m_{input_idx}];"
             f"[{last_v}][m_{input_idx}]overlay={pos_x}:'{y_expr}':"
             f"enable='between(t,{start_t},{end_t})'[{next_v}]"
         )
