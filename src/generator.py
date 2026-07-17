@@ -88,10 +88,10 @@ def generate_scene_voice(tts_client, text, scene_index, voice_config_scene=None,
     voice_name = "en-IN-PrabhatNeural" if arrow_state == "arrow_down" else "en-IN-NeerjaNeural"
     
     try:
-        logger.info(f"Synthesizing voice for Scene {scene_index} (Arrow: {arrow_state}) using {voice_name}...")
+        logger.info(f"Synthesizing voice for Scene {scene_index} (Arrow: {arrow_state}) using {voice_name} at +30% speed...")
         # We capture the JSON metadata stream from edge-tts
         result = subprocess.run(
-            ["python", "-m", "edge_tts", "--voice", voice_name, "--text", text, "--write-media", audio_path],
+            ["python", "-m", "edge_tts", "--voice", voice_name, "--rate", "+30%", "--text", text, "--write-media", audio_path],
             capture_output=True, text=True, check=True
         )
         
