@@ -76,20 +76,22 @@ def is_duplicate_topic(topic_hash):
         return False
 
 
-def generate_scene_voice(tts_client, text, scene_index, voice_config_scene=None):
+def generate_scene_voice(tts_client, text, scene_index, voice_config_scene=None, arrow_state="arrow_up"):
     """Generate audio and word-level timing offsets using edge-tts."""
     import subprocess
     import ast
     
     audio_path = os.path.join(OUTPUT_DIR, f"scene_{scene_index}.mp3")
     
-    # Use edge-tts to generate audio and retrieve word boundary JSON
-    # We use the en-IN-NeerjaNeural voice for a natural, easily understood Indian accent
+    # Red Arrow (arrow_down) asks questions -> Male voice (PrabhatNeural)
+    # Green Arrow (arrow_up) answers -> Female voice (NeerjaNeural)
+    voice_name = "en-IN-PrabhatNeural" if arrow_state == "arrow_down" else "en-IN-NeerjaNeural"
+    
     try:
-        logger.info(f"Synthesizing voice for Scene {scene_index} using edge-tts...")
+        logger.info(f"Synthesizing voice for Scene {scene_index} (Arrow: {arrow_state}) using {voice_name}...")
         # We capture the JSON metadata stream from edge-tts
         result = subprocess.run(
-            ["python", "-m", "edge_tts", "--voice", "en-IN-NeerjaNeural", "--text", text, "--write-media", audio_path],
+            ["python", "-m", "edge_tts", "--voice", voice_name, "--text", text, "--write-media", audio_path],
             capture_output=True, text=True, check=True
         )
         
@@ -216,7 +218,8 @@ def process_scene_assets(tts_client, scene, index, voice_config=None, visual_con
     # 1. Generate Voice with PE config
     audio_path, word_timings = generate_scene_voice(
         tts_client, scene["narration"], index,
-        voice_config_scene=voice_config_scene
+        voice_config_scene=voice_config_scene,
+        arrow_state=scene.get("arrow_state", "arrow_up")
     )
     
     # 2. Generate Image with PE config

@@ -166,7 +166,8 @@ class PromptEngineerAgent:
             "- Hook (scene 1 narration opening) MUST be ≤8 words\n"
             "- Each scene needs: narration, visual_prompt, visual_category, arrow_state\n"
             "- Visual categories must rotate — never repeat the same category in adjacent scenes\n"
-            "- Arrow typically flips from 'arrow_up' to 'arrow_down' at scene 3 or 4 (the reveal)\n"
+            "- CRITICAL DIALOGUE DYNAMIC: The script must be a conversation. The Red Arrow (arrow_down) acts as the skeptic asking questions/presenting the debunked theory, and the Green Arrow (arrow_up) acts as the expert answering and providing the facts.\n"
+            "- Explicitly alternate between 'arrow_down' (Red Arrow questioning) and 'arrow_up' (Green Arrow answering) across the scenes.\n"
             "- Include a YouTube title and description with hashtags\n"
         )
 
