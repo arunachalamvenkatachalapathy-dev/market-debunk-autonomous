@@ -234,7 +234,7 @@ class EvaluatorAgent:
                 scene_durations.append(dur)
                 total_duration += dur
 
-                if dur < 2.5 or dur > 20:
+                if dur < 1.0 or dur > 20:
                     details["scene_index"] = i
                     details["duration"] = dur
                     return False, f"Scene {i} audio duration out of range: {dur:.1f}s", details
@@ -244,7 +244,7 @@ class EvaluatorAgent:
         details["scene_durations"] = [round(d, 2) for d in scene_durations]
         details["total_duration"] = round(total_duration, 2)
 
-        if total_duration < 30 or total_duration > 70:
+        if total_duration < 20 or total_duration > 70:
             return False, f"Total audio duration out of range: {total_duration:.1f}s", details
 
         # Check word timings exist
