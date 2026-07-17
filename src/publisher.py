@@ -41,7 +41,7 @@ def upload_to_youtube(video_path, title, description, tags, category_id="27"):
         }
         
         logger.info("Starting YouTube upload stream...")
-        media = MediaFileUpload(video_path, chunksize=1024*1024, resumable=True, mimeType="video/mp4")
+        media = MediaFileUpload(video_path, chunksize=1024*1024, resumable=True, mimetype="video/mp4")
         
         request = youtube_service.videos().insert(
             part="snippet,status",
