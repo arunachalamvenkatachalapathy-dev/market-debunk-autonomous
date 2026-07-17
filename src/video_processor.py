@@ -85,7 +85,7 @@ def generate_ass_file(processed_scenes, total_duration, subtitle_style=None, ass
     # Hormozi-style defaults
     if not subtitle_style:
         font_name = "Arial Black"
-        font_size = 140
+        font_size = 110
         primary_color = "&H00FFFFFF" # White
         emphasis_color = "&H0000D7FF" # Gold/Yellow
         outline_color = "&H00000000"
@@ -95,7 +95,7 @@ def generate_ass_file(processed_scenes, total_duration, subtitle_style=None, ass
         alignment = 5  # Middle center alignment
     else:
         font_name = subtitle_style.get("font_name", "Arial Black")
-        font_size = 140
+        font_size = 110
         primary_color = subtitle_style.get("primary_color", "&H00FFFFFF")
         emphasis_color = subtitle_style.get("emphasis_color", "&H0000D7FF")
         outline_color = subtitle_style.get("outline_color", "&H00000000")
@@ -110,17 +110,18 @@ def generate_ass_file(processed_scenes, total_duration, subtitle_style=None, ass
         "ScriptType: v4.00+\n"
         "PlayResX: 1080\n"
         "PlayResY: 1920\n"
-        "ScaledBorderAndShadow: yes\n\n"
+        "ScaledBorderAndShadow: yes\n"
+        "WrapStyle: 1\n\n"
         "[V4+ Styles]\n"
         "Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, "
         "Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, "
         "Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\n"
         f"Style: Default,{font_name},{font_size},{primary_color},&H000000FF,{outline_color},"
         f"&H80000000,-1,0,0,0,100,100,0,0,1,{outline_width},{shadow_depth},{alignment},"
-        f"10,10,{margin_v},1\n"
+        f"60,60,{margin_v},1\n"
         f"Style: Emphasis,{font_name},{font_size},{emphasis_color},&H000000FF,{outline_color},"
         f"&H80000000,-1,0,0,0,100,100,0,0,1,{outline_width},{shadow_depth},{alignment},"
-        f"10,10,{margin_v},1\n\n"
+        f"60,60,{margin_v},1\n\n"
         "[Events]\n"
         "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n"
     )
