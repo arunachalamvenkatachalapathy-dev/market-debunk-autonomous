@@ -160,6 +160,7 @@ class PromptEngineerAgent:
             FRAMEWORK_RULES +
             "\nYour task: Generate a complete 5-12 scene video script for the given PR Sundar video topic.\n"
             "CRITICAL: You must use your internal knowledge (Gemini) to find the absolute latest real-world information, stock prices, or news related to this exact topic to build the script. Do NOT just invent generic advice.\n"
+            "CRITICAL: Do NEVER mention PR Sundar's name, his channel, or the source video anywhere in the script, title, or description. You must act as an independent analyst discussing the topic itself.\n"
             "Requirements:\n"
             "- Between 5 and 12 scenes\n"
             "- Hook (scene 1 narration opening) MUST be ≤8 words\n"
