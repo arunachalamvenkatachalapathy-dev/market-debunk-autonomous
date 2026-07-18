@@ -33,7 +33,7 @@ FRAMEWORK_RULES = (
     "- Mascot Arrow: 'arrow_up' (green) for Setup/Truth, 'arrow_down' (red) for Reveal/Myth.\n"
     "- Visual categories: vaults/security, crowds/markets, paperwork/bureaucracy, "
     "growth/decline, digital/data, hands/decisions. Use 3-4 per video, never same twice in a row.\n"
-    "- Color grade: navy (#0A0E1F) base, orange (#FF6B00) accents.\n"
+    "- Color grade: light slate (#F4F6F9) base, dark accents.\n"
     "- Subtitle safe zone: 60-75% down the 1920px frame.\n"
     "- Audio loudness: -14 LUFS integrated.\n"
 )
@@ -221,12 +221,12 @@ class PromptEngineerAgent:
             "- A category_tag from: vaults, crowds, paperwork, growth, digital, hands\n"
             "- A composition_directive: center, left-third, right-third, top-heavy, bottom-heavy\n"
             "Rules:\n"
-            "- EVERY prompt MUST end with 'navy blue and vibrant orange color grading, cinematic lighting, 8k resolution'\n"
+            "- EVERY prompt MUST end with 'bright white and light gray studio background, cinematic lighting, 8k resolution'\n"
             "- Category tags MUST NOT repeat in adjacent scenes\n"
             "- Use at least 3 different categories across 5 scenes\n"
             "- Composition should avoid center-bottom (mascot zone) and 60-75% vertical (subtitle zone)\n"
             "- Each prompt must be COMPLETELY unique — no two should describe similar imagery\n"
-            "- The global_style_suffix should be: 'navy blue and vibrant orange color grading, cinematic lighting, 8k resolution'\n"
+            "- The global_style_suffix should be: 'bright white and light gray studio background, cinematic lighting, 8k resolution'\n"
         )
 
         user_prompt = f"Here are the 5 scenes to generate visual prompts for:\n{scenes_text}"

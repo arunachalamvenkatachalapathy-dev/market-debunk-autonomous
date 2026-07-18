@@ -210,7 +210,7 @@ def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
             
     # Absolute final fallback if Pollinations is completely dead
     logger.critical(f"Visual generator completely failed for Scene {scene_index} after {max_retries} retries.")
-    return {"type": "placeholder", "color": "#0f172a", "prompt": visual_prompt}
+    return {"type": "placeholder", "color": "#F4F6F9", "prompt": visual_prompt}
 
 
 def process_scene_assets(tts_client, scene, index, voice_config=None, visual_config=None):

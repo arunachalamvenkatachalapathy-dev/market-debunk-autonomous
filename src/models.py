@@ -73,7 +73,7 @@ class SceneVisualConfig(BaseModel):
     scene_number: int = Field(description="Which scene this config applies to")
     enhanced_prompt: str = Field(
         description="Highly detailed image generation prompt. Include: subject, composition, "
-        "lighting, camera angle, mood. MUST end with 'navy blue and vibrant orange color grading, "
+        "lighting, camera angle, mood. MUST end with 'bright white and light gray studio background, "
         "cinematic lighting, 8k resolution'. Must be unique across all scenes."
     )
     negative_prompt: str = Field(
@@ -93,7 +93,7 @@ class SceneVisualConfig(BaseModel):
 class VisualConfig(BaseModel):
     global_style_suffix: str = Field(
         description="Color grading suffix appended to every prompt. "
-        "Default: 'navy blue and vibrant orange color grading, cinematic lighting, 8k resolution'"
+        "Default: 'bright white and light gray studio background, cinematic lighting, 8k resolution'"
     )
     scenes: list[SceneVisualConfig] = Field(description="Visual config per scene, matching the exact number of scenes in the script")
 
