@@ -136,6 +136,21 @@ def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
     
     image_path = os.path.join(OUTPUT_DIR, f"scene_{scene_index}.jpg")
     
+    # Asset Pool Strategy Check
+    if visual_config_scene and visual_config_scene.get("animation_tag"):
+        tag = visual_config_scene["animation_tag"]
+        import glob
+        import random
+        # Support running from the project root
+        pool_pattern = f"assets/animations/{tag}_*.mp4"
+        available_assets = glob.glob(pool_pattern)
+        if available_assets:
+            selected_asset = random.choice(available_assets)
+            logger.info(f"🎬 ASSET POOL: Selected {selected_asset} for Scene {scene_index} (Tag: {tag})")
+            return {"type": "video", "path": selected_asset}
+        else:
+            logger.warning(f"⚠️ ASSET POOL: No video found for tag '{tag}'. Falling back to AI Image generation.")
+
     # Use PE-enhanced prompt if available
     if visual_config_scene and visual_config_scene.get("enhanced_prompt"):
         styled_prompt = visual_config_scene["enhanced_prompt"]

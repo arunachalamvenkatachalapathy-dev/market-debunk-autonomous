@@ -71,6 +71,9 @@ class VoiceConfig(BaseModel):
 
 class SceneVisualConfig(BaseModel):
     scene_number: int = Field(description="Which scene this config applies to")
+    animation_tag: str = Field(
+        description="Animation tag for Asset Pool Strategy. Must be exactly one of: 'bullish', 'bearish', 'neutral', 'educational'."
+    )
     enhanced_prompt: str = Field(
         description="Highly detailed image generation prompt. Include: subject, composition, "
         "lighting, camera angle, mood. MUST end with 'bright white and light gray studio background, "

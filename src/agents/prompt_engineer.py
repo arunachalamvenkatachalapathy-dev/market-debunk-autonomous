@@ -33,6 +33,8 @@ FRAMEWORK_RULES = (
     "- Mascot Arrow: 'arrow_up' (green) for Setup/Truth, 'arrow_down' (red) for Reveal/Myth.\n"
     "- Visual categories: vaults/security, crowds/markets, paperwork/bureaucracy, "
     "growth/decline, digital/data, hands/decisions. Use 3-4 per video, never same twice in a row.\n"
+    "- Asset Pool Tags: For 'animation_tag', pick EXACTLY one of: 'bullish', 'bearish', 'neutral', 'educational'. "
+    "This must match the emotion of the scene to pull the correct 3D character animation.\n"
     "- Color grade: light slate (#F4F6F9) base, dark accents.\n"
     "- Subtitle safe zone: 60-75% down the 1920px frame.\n"
     "- Audio loudness: -14 LUFS integrated.\n"
