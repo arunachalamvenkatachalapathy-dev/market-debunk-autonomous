@@ -113,8 +113,8 @@ class PromptEngineerAgent:
 
         # Source 1: PR Sundar's YouTube RSS feed
         try:
-            # PR Sundar Channel ID: UCaw-1cUd74wvEatvZna0TzQ
-            rss_url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCaw-1cUd74wvEatvZna0TzQ"
+            # PR Sundar Channel ID: UCS2NdYUmv_PUyyKeDAo5zYA
+            rss_url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCS2NdYUmv_PUyyKeDAo5zYA"
             response = requests.get(rss_url, timeout=10)
             if response.status_code == 200:
                 root = ET.fromstring(response.content)
