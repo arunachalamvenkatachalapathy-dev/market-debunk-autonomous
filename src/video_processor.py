@@ -15,7 +15,7 @@ from src.config import OUTPUT_DIR
 LAYOUT_CONFIG = {
     "subtitle_margin_v": 450,       # Vertical margin from bottom for subtitles (higher number = higher up)
     "mascot_pos_x": "(W-w)/2",      # Mascot X position (default: centered)
-    "mascot_pos_y": "H-h-600",      # Mascot Y position (default: comfortably above subtitles)
+    "mascot_pos_y": "300",      # Mascot Y position (default: comfortably above subtitles)
     "mascot_height": 400,           # Mascot overlay height (pixels)
 }
 # ---------------------------------------------------------
@@ -91,7 +91,7 @@ def generate_ass_file(processed_scenes, total_duration, subtitle_style=None, ass
         outline_color = "&H00000000"
         outline_width = 8
         shadow_depth = 0
-        margin_v = 960 # Dead center vertically (1920/2)
+        margin_v = LAYOUT_CONFIG["subtitle_margin_v"] # Safe zone margin from bottom
         alignment = 5  # Middle center alignment
     else:
         font_name = subtitle_style.get("font_name", "Arial Black")
@@ -101,7 +101,7 @@ def generate_ass_file(processed_scenes, total_duration, subtitle_style=None, ass
         outline_color = subtitle_style.get("outline_color", "&H00000000")
         outline_width = 8
         shadow_depth = 0
-        margin_v = 960
+        margin_v = subtitle_style.get("margin_v", LAYOUT_CONFIG["subtitle_margin_v"])
         alignment = 5
         logger.info(f"📝 Using Hormozi-style subtitle overrides: {font_name} {font_size}pt, MarginV={margin_v}")
 
@@ -422,10 +422,10 @@ def assemble_final_video(processed_scenes, subtitle_style=None, assembly_config=
         input_count += 1
         
         next_v = f"v{input_idx}"
-        y_expr = f"{pos_y}+15*sin(t*5)" # Bobbing animation
+        # No bobbing animation, just straight cut per framework document
         filter_chains.append(
             f"[{input_idx}:v]format=rgba,scale=-1:400[m_{input_idx}];"
-            f"[{last_v}][m_{input_idx}]overlay={pos_x}:'{y_expr}':"
+            f"[{last_v}][m_{input_idx}]overlay={pos_x}:{pos_y}:"
             f"enable='between(t,{start_t},{end_t})'[{next_v}]"
         )
         

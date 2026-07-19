@@ -54,36 +54,43 @@ class PromptEngineerAgent:
         """Unified Gemini call with structured output and API key rotation for rate limits."""
         last_error = None
         
-        for client in self.clients:
-            try:
-                response = client.models.generate_content(
-                    model="gemini-3.1-flash-lite",
-                    contents=[system_prompt, user_prompt],
-                    config=types.GenerateContentConfig(
-                        response_mime_type="application/json",
-                        response_schema=response_schema,
-                        temperature=temperature
-                    ),
-                )
+        import time
+        max_retries = 3
+        for attempt in range(max_retries):
+            for client in self.clients:
+                try:
+                    response = client.models.generate_content(
+                        model="gemini-3.1-flash-lite",
+                        contents=[system_prompt, user_prompt],
+                        config=types.GenerateContentConfig(
+                            response_mime_type="application/json",
+                            response_schema=response_schema,
+                            temperature=temperature
+                        ),
+                    )
 
-                if hasattr(response, "parsed") and response.parsed:
-                    data = response.parsed
-                    if hasattr(data, "model_dump"):
-                        return data.model_dump()
-                    return data
+                    if hasattr(response, "parsed") and response.parsed:
+                        data = response.parsed
+                        if hasattr(data, "model_dump"):
+                            return data.model_dump()
+                        return data
 
-                return json.loads(response.text)
+                    return json.loads(response.text)
+                    
+                except Exception as e:
+                    err_str = str(e).upper()
+                    if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
+                        logger.warning(f"Prompt Engineer hit Rate Limit (429). Rotating to next API key... ({len(self.clients)} total keys)")
+                        last_error = e
+                        continue
+                    logger.error(f"Prompt Engineer Gemini call failed: {e}")
+                    raise
+            
+            if attempt < max_retries - 1:
+                logger.warning(f"All available Gemini API keys exhausted (429). Waiting 35 seconds before retry {attempt + 1}/{max_retries}...")
+                time.sleep(35)
                 
-            except Exception as e:
-                err_str = str(e).upper()
-                if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
-                    logger.warning(f"Prompt Engineer hit Rate Limit (429). Rotating to next API key... ({len(self.clients)} total keys)")
-                    last_error = e
-                    continue
-                logger.error(f"Prompt Engineer Gemini call failed: {e}")
-                raise
-                
-        logger.error("All available Gemini API keys have exhausted their rate limits (429).")
+        logger.error("All available Gemini API keys have exhausted their rate limits (429) after retries.")
         raise last_error
 
     # ──────────────────────────────────────────────

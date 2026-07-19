@@ -89,11 +89,20 @@ def generate_scene_voice(tts_client, text, scene_index, voice_config_scene=None,
     
     try:
         logger.info(f"Synthesizing voice for Scene {scene_index} (Arrow: {arrow_state}) using {voice_name} at +30% speed...")
-        # We capture the JSON metadata stream from edge-tts
-        result = subprocess.run(
-            ["python", "-m", "edge_tts", "--voice", voice_name, "--rate", "+30%", "--text", text, "--write-media", audio_path],
-            capture_output=True, text=True, check=True
-        )
+        import time
+        max_retries = 3
+        for attempt in range(1, max_retries + 1):
+            try:
+                result = subprocess.run(
+                    ["python", "-m", "edge_tts", "--voice", voice_name, "--rate", "+30%", "--text", text, "--write-media", audio_path],
+                    capture_output=True, text=True, check=True
+                )
+                break
+            except subprocess.CalledProcessError as e:
+                logger.warning(f"edge-tts attempt {attempt} failed: {e.stderr}")
+                if attempt == max_retries:
+                    raise RuntimeError(f"Text-to-Speech synthesis failed: {e.stderr}")
+                time.sleep(2)
         
         # Parse the JSON metadata for word boundaries
         word_timings = []
@@ -120,9 +129,9 @@ def generate_scene_voice(tts_client, text, scene_index, voice_config_scene=None,
         logger.info(f"Generated voice track for Scene {scene_index}.")
         return audio_path, word_timings
         
-    except subprocess.CalledProcessError as e:
-        logger.error(f"edge-tts failed: {e.stderr}")
-        raise RuntimeError(f"Text-to-Speech synthesis failed: {e.stderr}")
+    except RuntimeError as e:
+        logger.error(str(e))
+        raise
 
 def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
     """

@@ -600,6 +600,19 @@ class EvaluatorAgent:
         return True, "Publish metadata valid", details
 
     # ──────────────────────────────────────────────
+    #  GATE 9: VISUAL INSPECTOR
+    # ──────────────────────────────────────────────
+
+    def gate_inspector(self, inspection_result):
+        """
+        Logs the result of the physical visual inspection by the InspectorAgent.
+        🔴 HARD GATE — blocks pipeline on failure.
+        """
+        logger.info("🚦 Evaluator [GATE_INSPECTOR]: Validating layout inspection...")
+        passed, reason, details = inspection_result
+        return passed, reason, details
+
+    # ──────────────────────────────────────────────
     #  LEGACY METHODS (backward compat)
     # ──────────────────────────────────────────────
 

@@ -41,7 +41,7 @@ class EvaluatorReport:
 
     def all_hard_gates_passed(self) -> bool:
         """Check if all hard gates (non-soft) passed."""
-        hard_gates = ["topic", "script", "voice", "visuals", "mascot", "assembly"]
+        hard_gates = ["topic", "script", "voice", "visuals", "mascot", "assembly", "inspector"]
         for gate in hard_gates:
             if gate in self.gates and not self.gates[gate]["passed"]:
                 return False

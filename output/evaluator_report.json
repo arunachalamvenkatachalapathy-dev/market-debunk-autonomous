@@ -1,42 +1,44 @@
 {
-  "timestamp": "2026-07-16T09:37:09.538783+00:00",
-  "topic": "ICICI Prudential Life Insurance to focus on growing absolute VNB amid slump in FY24 - <img src=\"https://www.moneycontrol.com/news_image_files/2023/200x200/I/ICICI-Prudential-life_200.jpg\" alt=\"ICICI Prudential Life Insurance to focus on growing absolute VNB amid slump in FY24\" title=\"ICICI Prudential Life Insurance to focus on growing absolute VNB amid slump in FY24\" border=\"0\" width=\"75\" height=\"75\" align=\" left\" hspace=\"5\"/> In its Q4FY24 results, the company#39;s VNB fell 19.45 percent to Rs 2,227 crore for FY24",
+  "timestamp": "2026-07-19T06:13:45.411006+00:00",
+  "topic": "PR Sundar latest analysis on: Good days ahead for OPTIONS TRADERS? (Video URL: https://www.youtube.com/watch?v=O_1xaPRUuys)",
   "gates": {
     "topic": {
       "passed": true,
       "reason": "Topic is fresh and valid",
       "details": {
-        "word_count": 67,
+        "word_count": 14,
         "status": "fresh"
       },
-      "timestamp": "2026-07-16T09:37:10.041701+00:00"
+      "timestamp": "2026-07-19T06:13:45.536466+00:00"
     },
     "script": {
       "passed": true,
       "reason": "Script passes all framework rules",
       "details": {
-        "scene_count": 5,
-        "hook_word_count": 6,
+        "scene_count": 7,
+        "hook_word_count": 8,
         "categories": [
           "digital",
-          "paperwork",
-          "hands",
           "crowds",
-          "growth"
+          "growth",
+          "paperwork",
+          "vaults",
+          "digital",
+          "hands"
         ],
-        "unique_categories": 5,
-        "word_count": 91,
-        "est_runtime": 36.4
+        "unique_categories": 6,
+        "word_count": 117,
+        "est_runtime": 46.8
       },
-      "timestamp": "2026-07-16T09:37:15.289570+00:00"
+      "timestamp": "2026-07-19T06:13:49.218060+00:00"
     },
     "voice_engineering": {
       "passed": true,
       "reason": "Voice config valid",
       "details": {
-        "scene_count": 5
+        "scene_count": 7
       },
-      "timestamp": "2026-07-16T09:37:17.727165+00:00"
+      "timestamp": "2026-07-19T06:13:51.851519+00:00"
     },
     "visual_engineering": {
       "passed": true,
@@ -44,43 +46,49 @@
       "details": {
         "categories": [
           "digital",
-          "paperwork",
-          "hands",
           "crowds",
-          "growth"
+          "growth",
+          "paperwork",
+          "vaults",
+          "digital",
+          "hands"
         ]
       },
-      "timestamp": "2026-07-16T09:37:20.583736+00:00"
+      "timestamp": "2026-07-19T06:13:55.643562+00:00"
     },
     "voice": {
       "passed": true,
-      "reason": "Voice output valid — total 39.5s",
+      "reason": "Voice output valid — total 41.6s",
       "details": {
         "scene_durations": [
-          3.36,
-          9.17,
-          8.88,
-          9.14,
-          8.95
+          3.38,
+          4.34,
+          6.48,
+          5.5,
+          7.9,
+          5.54,
+          8.45
         ],
-        "total_duration": 39.5
+        "total_duration": 41.59
       },
-      "timestamp": "2026-07-16T09:40:40.200014+00:00"
+      "timestamp": "2026-07-19T06:14:06.614082+00:00"
     },
     "visuals": {
       "passed": true,
       "reason": "All visual assets valid and unique",
       "details": {
         "file_sizes": [
-          72577,
-          88431,
-          58069,
-          62924,
-          71521
+          22618,
+          22618,
+          22618,
+          22618,
+          22618,
+          22618,
+          22618
         ],
-        "min_hash_distance": 21
+        "min_hash_distance": Infinity
       },
-      "timestamp": "2026-07-16T09:40:40.390875+00:00"
+      "timestamp": "2026-07-19T06:14:06.726262+00:00"
     },
     "mascot": {
       "passed": true,
@@ -88,16 +96,16 @@
       "details": {
         "fallback": true
       },
-      "timestamp": "2026-07-16T09:40:47.184396+00:00"
+      "timestamp": "2026-07-19T06:14:14.275903+00:00"
     },
     "subtitle_style": {
       "passed": true,
       "reason": "Subtitle style valid",
       "details": {
-        "margin_v": 450,
+        "margin_v": 480,
         "font_size": 85
       },
-      "timestamp": "2026-07-16T09:40:48.367561+00:00"
+      "timestamp": "2026-07-19T06:14:15.533961+00:00"
     },
     "assembly_config": {
       "passed": true,
@@ -108,44 +116,53 @@
         "fps": 30,
         "logo_width": 150
       },
-      "timestamp": "2026-07-16T09:40:49.938383+00:00"
+      "timestamp": "2026-07-19T06:14:16.643344+00:00"
     },
     "assembly": {
       "passed": true,
       "reason": "Final video passes all assembly checks",
       "details": {
-        "file_size_mb": 8.19,
-        "video_duration": 39.6,
-        "duration_diff": 0.1,
+        "file_size_mb": 1.33,
+        "video_duration": 41.6,
+        "duration_diff": 0.01,
         "resolution": "1080x1920",
         "video_codec": "h264",
         "audio_codec": "aac"
       },
-      "timestamp": "2026-07-16T09:41:55.059730+00:00"
+      "timestamp": "2026-07-19T06:14:42.092534+00:00"
     },
     "subtitles": {
       "passed": true,
-      "reason": "Subtitles valid — 91 events",
+      "reason": "Subtitles valid — 117 events",
       "details": {
-        "file_size": 9676,
-        "dialogue_count": 91
+        "file_size": 12353,
+        "dialogue_count": 117
       },
-      "timestamp": "2026-07-16T09:41:55.060414+00:00"
+      "timestamp": "2026-07-19T06:14:42.093393+00:00"
+    },
+    "inspector": {
+      "passed": true,
+      "reason": "Layout orientation demands verified successfully.",
+      "details": {
+        "mascot_in_top_half": true,
+        "subtitles_below_mascot": true
+      },
+      "timestamp": "2026-07-19T06:14:44.680813+00:00"
     },
     "publish_metadata": {
       "passed": true,
       "reason": "Publish metadata valid",
       "details": {
         "title_count": 3,
-        "tag_count": 11,
-        "telegram_len": 168,
-        "instagram_len": 428
+        "tag_count": 13,
+        "telegram_len": 229,
+        "instagram_len": 505
       },
-      "timestamp": "2026-07-16T09:41:57.488285+00:00"
+      "timestamp": "2026-07-19T06:14:47.074215+00:00"
     }
   },
   "recommendation": "PUBLISH",
-  "total_gates": 12,
-  "passed_gates": 12,
+  "total_gates": 13,
+  "passed_gates": 13,
   "failed_gates": 0
 }

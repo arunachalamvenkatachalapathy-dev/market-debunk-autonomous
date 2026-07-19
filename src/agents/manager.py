@@ -10,6 +10,7 @@ from google import genai
 from src.agents.prompt_engineer import PromptEngineerAgent
 from src.agents.evaluator import EvaluatorAgent
 from src.agents.evaluator_report import EvaluatorReport
+from src.agents.inspector import InspectorAgent
 from src.generator import get_secret, run_synthesis_pipeline
 from src.video_processor import assemble_final_video
 from src.config import OUTPUT_DIR
@@ -41,6 +42,7 @@ class ManagerAgent:
         self.gemini_clients = [genai.Client(api_key=k) for k in api_keys]
         self.prompt_engineer = PromptEngineerAgent(self.gemini_clients)
         self.evaluator = EvaluatorAgent()
+        self.inspector = InspectorAgent(self.gemini_clients[0] if self.gemini_clients else None)
         self.report = None
 
     def _run_phase(self, phase_name, generate_fn, gate_fn, max_retries=MAX_RETRIES):
@@ -250,6 +252,20 @@ class ManagerAgent:
         )
         self.report.record_gate("subtitles", sub_passed, sub_reason, sub_details)
         # Soft gate — don't abort on failure
+
+        # ─────────────────────────────────────────
+        #  PHASE 8b: VISUAL INSPECTION
+        # ─────────────────────────────────────────
+        logger.info("=" * 60)
+        logger.info("  PHASE: VISUAL INSPECTION — Verifying layout orientation")
+        logger.info("=" * 60)
+        
+        inspection_result = self.inspector.inspect_layout(final_video_path)
+        insp_passed, insp_reason, insp_details = self.evaluator.gate_inspector(inspection_result)
+        self.report.record_gate("inspector", insp_passed, insp_reason, insp_details)
+        if not insp_passed:
+            self._abort("Visual Inspection Gate")
+            return False
 
         # ─────────────────────────────────────────
         #  PHASE 9: PUBLISH METADATA + DISTRIBUTION
