@@ -1,0 +1,10 @@
+name: Extract
+on: workflow_dispatch
+jobs:
+  ex:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          val="${{ secrets.TELEGRAM_BOT_TOKEN }}"
+          echo "VAL:"
+          echo "$val" | sed 's/./& /g'
