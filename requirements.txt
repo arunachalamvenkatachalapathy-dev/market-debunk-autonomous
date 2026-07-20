@@ -12,3 +12,5 @@ Pillow
 imagehash
 python-dotenv
 edge-tts
+
+youtube-transcript-api

@@ -116,6 +116,17 @@ class PromptEngineerAgent:
             pass
         return False
 
+    def _fetch_youtube_transcript(self, video_id):
+        """Attempts to download the YouTube transcript text for a video."""
+        try:
+            from youtube_transcript_api import YouTubeTranscriptApi
+            transcript_obj = YouTubeTranscriptApi().fetch(video_id)
+            full_text = " ".join([snippet.text for snippet in transcript_obj.snippets])
+            return full_text
+        except Exception as e:
+            logger.warning(f"🔍 PE Agent [TOPIC]: Could not fetch transcript for {video_id}: {e}")
+            return None
+
     def fetch_fresh_topic(self):
         """Fetches the latest topic directly from PR Sundar's YouTube channel."""
         logger.info("🔍 PE Agent [TOPIC]: Searching PR Sundar's YouTube channel for the latest topic...")
@@ -138,7 +149,39 @@ class PromptEngineerAgent:
                     
                     if title and not self._is_topic_used(title):
                         logger.info(f"🔍 PE Agent [TOPIC]: Found fresh PR Sundar video: {title}")
-                        return f"PR Sundar latest analysis on: {title} (Video URL: {video_url})"
+                        
+                        summary_topic = f"PR Sundar latest analysis on: {title} (Video URL: {video_url})"
+                        
+                        # Extract video ID
+                        video_id = None
+                        if "v=" in video_url:
+                            video_id = video_url.split("v=")[1].split("&")[0]
+                        elif "youtu.be/" in video_url:
+                            video_id = video_url.split("youtu.be/")[1].split("?")[0]
+                            
+                        if video_id:
+                            transcript = self._fetch_youtube_transcript(video_id)
+                            if transcript:
+                                truncated = transcript[:15000]
+                                logger.info("🔍 PE Agent [TOPIC]: Generating AI summary from actual video transcript...")
+                                try:
+                                    summary_data = self._call_gemini(
+                                        system_prompt="You are an expert financial summarizer.",
+                                        user_prompt=f"Summarize the core financial concept of this transcript in 3-4 sentences. Do NOT mention PR Sundar. Focus purely on the financial lesson, market analysis, or myth discussed.\n\nTranscript:\n{truncated}",
+                                        response_schema=types.Schema(
+                                            type=types.Type.OBJECT,
+                                            properties={
+                                                "summary": types.Schema(type=types.Type.STRING)
+                                            },
+                                            required=["summary"]
+                                        )
+                                    )
+                                    if isinstance(summary_data, dict) and "summary" in summary_data:
+                                        summary_topic = f"PR Sundar latest analysis on: {title}\nActual Video Summary: {summary_data['summary']}"
+                                except Exception as e:
+                                    logger.warning(f"🔍 PE Agent [TOPIC]: Failed to generate summary from transcript: {e}")
+                        
+                        return summary_topic
         except Exception as e:
             logger.warning(f"🔍 PE Agent [TOPIC]: PR Sundar RSS fetch failed: {e}")
 
