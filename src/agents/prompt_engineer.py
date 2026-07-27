@@ -196,9 +196,35 @@ class PromptEngineerAgent:
             "Do penny stocks actually make you rich or just broke?",
             "Is gold really a hedge against inflation in 2026?",
             "Can you beat the market by following stock tips on social media?",
+            "Is real estate still the best investment for the middle class in India?",
+            "Why do 90% of retail day traders lose money in Options trading?",
+            "Are index funds actually better than actively managed mutual funds?",
+            "Is it better to rent or buy a house in a major metro city today?",
+            "Does buying the dip always work in a bear market?",
+            "Are electric vehicle (EV) stocks a guaranteed multibagger for the next decade?",
+            "Is cryptocurrency a legitimate alternative to traditional banking?",
+            "Why IPOs are often a trap for retail investors?",
+            "Does a high P/E ratio always mean a stock is overvalued?",
+            "Are government bonds a waste of time for young investors?",
+            "Why relying solely on dividend income for retirement is dangerous?",
+            "Is technical analysis just astrology for men, or does it actually work?",
+            "Can algorithmic trading really guarantee consistent profits?",
+            "Why dollar-cost averaging is mathematically inferior but psychologically superior?",
+            "Are credit cards designed to keep you poor?",
+            "Is a 15% annual return realistically sustainable over 20 years?",
+            "Why following billionaire investment portfolios is a terrible idea for you?",
+            "Does a stock split actually change the fundamental value of a company?",
+            "Are fixed deposits slowly destroying your purchasing power?",
+            "Is it possible to time the market bottoms perfectly?"
         ]
         import random
-        return random.choice(fallback_topics)
+        # Filter out topics that have already been used
+        unused_topics = [t for t in fallback_topics if not self._is_topic_used(t)]
+        if unused_topics:
+            return random.choice(unused_topics)
+        else:
+            logger.warning("🔍 PE Agent [TOPIC]: All fallback topics used! Picking purely random to survive.")
+            return random.choice(fallback_topics)
 
     # ──────────────────────────────────────────────
     #  SECTION 2: SCRIPT GENERATION
