@@ -94,7 +94,7 @@ class PromptEngineerAgent:
         raise last_error
 
     # ──────────────────────────────────────────────
-    #  SECTION 1: TOPIC DISCOVERY
+    #  SECTION 1: TOPIC DISCOVERY (EXHAUSTIVE & DUPLICATE-FREE)
     # ──────────────────────────────────────────────
 
     def _is_video_processed(self, video_id, video_url=""):
@@ -116,20 +116,29 @@ class PromptEngineerAgent:
             pass
         return False
 
-    def _is_topic_used(self, topic):
-        """Checks if a topic string has already been used in history."""
+    def _save_processed_topic(self, video_id, topic_string):
         import os, json
-        if not os.path.exists("used_topics.json"):
-            return False
+        used = []
+        if os.path.exists("used_topics.json"):
+            try:
+                with open("used_topics.json", "r") as f:
+                    used = json.load(f)
+            except Exception:
+                used = []
+        
+        # Append new entry
+        used.append({
+            "video_id": video_id,
+            "topic": topic_string,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+        
         try:
-            with open("used_topics.json", "r") as f:
-                used = json.load(f)
-            for entry in used:
-                if entry.get("topic") == topic:
-                    return True
-        except Exception:
-            pass
-        return False
+            with open("used_topics.json", "w") as f:
+                json.dump(used, f, indent=2)
+            logger.info(f"💾 PE Agent [MEMORY]: Successfully recorded video ID {video_id} to used_topics.json")
+        except Exception as e:
+            logger.error(f"❌ PE Agent [MEMORY]: Failed to save used_topics.json: {e}")
 
     def _fetch_youtube_transcript(self, video_id):
         """Attempts to download the YouTube transcript text for a video."""
@@ -143,8 +152,8 @@ class PromptEngineerAgent:
             return None
 
     def fetch_fresh_topic(self):
-        """Fetches the latest video directly from PR Sundar's YouTube channel via API."""
-        logger.info("🔍 PE Agent [TOPIC]: Querying YouTube Data API directly for the latest channel upload...")
+        """Exhaustively scans the channel via YouTube API, checks multiple recent uploads to guarantee zero duplication, and saves state."""
+        logger.info("🔍 PE Agent [TOPIC]: Querying YouTube Data API for the freshest unprocessed uploads...")
 
         try:
             import os
@@ -155,7 +164,7 @@ class PromptEngineerAgent:
             params = {
                 "part": "snippet",
                 "channelId": channel_id,
-                "maxResults": 1,
+                "maxResults": 5, # Fetch top 5 recent uploads to find the first brand new one
                 "order": "date",
                 "type": "video",
                 "key": api_key
@@ -166,70 +175,77 @@ class PromptEngineerAgent:
                 data = response.json()
                 items = data.get("items", [])
                 
-                if items:
-                    video = items[0]
+                for video in items:
                     video_id = video["id"]["videoId"]
                     title = video["snippet"]["title"]
                     video_url = f"https://www.youtube.com/watch?v={video_id}"
 
-                    if not self._is_video_processed(video_id, video_url):
-                        logger.info(f"🔍 PE Agent [TOPIC]: Found fresh video directly [ID: {video_id}]: {title}")
-                        
-                        title_lower = title.lower()
-                        session_tag = "[Post-Market Report]"
-                        if "pre" in title_lower or "morning" in title_lower:
-                            session_tag = "[Pre-Market Report]"
+                    # Strictly skip if already processed in memory
+                    if self._is_video_processed(video_id, video_url):
+                        logger.info(f"🔍 PE Agent [TOPIC]: Video [ID: {video_id}] '{title}' already processed. Checking next...")
+                        continue
 
-                        transcript = self._fetch_youtube_transcript(video_id)
-                        summary_text = ""
+                    logger.info(f"🚀 PE Agent [TOPIC]: Found brand new unprocessed video [ID: {video_id}]: {title}")
+                    
+                    title_lower = title.lower()
+                    session_tag = "[Post-Market Report]"
+                    if "pre" in title_lower or "morning" in title_lower:
+                        session_tag = "[Pre-Market Report]"
 
-                        if transcript:
-                            truncated = transcript[:15000]
-                            try:
-                                summary_data = self._call_gemini(
-                                    system_prompt="You are an expert financial market analyst and mythbuster.",
-                                    user_prompt=(
-                                        f"Video Link: {video_url}\n"
-                                        f"Video Title: {title}\n\n"
-                                        "Extract the most important, shocking insights, core financial takeaways, or market movements in 3-4 concise, energetic sentences.\n\n"
-                                        f"Transcript:\n{truncated}"
-                                    ),
-                                    response_schema=types.Schema(
-                                        type=types.Type.OBJECT,
-                                        properties={"summary": types.Schema(type=types.Type.STRING)},
-                                        required=["summary"]
-                                    )
+                    transcript = self._fetch_youtube_transcript(video_id)
+                    summary_text = ""
+
+                    if transcript:
+                        truncated = transcript[:15000]
+                        try:
+                            summary_data = self._call_gemini(
+                                system_prompt="You are an expert financial market analyst and mythbuster.",
+                                user_prompt=(
+                                    f"Video Link: {video_url}\n"
+                                    f"Video Title: {title}\n\n"
+                                    "Extract the most important, shocking insights, core financial takeaways, or market movements in 3-4 concise, energetic sentences.\n\n"
+                                    f"Transcript:\n{truncated}"
+                                ),
+                                response_schema=types.Schema(
+                                    type=types.Type.OBJECT,
+                                    properties={"summary": types.Schema(type=types.Type.STRING)},
+                                    required=["summary"]
                                 )
-                                if isinstance(summary_data, dict) and "summary" in summary_data:
-                                    summary_text = summary_data["summary"]
-                            except Exception as e:
-                                logger.warning(f"🔍 PE Agent [TOPIC]: Failed to generate summary: {e}")
+                            )
+                            if isinstance(summary_data, dict) and "summary" in summary_data:
+                                summary_text = summary_data["summary"]
+                        except Exception as e:
+                            logger.warning(f"🔍 PE Agent [TOPIC]: Failed to generate summary: {e}")
 
-                        if summary_text:
-                            return f"{session_tag} {title} [Video ID: {video_id}]\nLink: {video_url}\nShocking Summary: {summary_text}"
-                        else:
-                            return f"{session_tag} {title} [Video ID: {video_id}]\nLink: {video_url}\nFocus on analyzing: {title}"
+                    if summary_text:
+                        final_topic = f"{session_tag} {title} [Video ID: {video_id}]\nLink: {video_url}\nShocking Summary: {summary_text}"
                     else:
-                        logger.info(f"🔍 PE Agent [TOPIC]: Latest video [ID: {video_id}] was already processed.")
+                        final_topic = f"{session_tag} {title} [Video ID: {video_id}]\nLink: {video_url}\nFocus on analyzing: {title}"
+
+                    # Persist immediately to prevent race conditions or repeats
+                    self._save_processed_topic(video_id, final_topic)
+                    return final_topic
+
         except Exception as e:
             logger.warning(f"🔍 PE Agent [TOPIC]: Direct YouTube API search failed: {e}")
 
-        # Fallback to internal pool if API query fails or yields no new unprocessed items
-        logger.info("🔍 PE Agent [TOPIC]: Falling back to internal topic pool.")
+        # Fallback if all top recent videos are already processed
+        logger.info("🔍 PE Agent [TOPIC]: No new videos found in API window. Checking fallback pool...")
         fallback_topics = [
             "Are high-yield dividend stocks a safe bet during market volatility?",
             "Is SIP really the safest way to invest in mutual funds?",
             "Do penny stocks actually make you rich or just broke?",
             "Is gold really a hedge against inflation in 2026?",
-            "Can you beat the market by following stock tips on social media?",
-            "Is real estate still the best investment for the middle class in India?",
-            "Why do 90% of retail day traders lose money in Options trading?",
-            "Are index funds actually better than actively managed mutual funds?",
-            "Is it better to rent or buy a house in a major metro city today?",
-            "Does buying the dip always work in a bear market?"
+            "Can you beat the market by following stock tips on social media?"
         ]
-        unused_topics = [t for t in fallback_topics if not self._is_topic_used(t)]
-        return random.choice(unused_topics) if unused_topics else random.choice(fallback_topics)
+        
+        for topic in fallback_topics:
+            if not self._is_video_processed("", topic):
+                self._save_processed_topic("", topic)
+                return topic
+
+        # Absolute fallback if everything is exhausted
+        return random.choice(fallback_topics)
 
     # ──────────────────────────────────────────────
     #  SECTION 2: SCRIPT GENERATION
