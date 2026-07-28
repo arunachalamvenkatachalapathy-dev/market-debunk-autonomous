@@ -105,13 +105,27 @@ class PromptEngineerAgent:
             with open("used_topics.json", "r") as f:
                 used = json.load(f)
             for entry in used:
-                # Check video_id or video_url if saved in history
                 if video_id and entry.get("video_id") == video_id:
                     return True
                 topic_str = entry.get("topic", "")
                 if video_id and video_id in topic_str:
                     return True
                 if video_url and video_url in topic_str:
+                    return True
+        except Exception:
+            pass
+        return False
+
+    def _is_topic_used(self, topic):
+        """Checks if a topic string has already been used in history."""
+        import os, json
+        if not os.path.exists("used_topics.json"):
+            return False
+        try:
+            with open("used_topics.json", "r") as f:
+                used = json.load(f)
+            for entry in used:
+                if entry.get("topic") == topic:
                     return True
         except Exception:
             pass
@@ -134,28 +148,24 @@ class PromptEngineerAgent:
 
         # Source 1: PR Sundar's YouTube RSS feed
         try:
-            # PR Sundar Channel ID: UCS2NdYUmv_PUyyKeDAo5zYA
             rss_url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCS2NdYUmv_PUyyKeDAo5zYA"
             response = requests.get(rss_url, timeout=10)
             if response.status_code == 200:
                 root = ET.fromstring(response.content)
-                # YouTube RSS uses a default namespace
                 ns = {'yt': 'http://www.youtube.com/xml/schemas/2015', 'default': 'http://www.w3.org/2005/Atom'}
                 entries = root.findall("default:entry", ns)
                 
-                for entry in entries[:5]:  # Check top 5 latest videos
+                for entry in entries[:5]:
                     title = entry.findtext("default:title", namespaces=ns) or ""
                     link = entry.find("default:link", namespaces=ns)
                     video_url = link.attrib['href'] if link is not None else ""
                     
-                    # Extract video ID from URL
                     video_id = None
                     if "v=" in video_url:
                         video_id = video_url.split("v=")[1].split("&")[0]
                     elif "youtu.be/" in video_url:
                         video_id = video_url.split("youtu.be/")[1].split("?")[0]
 
-                    # Check by unique Video ID rather than title string (since titles repeat daily)
                     if not self._is_video_processed(video_id, video_url):
                         logger.info(f"🔍 PE Agent [TOPIC]: Found fresh PR Sundar video [ID: {video_id}]: {title}")
                         
@@ -199,9 +209,6 @@ class PromptEngineerAgent:
         except Exception as e:
             logger.warning(f"🔍 PE Agent [TOPIC]: PR Sundar RSS fetch failed: {e}")
 
-        # Source 2: Reddit scraping would go here (requires API keys)
-        # Source 3: Google Trends would go here
-
         # Fallback: static trending topic
         logger.info("🔍 PE Agent [TOPIC]: Falling back to internal topic pool.")
         fallback_topics = [
@@ -232,7 +239,6 @@ class PromptEngineerAgent:
             "Is it possible to time the market bottoms perfectly?"
         ]
         import random
-        # Filter out topics that have already been used
         unused_topics = [t for t in fallback_topics if not self._is_topic_used(t)]
         if unused_topics:
             return random.choice(unused_topics)
@@ -358,103 +364,9 @@ class PromptEngineerAgent:
     # ──────────────────────────────────────────────
 
     def engineer_subtitle_style(self, script):
-        """Engineers the ASS subtitle style parameters for optimal readability."""
+        """Engineers subtitle parameters for optimal readability."""
         logger.info("📝 PE Agent [SUBTITLES]: Engineering subtitle style...")
-
+        
         system_prompt = (
             FRAMEWORK_RULES +
-            "\nYour task: Engineer the SUBTITLE STYLE for the video.\n"
-            "Generate ASS subtitle format parameters:\n"
-            "- font_name: 'DejaVu Sans' or 'Arial Black' (bold sans-serif)\n"
-            "- font_size: 80-90 for 1080x1920 resolution\n"
-            "- primary_color: Use ASS hex format. Yellow '&H0000FFFF' or White '&H00FFFFFF'\n"
-            "- emphasis_color: Orange '&H000080FF' for CAPS words\n"
-            "- outline_color: Black '&H00000000'\n"
-            "- outline_width: 5-7 for readability\n"
-            "- shadow_depth: 2-4\n"
-            "- margin_v: MUST be 400-550 (places text at 60-75% down on 1920px frame)\n"
-            "- alignment: 2 (bottom-center)\n"
-        )
-
-        user_prompt = (
-            "Generate the optimal subtitle style for a finance mythbusting Short. "
-            "The video has dark navy backgrounds with orange accents. "
-            "Subtitles must be readable against busy AI-generated backgrounds."
-        )
-        return self._call_gemini(system_prompt, user_prompt, SubtitleStyle, temperature=0.3)
-
-    # ──────────────────────────────────────────────
-    #  SECTION 7: ASSEMBLY CONFIG ENGINEERING
-    # ──────────────────────────────────────────────
-
-    def engineer_assembly_config(self, script, processed_scenes=None):
-        """Engineers FFmpeg assembly parameters for the final render."""
-        logger.info("🎬 PE Agent [ASSEMBLY]: Engineering assembly config...")
-
-        scene_count = len(script.get("scenes", []))
-
-        system_prompt = (
-            FRAMEWORK_RULES +
-            "\nYour task: Engineer the ASSEMBLY CONFIG for the FFmpeg final render.\n"
-            "Generate optimal parameters:\n"
-            "- ken_burns_zoom_rate: 0.0003-0.0008 (subtle to dramatic zoom)\n"
-            "- loudness_target_i: MUST be -14 (LUFS)\n"
-            "- loudness_lra: 11 (loudness range)\n"
-            "- loudness_tp: -1.5 (true peak)\n"
-            "- logo_scale_width: 120-180 pixels\n"
-            "- logo_padding: 30 pixels from top-right\n"
-            "- suspense_bed_volume: 0.10-0.20 (ducked under voiceover)\n"
-            "- output_fps: 25 or 30\n"
-            "- output_codec: 'libx264'\n"
-            "- audio_codec: 'aac'\n"
-        )
-
-        user_prompt = (
-            f"Generate assembly config for a {scene_count}-scene finance Short. "
-            "The video needs dramatic but not distracting Ken Burns motion, "
-            "loud and punchy audio for mobile speakers, and a subtle background music bed."
-        )
-        return self._call_gemini(system_prompt, user_prompt, AssemblyConfig, temperature=0.3)
-
-    # ──────────────────────────────────────────────
-    #  SECTION 8: PUBLISH METADATA ENGINEERING
-    # ──────────────────────────────────────────────
-
-    def engineer_publish_metadata(self, script, topic):
-        """Engineers optimized publishing metadata for YouTube, Telegram, Instagram."""
-        logger.info("📢 PE Agent [PUBLISH]: Engineering publish metadata...")
-
-        system_prompt = (
-            FRAMEWORK_RULES +
-            "\nYour task: Engineer PUBLISHING METADATA for maximum reach.\n"
-            "Generate:\n"
-            "- youtube_titles: Exactly 3 options, each ≤50 chars, include '#Shorts', clickbait-worthy\n"
-            "- youtube_description: Highly engaging, SEO-optimized summary targeting relevant keywords + 5-8 hashtags at the end, max 600 chars, NO citations\n"
-            "- youtube_tags: 5-15 SEO tags including: shorts, finance, market, myth, India\n"
-            "- telegram_caption: SEO-optimized, highly engaging caption with emojis + 3-5 hashtags, max 250 chars\n"
-            "- instagram_description: SEO-optimized, highly engaging caption with emojis + 10-15 hashtags, max 600 chars\n"
-            "- category_id: '27' for Education\n"
-            "Rules:\n"
-            "- Titles must trigger curiosity — use questions, contradictions, or surprising claims\n"
-            "- Never use citation language in any metadata\n"
-            "- First YouTube title should be the MOST clickable\n"
-        )
-
-        title = script.get("title", topic)
-        user_prompt = (
-            f"Topic: {topic}\n"
-            f"Script title: {title}\n"
-            f"Script description: {script.get('description', '')}\n"
-            "Generate the publishing metadata."
-        )
-        return self._call_gemini(system_prompt, user_prompt, PublishMetadata)
-
-    # ──────────────────────────────────────────────
-    #  MAIN EXECUTE (backward compat, runs topic + script only)
-    # ──────────────────────────────────────────────
-
-    def execute(self):
-        """Legacy entry point: Find topic -> Write Script -> Return."""
-        topic = self.fetch_fresh_topic()
-        script = self.generate_script(topic)
-        return script, topic
+            "\nYour task: Define the subtit
