@@ -97,26 +97,23 @@ class PromptEngineerAgent:
     #  SECTION 1: TOPIC DISCOVERY
     # ──────────────────────────────────────────────
 
-    def _is_topic_used(self, title):
+    def _is_video_processed(self, video_id, video_url=""):
         import os, json
         if not os.path.exists("used_topics.json"):
             return False
         try:
             with open("used_topics.json", "r") as f:
                 used = json.load(f)
-            title_lower = title.lower().strip()
-            title_words = set(w for w in title_lower.split() if len(w) > 2)
             for entry in used:
-                prev = entry.get("topic", "").lower().strip()
-                if title_lower == prev or (len(title_lower) > 15 and title_lower in prev):
+                # Check video_id or video_url if saved in history
+                if video_id and entry.get("video_id") == video_id:
                     return True
-                prev_words = set(w for w in prev.split() if len(w) > 2)
-                if title_words and prev_words:
-                    intersection = title_words & prev_words
-                    union = title_words | prev_words
-                    if len(intersection) / len(union) >= 0.40:
-                        return True
-        except:
+                topic_str = entry.get("topic", "")
+                if video_id and video_id in topic_str:
+                    return True
+                if video_url and video_url in topic_str:
+                    return True
+        except Exception:
             pass
         return False
 
@@ -146,45 +143,57 @@ class PromptEngineerAgent:
                 ns = {'yt': 'http://www.youtube.com/xml/schemas/2015', 'default': 'http://www.w3.org/2005/Atom'}
                 entries = root.findall("default:entry", ns)
                 
-                for entry in entries[:5]:  # Check top 5 for freshness
-                    title = entry.findtext("default:title", namespaces=ns)
+                for entry in entries[:5]:  # Check top 5 latest videos
+                    title = entry.findtext("default:title", namespaces=ns) or ""
                     link = entry.find("default:link", namespaces=ns)
                     video_url = link.attrib['href'] if link is not None else ""
                     
-                    if title and not self._is_topic_used(title):
-                        logger.info(f"🔍 PE Agent [TOPIC]: Found fresh PR Sundar video: {title}")
+                    # Extract video ID from URL
+                    video_id = None
+                    if "v=" in video_url:
+                        video_id = video_url.split("v=")[1].split("&")[0]
+                    elif "youtu.be/" in video_url:
+                        video_id = video_url.split("youtu.be/")[1].split("?")[0]
+
+                    # Check by unique Video ID rather than title string (since titles repeat daily)
+                    if not self._is_video_processed(video_id, video_url):
+                        logger.info(f"🔍 PE Agent [TOPIC]: Found fresh PR Sundar video [ID: {video_id}]: {title}")
                         
-                        summary_topic = f"PR Sundar latest analysis on: {title} (Video URL: {video_url})"
-                        
-                        # Extract video ID
-                        video_id = None
-                        if "v=" in video_url:
-                            video_id = video_url.split("v=")[1].split("&")[0]
-                        elif "youtu.be/" in video_url:
-                            video_id = video_url.split("youtu.be/")[1].split("?")[0]
-                            
-                        if video_id:
-                            transcript = self._fetch_youtube_transcript(video_id)
-                            if transcript:
-                                truncated = transcript[:15000]
-                                logger.info("🔍 PE Agent [TOPIC]: Generating AI summary from actual video transcript...")
-                                try:
-                                    summary_data = self._call_gemini(
-                                        system_prompt="You are an expert financial summarizer.",
-                                        user_prompt=f"Summarize the core financial concept of this transcript in 3-4 sentences. Do NOT mention PR Sundar. Focus purely on the financial lesson, market analysis, or myth discussed.\n\nTranscript:\n{truncated}",
-                                        response_schema=types.Schema(
-                                            type=types.Type.OBJECT,
-                                            properties={
-                                                "summary": types.Schema(type=types.Type.STRING)
-                                            },
-                                            required=["summary"]
-                                        )
+                        transcript = self._fetch_youtube_transcript(video_id) if video_id else None
+                        summary_text = ""
+
+                        if transcript:
+                            truncated = transcript[:15000]
+                            logger.info("🔍 PE Agent [TOPIC]: Generating AI summary from actual video transcript...")
+                            try:
+                                summary_data = self._call_gemini(
+                                    system_prompt="You are an expert financial market analyst and mythbuster.",
+                                    user_prompt=(
+                                        f"Video Link: {video_url}\n"
+                                        f"Video Title: {title}\n\n"
+                                        "What is the important, shocking summary of today's market analysis from this video?\n"
+                                        "Analyze the following transcript and extract the most important, shocking insights, "
+                                        "core financial takeaways, market movements, or myth-busting points in 3-4 concise, energetic sentences.\n\n"
+                                        f"Transcript:\n{truncated}"
+                                    ),
+                                    response_schema=types.Schema(
+                                        type=types.Type.OBJECT,
+                                        properties={
+                                            "summary": types.Schema(type=types.Type.STRING)
+                                        },
+                                        required=["summary"]
                                     )
-                                    if isinstance(summary_data, dict) and "summary" in summary_data:
-                                        summary_topic = f"PR Sundar latest analysis on: {title}\nActual Video Summary: {summary_data['summary']}"
-                                except Exception as e:
-                                    logger.warning(f"🔍 PE Agent [TOPIC]: Failed to generate summary from transcript: {e}")
-                        
+                                )
+                                if isinstance(summary_data, dict) and "summary" in summary_data:
+                                    summary_text = summary_data["summary"]
+                            except Exception as e:
+                                logger.warning(f"🔍 PE Agent [TOPIC]: Failed to generate summary from transcript: {e}")
+
+                        if summary_text:
+                            summary_topic = f"PR Sundar analysis on {title} [Video ID: {video_id}]\nLink: {video_url}\nShocking Summary Today: {summary_text}"
+                        else:
+                            summary_topic = f"PR Sundar latest market update: {title} [Video ID: {video_id}]\nLink: {video_url}"
+
                         return summary_topic
         except Exception as e:
             logger.warning(f"🔍 PE Agent [TOPIC]: PR Sundar RSS fetch failed: {e}")

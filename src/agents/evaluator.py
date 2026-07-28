@@ -40,8 +40,15 @@ class EvaluatorAgent:
     def _save_used_topic(self, topic):
         """Append a topic to the dedup log."""
         topics = self._load_used_topics()
+        video_id = None
+        if "[Video ID: " in topic:
+            try:
+                video_id = topic.split("[Video ID: ")[1].split("]")[0]
+            except Exception:
+                pass
         topics.append({
             "topic": topic,
+            "video_id": video_id,
             "hash": hashlib.md5(topic.encode()).hexdigest(),
             "timestamp": __import__("datetime").datetime.now().isoformat()
         })
