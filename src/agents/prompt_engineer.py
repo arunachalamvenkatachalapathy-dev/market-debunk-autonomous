@@ -143,10 +143,9 @@ class PromptEngineerAgent:
             return None
 
     def fetch_fresh_topic(self):
-        """Fetches the latest topic directly from PR Sundar's YouTube channel."""
-        logger.info("🔍 PE Agent [TOPIC]: Searching PR Sundar's YouTube channel for the latest topic...")
+        """Fetches the latest unique video from PR Sundar's YouTube channel without repetition."""
+        logger.info("🔍 PE Agent [TOPIC]: Scanning PR Sundar's YouTube channel for fresh unique videos...")
 
-        # Source 1: PR Sundar's YouTube RSS feed
         try:
             rss_url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCS2NdYUmv_PUyyKeDAo5zYA"
             response = requests.get(rss_url, timeout=10)
@@ -155,7 +154,8 @@ class PromptEngineerAgent:
                 ns = {'yt': 'http://www.youtube.com/xml/schemas/2015', 'default': 'http://www.w3.org/2005/Atom'}
                 entries = root.findall("default:entry", ns)
                 
-                for entry in entries[:5]:
+                # Check top recent entries to find the first unprocessed video ID
+                for entry in entries:
                     title = entry.findtext("default:title", namespaces=ns) or ""
                     link = entry.find("default:link", namespaces=ns)
                     video_url = link.attrib['href'] if link is not None else ""
@@ -166,50 +166,62 @@ class PromptEngineerAgent:
                     elif "youtu.be/" in video_url:
                         video_id = video_url.split("youtu.be/")[1].split("?")[0]
 
-                    if not self._is_video_processed(video_id, video_url):
-                        logger.info(f"🔍 PE Agent [TOPIC]: Found fresh PR Sundar video [ID: {video_id}]: {title}")
-                        
-                        transcript = self._fetch_youtube_transcript(video_id) if video_id else None
-                        summary_text = ""
+                    if not video_id:
+                        continue
 
-                        if transcript:
-                            truncated = transcript[:15000]
-                            logger.info("🔍 PE Agent [TOPIC]: Generating AI summary from actual video transcript...")
-                            try:
-                                summary_data = self._call_gemini(
-                                    system_prompt="You are an expert financial market analyst and mythbuster.",
-                                    user_prompt=(
-                                        f"Video Link: {video_url}\n"
-                                        f"Video Title: {title}\n\n"
-                                        "What is the important, shocking summary of today's market analysis from this video?\n"
-                                        "Analyze the following transcript and extract the most important, shocking insights, "
-                                        "core financial takeaways, market movements, or myth-busting points in 3-4 concise, energetic sentences.\n\n"
-                                        f"Transcript:\n{truncated}"
-                                    ),
-                                    response_schema=types.Schema(
-                                        type=types.Type.OBJECT,
-                                        properties={
-                                            "summary": types.Schema(type=types.Type.STRING)
-                                        },
-                                        required=["summary"]
-                                    )
+                    # Strict unique video_id check to block duplication across runs
+                    if self._is_video_processed(video_id, video_url):
+                        continue
+
+                    logger.info(f"🔍 PE Agent [TOPIC]: Found fresh unique video [ID: {video_id}]: {title}")
+                    
+                    # Differentiate session type to prevent similar pre/post titles collapsing
+                    title_lower = title.lower()
+                    session_tag = "[Post-Market Report]"
+                    if "pre" in title_lower or "morning" in title_lower:
+                        session_tag = "[Pre-Market Report]"
+
+                    transcript = self._fetch_youtube_transcript(video_id)
+                    summary_text = ""
+
+                    if transcript:
+                        truncated = transcript[:15000]
+                        logger.info("🔍 PE Agent [TOPIC]: Generating AI summary from actual video transcript...")
+                        try:
+                            summary_data = self._call_gemini(
+                                system_prompt="You are an expert financial market analyst and mythbuster.",
+                                user_prompt=(
+                                    f"Video Link: {video_url}\n"
+                                    f"Video Title: {title}\n\n"
+                                    "What is the important, shocking summary of today's market analysis from this video?\n"
+                                    "Analyze the following transcript and extract the most important, shocking insights, "
+                                    "core financial takeaways, market movements, or myth-busting points in 3-4 concise, energetic sentences.\n\n"
+                                    f"Transcript:\n{truncated}"
+                                ),
+                                response_schema=types.Schema(
+                                    type=types.Type.OBJECT,
+                                    properties={
+                                        "summary": types.Schema(type=types.Type.STRING)
+                                    },
+                                    required=["summary"]
                                 )
-                                if isinstance(summary_data, dict) and "summary" in summary_data:
-                                    summary_text = summary_data["summary"]
-                            except Exception as e:
-                                logger.warning(f"🔍 PE Agent [TOPIC]: Failed to generate summary from transcript: {e}")
-                                continue
+                            )
+                            if isinstance(summary_data, dict) and "summary" in summary_data:
+                                summary_text = summary_data["summary"]
+                        except Exception as e:
+                            logger.warning(f"🔍 PE Agent [TOPIC]: Failed to generate summary from transcript: {e}")
 
-                        if summary_text:
-                            summary_topic = f"PR Sundar analysis on {title} [Video ID: {video_id}]\nLink: {video_url}\nShocking Summary Today: {summary_text}"
-                            return summary_topic
-                        else:
-                            logger.warning(f"🔍 PE Agent [TOPIC]: Transcript missing or summary failed for {title}. Skipping to avoid generic content.")
-                            continue
+                    if summary_text:
+                        summary_topic = f"{session_tag} {title} [Video ID: {video_id}]\nLink: {video_url}\nShocking Summary: {summary_text}"
+                        return summary_topic
+                    else:
+                        logger.warning(f"🔍 PE Agent [TOPIC]: Transcript missing for {title}. Using title-based fallback description.")
+                        return f"{session_tag} {title} [Video ID: {video_id}]\nLink: {video_url}\nFocus on analyzing the core financial implications of: {title}"
+
         except Exception as e:
-            logger.warning(f"🔍 PE Agent [TOPIC]: PR Sundar RSS fetch failed: {e}")
+            logger.warning(f"🔍 PE Agent [TOPIC]: RSS feed scan failed: {e}")
 
-        # Fallback: static trending topic
+        # Fallback: static trending topic pool
         logger.info("🔍 PE Agent [TOPIC]: Falling back to internal topic pool.")
         fallback_topics = [
             "Are high-yield dividend stocks a safe bet during market volatility?",
