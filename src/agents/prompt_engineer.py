@@ -104,13 +104,17 @@ class PromptEngineerAgent:
         try:
             with open("used_topics.json", "r") as f:
                 used = json.load(f)
-            title_words = set(title.lower().split())
+            title_lower = title.lower().strip()
+            title_words = set(w for w in title_lower.split() if len(w) > 2)
             for entry in used:
-                prev_words = set(entry.get("topic", "").lower().split())
+                prev = entry.get("topic", "").lower().strip()
+                if title_lower == prev or (len(title_lower) > 15 and title_lower in prev):
+                    return True
+                prev_words = set(w for w in prev.split() if len(w) > 2)
                 if title_words and prev_words:
                     intersection = title_words & prev_words
                     union = title_words | prev_words
-                    if len(intersection) / len(union) >= 0.75:
+                    if len(intersection) / len(union) >= 0.40:
                         return True
         except:
             pass

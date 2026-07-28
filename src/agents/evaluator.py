@@ -81,16 +81,27 @@ class EvaluatorAgent:
         # Fuzzy dedup check
         used = self._load_used_topics()
         topic_lower = topic.lower().strip()
+        topic_words = set(w for w in topic_lower.split() if len(w) > 2)
+
         for entry in used:
             prev = entry.get("topic", "").lower().strip()
-            # Simple similarity: ratio of shared words
-            topic_words = set(topic_lower.split())
-            prev_words = set(prev.split())
+            prev_words = set(w for w in prev.split() if len(w) > 2)
+            
+            # Exact match check
+            if topic_lower == prev:
+                details["duplicate_of"] = entry.get("topic", "")
+                return False, "Duplicate topic (Exact match)", details
+
+            # Substring match if long enough
+            if len(topic_lower) > 15 and topic_lower in prev:
+                details["duplicate_of"] = entry.get("topic", "")
+                return False, "Duplicate topic (Substring match)", details
+
             if topic_words and prev_words:
                 intersection = topic_words & prev_words
                 union = topic_words | prev_words
                 similarity = len(intersection) / len(union) if union else 0
-                if similarity >= 0.75:
+                if similarity >= 0.40:
                     details["duplicate_of"] = entry.get("topic", "")
                     details["similarity"] = round(similarity, 2)
                     return False, f"Duplicate topic (similarity {similarity:.0%})", details

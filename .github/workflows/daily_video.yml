@@ -2,8 +2,8 @@ name: Autonomous Market Debunk Pipeline
 
 on:
   schedule:
-    # Runs at 8:00 AM IST (02:30 UTC) and 8:00 PM IST (14:30 UTC) every day
-    - cron: '30 2,14 * * *'
+    # Runs at 8:30 AM IST (03:00 UTC) and 8:30 PM IST (15:00 UTC) every day
+    - cron: '0 3,15 * * *'
   workflow_dispatch: # Allows manual triggering from the GitHub UI
 
 jobs:
