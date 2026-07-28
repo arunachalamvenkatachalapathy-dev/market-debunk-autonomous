@@ -188,13 +188,14 @@ class PromptEngineerAgent:
                                     summary_text = summary_data["summary"]
                             except Exception as e:
                                 logger.warning(f"🔍 PE Agent [TOPIC]: Failed to generate summary from transcript: {e}")
+                                continue
 
                         if summary_text:
                             summary_topic = f"PR Sundar analysis on {title} [Video ID: {video_id}]\nLink: {video_url}\nShocking Summary Today: {summary_text}"
+                            return summary_topic
                         else:
-                            summary_topic = f"PR Sundar latest market update: {title} [Video ID: {video_id}]\nLink: {video_url}"
-
-                        return summary_topic
+                            logger.warning(f"🔍 PE Agent [TOPIC]: Transcript missing or summary failed for {title}. Skipping to avoid generic content.")
+                            continue
         except Exception as e:
             logger.warning(f"🔍 PE Agent [TOPIC]: PR Sundar RSS fetch failed: {e}")
 
