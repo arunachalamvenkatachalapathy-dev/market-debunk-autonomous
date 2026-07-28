@@ -6,7 +6,7 @@ mascot, subtitles, assembly, and publishing metadata.
 import logging
 import json
 import requests
-import xml.etree.ElementTree as ET
+import random
 from datetime import datetime, timezone
 from google.genai import types
 
@@ -143,85 +143,78 @@ class PromptEngineerAgent:
             return None
 
     def fetch_fresh_topic(self):
-        """Fetches the latest unique video from PR Sundar's YouTube channel without repetition."""
-        logger.info("🔍 PE Agent [TOPIC]: Scanning PR Sundar's YouTube channel for fresh unique videos...")
+        """Fetches the latest video directly from PR Sundar's YouTube channel via API."""
+        logger.info("🔍 PE Agent [TOPIC]: Querying YouTube Data API directly for the latest channel upload...")
 
         try:
-            rss_url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCS2NdYUmv_PUyyKeDAo5zYA"
-            response = requests.get(rss_url, timeout=10)
+            import os
+            api_key = os.getenv("YT_API_KEY")
+            channel_id = "UCS2NdYUmv_PUyyKeDAo5zYA"
+            
+            url = "https://www.googleapis.com/youtube/v3/search"
+            params = {
+                "part": "snippet",
+                "channelId": channel_id,
+                "maxResults": 1,
+                "order": "date",
+                "type": "video",
+                "key": api_key
+            }
+            response = requests.get(url, params=params, timeout=10)
+            
             if response.status_code == 200:
-                root = ET.fromstring(response.content)
-                ns = {'yt': 'http://www.youtube.com/xml/schemas/2015', 'default': 'http://www.w3.org/2005/Atom'}
-                entries = root.findall("default:entry", ns)
+                data = response.json()
+                items = data.get("items", [])
                 
-                # Check top recent entries to find the first unprocessed video ID
-                for entry in entries:
-                    title = entry.findtext("default:title", namespaces=ns) or ""
-                    link = entry.find("default:link", namespaces=ns)
-                    video_url = link.attrib['href'] if link is not None else ""
-                    
-                    video_id = None
-                    if "v=" in video_url:
-                        video_id = video_url.split("v=")[1].split("&")[0]
-                    elif "youtu.be/" in video_url:
-                        video_id = video_url.split("youtu.be/")[1].split("?")[0]
+                if items:
+                    video = items[0]
+                    video_id = video["id"]["videoId"]
+                    title = video["snippet"]["title"]
+                    video_url = f"https://www.youtube.com/watch?v={video_id}"
 
-                    if not video_id:
-                        continue
+                    if not self._is_video_processed(video_id, video_url):
+                        logger.info(f"🔍 PE Agent [TOPIC]: Found fresh video directly [ID: {video_id}]: {title}")
+                        
+                        title_lower = title.lower()
+                        session_tag = "[Post-Market Report]"
+                        if "pre" in title_lower or "morning" in title_lower:
+                            session_tag = "[Pre-Market Report]"
 
-                    # Strict unique video_id check to block duplication across runs
-                    if self._is_video_processed(video_id, video_url):
-                        continue
+                        transcript = self._fetch_youtube_transcript(video_id)
+                        summary_text = ""
 
-                    logger.info(f"🔍 PE Agent [TOPIC]: Found fresh unique video [ID: {video_id}]: {title}")
-                    
-                    # Differentiate session type to prevent similar pre/post titles collapsing
-                    title_lower = title.lower()
-                    session_tag = "[Post-Market Report]"
-                    if "pre" in title_lower or "morning" in title_lower:
-                        session_tag = "[Pre-Market Report]"
-
-                    transcript = self._fetch_youtube_transcript(video_id)
-                    summary_text = ""
-
-                    if transcript:
-                        truncated = transcript[:15000]
-                        logger.info("🔍 PE Agent [TOPIC]: Generating AI summary from actual video transcript...")
-                        try:
-                            summary_data = self._call_gemini(
-                                system_prompt="You are an expert financial market analyst and mythbuster.",
-                                user_prompt=(
-                                    f"Video Link: {video_url}\n"
-                                    f"Video Title: {title}\n\n"
-                                    "What is the important, shocking summary of today's market analysis from this video?\n"
-                                    "Analyze the following transcript and extract the most important, shocking insights, "
-                                    "core financial takeaways, market movements, or myth-busting points in 3-4 concise, energetic sentences.\n\n"
-                                    f"Transcript:\n{truncated}"
-                                ),
-                                response_schema=types.Schema(
-                                    type=types.Type.OBJECT,
-                                    properties={
-                                        "summary": types.Schema(type=types.Type.STRING)
-                                    },
-                                    required=["summary"]
+                        if transcript:
+                            truncated = transcript[:15000]
+                            try:
+                                summary_data = self._call_gemini(
+                                    system_prompt="You are an expert financial market analyst and mythbuster.",
+                                    user_prompt=(
+                                        f"Video Link: {video_url}\n"
+                                        f"Video Title: {title}\n\n"
+                                        "Extract the most important, shocking insights, core financial takeaways, or market movements in 3-4 concise, energetic sentences.\n\n"
+                                        f"Transcript:\n{truncated}"
+                                    ),
+                                    response_schema=types.Schema(
+                                        type=types.Type.OBJECT,
+                                        properties={"summary": types.Schema(type=types.Type.STRING)},
+                                        required=["summary"]
+                                    )
                                 )
-                            )
-                            if isinstance(summary_data, dict) and "summary" in summary_data:
-                                summary_text = summary_data["summary"]
-                        except Exception as e:
-                            logger.warning(f"🔍 PE Agent [TOPIC]: Failed to generate summary from transcript: {e}")
+                                if isinstance(summary_data, dict) and "summary" in summary_data:
+                                    summary_text = summary_data["summary"]
+                            except Exception as e:
+                                logger.warning(f"🔍 PE Agent [TOPIC]: Failed to generate summary: {e}")
 
-                    if summary_text:
-                        summary_topic = f"{session_tag} {title} [Video ID: {video_id}]\nLink: {video_url}\nShocking Summary: {summary_text}"
-                        return summary_topic
+                        if summary_text:
+                            return f"{session_tag} {title} [Video ID: {video_id}]\nLink: {video_url}\nShocking Summary: {summary_text}"
+                        else:
+                            return f"{session_tag} {title} [Video ID: {video_id}]\nLink: {video_url}\nFocus on analyzing: {title}"
                     else:
-                        logger.warning(f"🔍 PE Agent [TOPIC]: Transcript missing for {title}. Using title-based fallback description.")
-                        return f"{session_tag} {title} [Video ID: {video_id}]\nLink: {video_url}\nFocus on analyzing the core financial implications of: {title}"
-
+                        logger.info(f"🔍 PE Agent [TOPIC]: Latest video [ID: {video_id}] was already processed.")
         except Exception as e:
-            logger.warning(f"🔍 PE Agent [TOPIC]: RSS feed scan failed: {e}")
+            logger.warning(f"🔍 PE Agent [TOPIC]: Direct YouTube API search failed: {e}")
 
-        # Fallback: static trending topic pool
+        # Fallback to internal pool if API query fails or yields no new unprocessed items
         logger.info("🔍 PE Agent [TOPIC]: Falling back to internal topic pool.")
         fallback_topics = [
             "Are high-yield dividend stocks a safe bet during market volatility?",
@@ -233,30 +226,10 @@ class PromptEngineerAgent:
             "Why do 90% of retail day traders lose money in Options trading?",
             "Are index funds actually better than actively managed mutual funds?",
             "Is it better to rent or buy a house in a major metro city today?",
-            "Does buying the dip always work in a bear market?",
-            "Are electric vehicle (EV) stocks a guaranteed multibagger for the next decade?",
-            "Is cryptocurrency a legitimate alternative to traditional banking?",
-            "Why IPOs are often a trap for retail investors?",
-            "Does a high P/E ratio always mean a stock is overvalued?",
-            "Are government bonds a waste of time for young investors?",
-            "Why relying solely on dividend income for retirement is dangerous?",
-            "Is technical analysis just astrology for men, or does it actually work?",
-            "Can algorithmic trading really guarantee consistent profits?",
-            "Why dollar-cost averaging is mathematically inferior but psychologically superior?",
-            "Are credit cards designed to keep you poor?",
-            "Is a 15% annual return realistically sustainable over 20 years?",
-            "Why following billionaire investment portfolios is a terrible idea for you?",
-            "Does a stock split actually change the fundamental value of a company?",
-            "Are fixed deposits slowly destroying your purchasing power?",
-            "Is it possible to time the market bottoms perfectly?"
+            "Does buying the dip always work in a bear market?"
         ]
-        import random
         unused_topics = [t for t in fallback_topics if not self._is_topic_used(t)]
-        if unused_topics:
-            return random.choice(unused_topics)
-        else:
-            logger.warning("🔍 PE Agent [TOPIC]: All fallback topics used! Picking purely random to survive.")
-            return random.choice(fallback_topics)
+        return random.choice(unused_topics) if unused_topics else random.choice(fallback_topics)
 
     # ──────────────────────────────────────────────
     #  SECTION 2: SCRIPT GENERATION
