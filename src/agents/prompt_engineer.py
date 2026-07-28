@@ -369,4 +369,7 @@ class PromptEngineerAgent:
         
         system_prompt = (
             FRAMEWORK_RULES +
-            "\nYour task: Define the subtit
+            "\nYour task: Define the subtitle configuration style including font, size, primary color, outline, and vertical positioning."
+        )
+        user_prompt = "Generate optimal subtitle styling config."
+        return self._call_gemini(system_prompt, user_prompt, SubtitleStyle, temperature=0.3)
