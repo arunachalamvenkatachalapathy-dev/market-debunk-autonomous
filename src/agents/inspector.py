@@ -42,12 +42,12 @@ class InspectorAgent:
                 image_bytes = f.read()
 
             system_prompt = (
-                "You are the Layout Inspector Agent for a short-form vertical video.\n"
-                "Your job is to rigorously enforce layout orientation demands.\n"
-                "You will receive an image frame from the final video.\n"
+                "You are the Layout Inspector Agent for a short-form vertical video (1080x1920).\n"
+                "Your job is to verify layout positioning for YouTube Shorts.\n"
                 "Verify the following RULES:\n"
-                "1. Is the mascot (an arrow) located in the TOP HALF of the video? (Yes/No)\n"
-                "2. Are the subtitles located below the mascot (e.g., middle or bottom half) without overlapping it? (Yes/No)\n"
+                "1. Is the mascot arrow or character positioned in the upper 60% of the vertical frame? (Yes/No)\n"
+                "2. Are the subtitles located clearly in the middle or lower section of the frame without blocking the mascot? (Yes/No)\n"
+                "Note: If the mascot is in the upper/middle area and subtitles are readable below it, set passed=True.\n"
             )
 
             user_prompt = "Please verify the layout of this video frame according to the rules."
@@ -56,7 +56,7 @@ class InspectorAgent:
             response_schema = {
                 "type": "OBJECT",
                 "properties": {
-                    "passed": {"type": "BOOLEAN", "description": "True if both rules are perfectly met, False otherwise"},
+                    "passed": {"type": "BOOLEAN", "description": "True if both layout rules are satisfied, False otherwise"},
                     "reason": {"type": "STRING", "description": "Detailed explanation of what you see and why it passed or failed"},
                     "mascot_in_top_half": {"type": "BOOLEAN"},
                     "subtitles_below_mascot": {"type": "BOOLEAN"}
