@@ -1,16 +1,17 @@
-google-genai
+google-genai>=0.1.0
 google-cloud-secret-manager
 google-cloud-firestore
 google-cloud-texttospeech
 google-api-python-client
 google-auth-oauthlib
-requests
+requests>=2.31.0
 Flask
 gunicorn
-pydantic
-Pillow
-imagehash
-python-dotenv
-edge-tts
+pydantic>=2.0.0
+Pillow>=10.0.0
+imagehash>=4.3.1
+python-dotenv>=1.0.0
+edge-tts>=6.1.9
 
-youtube-transcript-api
+youtube-transcript-api>=0.6.2
+yt-dlp>=2024.1.0

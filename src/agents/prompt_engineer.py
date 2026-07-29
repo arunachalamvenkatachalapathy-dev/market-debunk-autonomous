@@ -142,7 +142,8 @@ class PromptEngineerAgent:
             logger.error(f"❌ PE Agent [MEMORY]: Failed to save used_topics.json: {e}")
 
     def _fetch_youtube_transcript(self, video_id):
-        """Attempts to download the YouTube transcript text for a video."""
+        """Attempts to download the YouTube transcript text for a video using API and yt-dlp fallback."""
+        # Method 1: youtube_transcript_api
         try:
             from youtube_transcript_api import YouTubeTranscriptApi
             ytt = YouTubeTranscriptApi()
@@ -158,9 +159,67 @@ class PromptEngineerAgent:
                     lines.append(text_item)
             full_text = " ".join(lines)
             if full_text.strip():
+                logger.info(f"🔍 PE Agent [TOPIC]: Successfully fetched transcript via youtube-transcript-api for {video_id}")
                 return full_text
         except Exception as e:
-            logger.warning(f"🔍 PE Agent [TOPIC]: Could not fetch transcript for {video_id}: {e}")
+            logger.warning(f"🔍 PE Agent [TOPIC]: youtube-transcript-api failed for {video_id}: {e}")
+
+        # Method 2: yt_dlp with player_client=['android', 'web'] (circumvents cloud IP ban)
+        try:
+            import yt_dlp, xml.etree.ElementTree as ET
+            url = f"https://www.youtube.com/watch?v={video_id}"
+            ydl_opts = {
+                'skip_download': True,
+                'writeautosub': True,
+                'subtitleslangs': ['ta', 'en'],
+                'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
+                'quiet': True
+            }
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(url, download=False)
+                subs = info.get('automatic_captions') or info.get('subtitles')
+                if subs:
+                    target_track = None
+                    for lang in ['ta', 'ta-orig', 'en']:
+                        if lang in subs:
+                            target_track = subs[lang]
+                            break
+                    if not target_track:
+                        target_track = list(subs.values())[0]
+                    
+                    sub_url = None
+                    for fmt in target_track:
+                        if fmt.get('ext') in ['json3', 'srv1', 'vtt']:
+                            sub_url = fmt.get('url')
+                            break
+                    if not sub_url and target_track:
+                        sub_url = target_track[0].get('url')
+                        
+                    if sub_url:
+                        r = requests.get(sub_url, timeout=10)
+                        if r.status_code == 200:
+                            try:
+                                data = r.json()
+                                text_parts = []
+                                for e in data.get('events', []):
+                                    for s in e.get('segs', []):
+                                        utf8_str = s.get('utf8', '').strip()
+                                        if utf8_str and utf8_str != '\n':
+                                            text_parts.append(utf8_str)
+                                full_text = " ".join(text_parts)
+                                if full_text.strip():
+                                    logger.info(f"🔍 PE Agent [TOPIC]: Successfully fetched transcript via yt-dlp for {video_id}")
+                                    return full_text
+                            except Exception:
+                                root = ET.fromstring(r.text)
+                                lines = [elem.text for elem in root.findall('.//text') if elem.text]
+                                full_text = " ".join(lines)
+                                if full_text.strip():
+                                    logger.info(f"🔍 PE Agent [TOPIC]: Successfully fetched transcript via yt-dlp XML for {video_id}")
+                                    return full_text
+        except Exception as e:
+            logger.warning(f"🔍 PE Agent [TOPIC]: yt-dlp transcript fetch failed for {video_id}: {e}")
+
         return None
 
     def fetch_fresh_topic(self):
