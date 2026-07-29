@@ -152,6 +152,7 @@ class PromptEngineerAgent:
             return None
 
     def fetch_fresh_topic(self):
+<<<<<<< HEAD
         """Exhaustively scans the channel via YouTube API, checks multiple recent uploads to guarantee zero duplication, and saves state."""
         logger.info("🔍 PE Agent [TOPIC]: Querying YouTube Data API for the freshest unprocessed uploads...")
 
@@ -226,11 +227,114 @@ class PromptEngineerAgent:
                     self._save_processed_topic(video_id, final_topic)
                     return final_topic
 
+=======
+        """Fetches the latest topic directly from PR Sundar's YouTube channel."""
+        logger.info("🔍 PE Agent [TOPIC]: Searching PR Sundar's YouTube channel for the latest topic...")
+        import os
+
+        channel_id = "UCS2NdYUmv_PUyyKeDAo5zYA"
+        yt_api_key = os.getenv("YT_API_KEY")
+
+        # Source 1: YouTube Data API v3 Search (if YT_API_KEY is available)
+        if yt_api_key:
+            try:
+                logger.info("🔍 PE Agent [TOPIC]: Attempting YouTube Data API v3 search...")
+                api_url = (
+                    f"https://www.googleapis.com/youtube/v3/search?"
+                    f"key={yt_api_key}&channelId={channel_id}&part=snippet&order=date&maxResults=5&type=video"
+                )
+                res = requests.get(api_url, timeout=10)
+                if res.status_code == 200:
+                    items = res.json().get("items", [])
+                    for item in items:
+                        v_id = item.get("id", {}).get("videoId")
+                        snippet = item.get("snippet", {})
+                        title = snippet.get("title", "")
+                        v_url = f"https://www.youtube.com/watch?v={v_id}" if v_id else ""
+
+                        if v_id and not self._is_video_processed(v_id, v_url):
+                            logger.info(f"🔍 PE Agent [TOPIC]: Found fresh video via Data API [ID: {v_id}]: {title}")
+                            return self._build_topic_with_summary(v_id, v_url, title)
+                else:
+                    logger.warning(f"🔍 PE Agent [TOPIC]: YouTube Data API returned status {res.status_code}: {res.text[:150]}")
+            except Exception as e:
+                logger.warning(f"🔍 PE Agent [TOPIC]: YouTube Data API v3 search failed: {e}")
+
+        # Source 2: PR Sundar's YouTube RSS feed (Fallback if no API key or API limit)
+        try:
+            logger.info("🔍 PE Agent [TOPIC]: Querying PR Sundar's YouTube RSS feed...")
+            rss_url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
+            response = requests.get(rss_url, timeout=10)
+            if response.status_code == 200:
+                root = ET.fromstring(response.content)
+                ns = {'yt': 'http://www.youtube.com/xml/schemas/2015', 'default': 'http://www.w3.org/2005/Atom'}
+                entries = root.findall("default:entry", ns)
+                
+                for entry in entries[:5]:
+                    title = entry.findtext("default:title", namespaces=ns) or ""
+                    link = entry.find("default:link", namespaces=ns)
+                    video_url = link.attrib['href'] if link is not None else ""
+                    
+                    video_id = None
+                    if "v=" in video_url:
+                        video_id = video_url.split("v=")[1].split("&")[0]
+                    elif "youtu.be/" in video_url:
+                        video_id = video_url.split("youtu.be/")[1].split("?")[0]
+
+                    if not self._is_video_processed(video_id, video_url):
+                        logger.info(f"🔍 PE Agent [TOPIC]: Found fresh video via RSS [ID: {video_id}]: {title}")
+                        return self._build_topic_with_summary(video_id, video_url, title)
+>>>>>>> a71975d (feat: add YT_API_KEY support and YouTube Data API v3 search with RSS fallback)
         except Exception as e:
             logger.warning(f"🔍 PE Agent [TOPIC]: Direct YouTube API search failed: {e}")
 
+<<<<<<< HEAD
         # Fallback if all top recent videos are already processed
         logger.info("🔍 PE Agent [TOPIC]: No new videos found in API window. Checking fallback pool...")
+=======
+    def _build_topic_with_summary(self, video_id, video_url, title):
+        """Helper to build transcript summary topic for a video."""
+        transcript = self._fetch_youtube_transcript(video_id) if video_id else None
+        summary_text = ""
+
+        if transcript:
+            truncated = transcript[:15000]
+            logger.info("🔍 PE Agent [TOPIC]: Generating AI summary from actual video transcript...")
+            try:
+                summary_data = self._call_gemini(
+                    system_prompt="You are an expert financial market analyst and mythbuster.",
+                    user_prompt=(
+                        f"Video Link: {video_url}\n"
+                        f"Video Title: {title}\n\n"
+                        "What is the important, shocking summary of today's market analysis from this video?\n"
+                        "Analyze the following transcript and extract the most important, shocking insights, "
+                        "core financial takeaways, market movements, or myth-busting points in 3-4 concise, energetic sentences.\n\n"
+                        f"Transcript:\n{truncated}"
+                    ),
+                    response_schema=types.Schema(
+                        type=types.Type.OBJECT,
+                        properties={
+                            "summary": types.Schema(type=types.Type.STRING)
+                        },
+                        required=["summary"]
+                    )
+                )
+                if isinstance(summary_data, dict) and "summary" in summary_data:
+                    summary_text = summary_data["summary"]
+            except Exception as e:
+                logger.warning(f"🔍 PE Agent [TOPIC]: Failed to generate summary from transcript: {e}")
+
+        if summary_text:
+            return f"PR Sundar analysis on {title} [Video ID: {video_id}]\nLink: {video_url}\nShocking Summary Today: {summary_text}"
+        else:
+            return f"PR Sundar latest market update: {title} [Video ID: {video_id}]\nLink: {video_url}"
+
+        # Source 2: Reddit scraping would go here (requires API keys)
+        # Source 3: Google Trends would go here
+
+        # Fallback: static trending topic
+        logger.info("🔍 PE Agent [TOPIC]: Falling back to internal topic pool.")
+>>>>>>> a71975d (feat: add YT_API_KEY support and YouTube Data API v3 search with RSS fallback)
         fallback_topics = [
             "Are high-yield dividend stocks a safe bet during market volatility?",
             "Is SIP really the safest way to invest in mutual funds?",
