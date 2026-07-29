@@ -153,11 +153,11 @@ class PromptEngineerAgent:
             return None
 
     def fetch_fresh_topic(self):
-        """Fetches the latest topic directly from PR Sundar's YouTube channel."""
-        logger.info("🔍 PE Agent [TOPIC]: Searching PR Sundar's YouTube channel for the latest topic...")
+        """Fetches the latest topic directly from Money Pechu (Anand Srinivasan)'s YouTube channel."""
+        logger.info("🔍 PE Agent [TOPIC]: Searching Money Pechu's YouTube channel for the latest topic...")
         import os, random
 
-        channel_id = "UCS2NdYUmv_PUyyKeDAo5zYA"
+        channel_id = "UC7fQFl37yAOaPaoxQm-TqSA"
         yt_api_key = os.getenv("YT_API_KEY")
 
         # Source 1: YouTube Data API v3 Search (if YT_API_KEY is available)
@@ -187,9 +187,9 @@ class PromptEngineerAgent:
             except Exception as e:
                 logger.warning(f"🔍 PE Agent [TOPIC]: YouTube Data API v3 search failed: {e}")
 
-        # Source 2: PR Sundar's YouTube RSS feed (Fallback if no API key or API limit)
+        # Source 2: Money Pechu's YouTube RSS feed (Fallback if no API key or API limit)
         try:
-            logger.info("🔍 PE Agent [TOPIC]: Querying PR Sundar's YouTube RSS feed...")
+            logger.info("🔍 PE Agent [TOPIC]: Querying Money Pechu's YouTube RSS feed...")
             rss_url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
             response = requests.get(rss_url, timeout=10)
             if response.status_code == 200:
@@ -214,7 +214,7 @@ class PromptEngineerAgent:
                         if topic:
                             return topic
         except Exception as e:
-            logger.warning(f"🔍 PE Agent [TOPIC]: PR Sundar RSS fetch failed: {e}")
+            logger.warning(f"🔍 PE Agent [TOPIC]: Money Pechu RSS fetch failed: {e}")
 
         # Fallback: static trending topic
         logger.info("🔍 PE Agent [TOPIC]: Falling back to internal topic pool.")
@@ -244,7 +244,7 @@ class PromptEngineerAgent:
                     user_prompt=(
                         f"Video Link: {video_url}\n"
                         f"Video Title: {title}\n\n"
-                        "What is the important, shocking summary of today's market analysis from this video?\n"
+                        "What is the important, shocking summary of today's market and financial analysis from Money Pechu (Anand Srinivasan)?\n"
                         "Analyze the following transcript and extract the most important, shocking insights, "
                         "core financial takeaways, market movements, or myth-busting points in 3-4 concise, energetic sentences.\n\n"
                         f"Transcript:\n{truncated}"
@@ -263,9 +263,9 @@ class PromptEngineerAgent:
                 logger.warning(f"🔍 PE Agent [TOPIC]: Failed to generate summary from transcript: {e}")
 
         if summary_text:
-            return f"PR Sundar analysis on {title} [Video ID: {video_id}]\nLink: {video_url}\nShocking Summary Today: {summary_text}"
+            return f"Money Pechu analysis on {title} [Video ID: {video_id}]\nLink: {video_url}\nShocking Summary Today: {summary_text}"
         else:
-            return f"PR Sundar latest market update: {title} [Video ID: {video_id}]\nLink: {video_url}"
+            return f"Money Pechu latest market update: {title} [Video ID: {video_id}]\nLink: {video_url}"
 
     # ──────────────────────────────────────────────
     #  SECTION 2: SCRIPT GENERATION
