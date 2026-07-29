@@ -263,6 +263,30 @@ class PromptEngineerAgent:
             except Exception as e:
                 logger.warning(f"🔍 PE Agent [TOPIC]: Failed to generate summary from transcript: {e}")
 
+        if not summary_text:
+            logger.info("🔍 PE Agent [TOPIC]: Transcript unavailable. Generating AI summary from video title...")
+            try:
+                summary_data = self._call_gemini(
+                    system_prompt="You are an expert financial market analyst and mythbuster.",
+                    user_prompt=(
+                        f"Video Title: {title}\n"
+                        f"Video Link: {video_url}\n\n"
+                        "What is the core financial takeaway, market prediction, or myth-busting analysis for this Money Pechu (Anand Srinivasan) video?\n"
+                        "Extract 3 concise, high-impact financial insight sentences based on this title for video script creation."
+                    ),
+                    response_schema=types.Schema(
+                        type=types.Type.OBJECT,
+                        properties={
+                            "summary": types.Schema(type=types.Type.STRING)
+                        },
+                        required=["summary"]
+                    )
+                )
+                if isinstance(summary_data, dict) and "summary" in summary_data:
+                    summary_text = summary_data["summary"]
+            except Exception as e:
+                logger.warning(f"🔍 PE Agent [TOPIC]: Failed to generate summary from title: {e}")
+
         if summary_text:
             return f"Money Pechu analysis on {title} [Video ID: {video_id}]\nLink: {video_url}\nShocking Summary Today: {summary_text}"
         else:
