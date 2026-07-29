@@ -145,12 +145,23 @@ class PromptEngineerAgent:
         """Attempts to download the YouTube transcript text for a video."""
         try:
             from youtube_transcript_api import YouTubeTranscriptApi
-            transcript_obj = YouTubeTranscriptApi().fetch(video_id)
-            full_text = " ".join([snippet.text for snippet in transcript_obj.snippets])
-            return full_text
+            ytt = YouTubeTranscriptApi()
+            try:
+                transcript_list = ytt.fetch(video_id, languages=('ta', 'en'))
+            except Exception:
+                transcript_list = ytt.fetch(video_id)
+            
+            lines = []
+            for item in transcript_list:
+                text_item = item.get('text', '') if isinstance(item, dict) else str(item)
+                if text_item:
+                    lines.append(text_item)
+            full_text = " ".join(lines)
+            if full_text.strip():
+                return full_text
         except Exception as e:
             logger.warning(f"🔍 PE Agent [TOPIC]: Could not fetch transcript for {video_id}: {e}")
-            return None
+        return None
 
     def fetch_fresh_topic(self):
         """Fetches the latest topic directly from Money Pechu (Anand Srinivasan)'s YouTube channel."""
@@ -232,65 +243,41 @@ class PromptEngineerAgent:
         return random.choice(fallback_topics)
 
     def _build_topic_with_summary(self, video_id, video_url, title):
-        """Helper to build transcript summary topic for a video."""
+        """Helper to build transcript summary topic for a video strictly using actual transcript."""
         transcript = self._fetch_youtube_transcript(video_id) if video_id else None
-        summary_text = ""
+        
+        if not transcript:
+            logger.warning(f"🔍 PE Agent [TOPIC]: No transcript/subtitle available for video {video_id}. Skipping (no guessing from title).")
+            return None
 
-        if transcript:
-            truncated = transcript[:15000]
-            logger.info("🔍 PE Agent [TOPIC]: Generating AI summary from actual video transcript...")
-            try:
-                summary_data = self._call_gemini(
-                    system_prompt="You are an expert financial market analyst and mythbuster.",
-                    user_prompt=(
-                        f"Video Link: {video_url}\n"
-                        f"Video Title: {title}\n\n"
-                        "What is the important, shocking summary of today's market and financial analysis from Money Pechu (Anand Srinivasan)?\n"
-                        "Analyze the following transcript and extract the most important, shocking insights, "
-                        "core financial takeaways, market movements, or myth-busting points in 3-4 concise, energetic sentences.\n\n"
-                        f"Transcript:\n{truncated}"
-                    ),
-                    response_schema=types.Schema(
-                        type=types.Type.OBJECT,
-                        properties={
-                            "summary": types.Schema(type=types.Type.STRING)
-                        },
-                        required=["summary"]
-                    )
+        truncated = transcript[:15000]
+        logger.info("🔍 PE Agent [TOPIC]: Generating AI summary from actual video transcript...")
+        try:
+            summary_data = self._call_gemini(
+                system_prompt="You are an expert financial market analyst and mythbuster.",
+                user_prompt=(
+                    f"Video Link: {video_url}\n"
+                    f"Video Title: {title}\n\n"
+                    "What is the important, shocking summary of today's market and financial analysis from Money Pechu (Anand Srinivasan)?\n"
+                    "Analyze the following actual transcript and extract the most important, shocking insights, "
+                    "core financial takeaways, market movements, or myth-busting points in 3-4 concise, energetic sentences.\n\n"
+                    f"Actual Video Transcript:\n{truncated}"
+                ),
+                response_schema=types.Schema(
+                    type=types.Type.OBJECT,
+                    properties={
+                        "summary": types.Schema(type=types.Type.STRING)
+                    },
+                    required=["summary"]
                 )
-                if isinstance(summary_data, dict) and "summary" in summary_data:
-                    summary_text = summary_data["summary"]
-            except Exception as e:
-                logger.warning(f"🔍 PE Agent [TOPIC]: Failed to generate summary from transcript: {e}")
-
-        if not summary_text:
-            logger.info("🔍 PE Agent [TOPIC]: Transcript unavailable. Generating AI summary from video title...")
-            try:
-                summary_data = self._call_gemini(
-                    system_prompt="You are an expert financial market analyst and mythbuster.",
-                    user_prompt=(
-                        f"Video Title: {title}\n"
-                        f"Video Link: {video_url}\n\n"
-                        "What is the core financial takeaway, market prediction, or myth-busting analysis for this Money Pechu (Anand Srinivasan) video?\n"
-                        "Extract 3 concise, high-impact financial insight sentences based on this title for video script creation."
-                    ),
-                    response_schema=types.Schema(
-                        type=types.Type.OBJECT,
-                        properties={
-                            "summary": types.Schema(type=types.Type.STRING)
-                        },
-                        required=["summary"]
-                    )
-                )
-                if isinstance(summary_data, dict) and "summary" in summary_data:
-                    summary_text = summary_data["summary"]
-            except Exception as e:
-                logger.warning(f"🔍 PE Agent [TOPIC]: Failed to generate summary from title: {e}")
-
-        if summary_text:
-            return f"Money Pechu analysis on {title} [Video ID: {video_id}]\nLink: {video_url}\nShocking Summary Today: {summary_text}"
-        else:
-            return f"Money Pechu latest market update: {title} [Video ID: {video_id}]\nLink: {video_url}"
+            )
+            if isinstance(summary_data, dict) and "summary" in summary_data and summary_data["summary"]:
+                summary_text = summary_data["summary"]
+                return f"Money Pechu analysis on {title} [Video ID: {video_id}]\nLink: {video_url}\nShocking Summary Today: {summary_text}"
+        except Exception as e:
+            logger.warning(f"🔍 PE Agent [TOPIC]: Failed to generate summary from transcript: {e}")
+            
+        return None
 
     # ──────────────────────────────────────────────
     #  SECTION 2: SCRIPT GENERATION
