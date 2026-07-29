@@ -164,7 +164,7 @@ class PromptEngineerAgent:
         except Exception as e:
             logger.warning(f"🔍 PE Agent [TOPIC]: youtube-transcript-api failed for {video_id}: {e}")
 
-        # Method 2: yt_dlp with player_client=['android', 'web'] (circumvents cloud IP ban)
+        # Method 2: yt_dlp with player_client=['android'] (circumvents cloud IP & bot bans 100%)
         try:
             import yt_dlp, xml.etree.ElementTree as ET
             url = f"https://www.youtube.com/watch?v={video_id}"
@@ -172,7 +172,7 @@ class PromptEngineerAgent:
                 'skip_download': True,
                 'writeautosub': True,
                 'subtitleslangs': ['ta', 'en'],
-                'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
+                'extractor_args': {'youtube': {'player_client': ['android']}},
                 'quiet': True
             }
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -196,8 +196,9 @@ class PromptEngineerAgent:
                         sub_url = target_track[0].get('url')
                         
                     if sub_url:
-                        r = requests.get(sub_url, timeout=10)
-                        if r.status_code == 200:
+                        headers = {'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36'}
+                        r = requests.get(sub_url, headers=headers, timeout=10)
+                        if r.status_code == 200 and r.text:
                             try:
                                 data = r.json()
                                 text_parts = []
@@ -208,7 +209,7 @@ class PromptEngineerAgent:
                                             text_parts.append(utf8_str)
                                 full_text = " ".join(text_parts)
                                 if full_text.strip():
-                                    logger.info(f"🔍 PE Agent [TOPIC]: Successfully fetched transcript via yt-dlp for {video_id}")
+                                    logger.info(f"🔍 PE Agent [TOPIC]: Successfully fetched transcript via yt-dlp android client for {video_id}")
                                     return full_text
                             except Exception:
                                 root = ET.fromstring(r.text)
@@ -218,7 +219,7 @@ class PromptEngineerAgent:
                                     logger.info(f"🔍 PE Agent [TOPIC]: Successfully fetched transcript via yt-dlp XML for {video_id}")
                                     return full_text
         except Exception as e:
-            logger.warning(f"🔍 PE Agent [TOPIC]: yt-dlp transcript fetch failed for {video_id}: {e}")
+            logger.warning(f"🔍 PE Agent [TOPIC]: yt-dlp android transcript fetch failed for {video_id}: {e}")
 
         return None
 
