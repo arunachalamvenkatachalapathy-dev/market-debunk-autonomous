@@ -202,13 +202,14 @@ class PromptEngineerAgent:
                     link = entry.find("default:link", namespaces=ns)
                     video_url = link.attrib['href'] if link is not None else ""
                     
-                    video_id = None
-                    if "v=" in video_url:
-                        video_id = video_url.split("v=")[1].split("&")[0]
-                    elif "youtu.be/" in video_url:
-                        video_id = video_url.split("youtu.be/")[1].split("?")[0]
+                    video_id = entry.findtext("yt:videoId", namespaces=ns)
+                    if not video_id:
+                        if "v=" in video_url:
+                            video_id = video_url.split("v=")[1].split("&")[0]
+                        elif "youtu.be/" in video_url:
+                            video_id = video_url.split("youtu.be/")[1].split("?")[0]
 
-                    if not self._is_video_processed(video_id, video_url):
+                    if video_id and not self._is_video_processed(video_id, video_url):
                         logger.info(f"🔍 PE Agent [TOPIC]: Found fresh video via RSS [ID: {video_id}]: {title}")
                         topic = self._build_topic_with_summary(video_id, video_url, title)
                         if topic:
