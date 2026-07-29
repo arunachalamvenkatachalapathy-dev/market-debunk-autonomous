@@ -164,7 +164,7 @@ class PromptEngineerAgent:
         except Exception as e:
             logger.warning(f"🔍 PE Agent [TOPIC]: youtube-transcript-api failed for {video_id}: {e}")
 
-        # Method 2: yt_dlp with player_client=['android'] (circumvents cloud IP & bot bans 100%)
+        # Method 2: yt_dlp with js_runtimes node
         try:
             import yt_dlp, xml.etree.ElementTree as ET
             url = f"https://www.youtube.com/watch?v={video_id}"
@@ -172,7 +172,8 @@ class PromptEngineerAgent:
                 'skip_download': True,
                 'writeautosub': True,
                 'subtitleslangs': ['ta', 'en'],
-                'extractor_args': {'youtube': {'player_client': ['android']}},
+                'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
+                'js_runtimes': {'node': {}},
                 'quiet': True
             }
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -196,7 +197,7 @@ class PromptEngineerAgent:
                         sub_url = target_track[0].get('url')
                         
                     if sub_url:
-                        headers = {'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36'}
+                        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
                         r = requests.get(sub_url, headers=headers, timeout=10)
                         if r.status_code == 200 and r.text:
                             try:
@@ -209,7 +210,7 @@ class PromptEngineerAgent:
                                             text_parts.append(utf8_str)
                                 full_text = " ".join(text_parts)
                                 if full_text.strip():
-                                    logger.info(f"🔍 PE Agent [TOPIC]: Successfully fetched transcript via yt-dlp android client for {video_id}")
+                                    logger.info(f"🔍 PE Agent [TOPIC]: Successfully fetched transcript via yt-dlp node for {video_id}")
                                     return full_text
                             except Exception:
                                 root = ET.fromstring(r.text)
@@ -219,7 +220,40 @@ class PromptEngineerAgent:
                                     logger.info(f"🔍 PE Agent [TOPIC]: Successfully fetched transcript via yt-dlp XML for {video_id}")
                                     return full_text
         except Exception as e:
-            logger.warning(f"🔍 PE Agent [TOPIC]: yt-dlp android transcript fetch failed for {video_id}: {e}")
+            logger.warning(f"🔍 PE Agent [TOPIC]: yt-dlp node transcript fetch failed for {video_id}: {e}")
+
+        # Method 3: Direct HTML scraping of ytInitialPlayerResponse
+        try:
+            import json, re, xml.etree.ElementTree as ET
+            url = f"https://www.youtube.com/watch?v={video_id}"
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                'Accept-Language': 'en-US,en;q=0.9,ta;q=0.8'
+            }
+            r = requests.get(url, headers=headers, timeout=10)
+            match = re.search(r'ytInitialPlayerResponse\s*=\s*({.+?});(?:var\s+|</script>)', r.text)
+            if match:
+                data = json.loads(match.group(1))
+                caption_tracks = data.get('captions', {}).get('playerCaptionsTracklistRenderer', {}).get('captionTracks', [])
+                for track in caption_tracks:
+                    sub_baseUrl = track.get('baseUrl')
+                    if sub_baseUrl:
+                        fmt_url = f"{sub_baseUrl}&fmt=json3"
+                        sub_r = requests.get(fmt_url, headers=headers, timeout=10)
+                        if sub_r.status_code == 200 and len(sub_r.text) > 50:
+                            jdata = sub_r.json()
+                            text_parts = []
+                            for e in jdata.get('events', []):
+                                for s in e.get('segs', []):
+                                    utf8_str = s.get('utf8', '').strip()
+                                    if utf8_str and utf8_str != '\n':
+                                        text_parts.append(utf8_str)
+                            full_text = " ".join(text_parts)
+                            if full_text.strip():
+                                logger.info(f"🔍 PE Agent [TOPIC]: Successfully fetched transcript via HTML scraping for {video_id}")
+                                return full_text
+        except Exception as e:
+            logger.warning(f"🔍 PE Agent [TOPIC]: HTML transcript scraping failed for {video_id}: {e}")
 
         return None
 
