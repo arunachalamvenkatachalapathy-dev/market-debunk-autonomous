@@ -152,85 +152,9 @@ class PromptEngineerAgent:
             return None
 
     def fetch_fresh_topic(self):
-<<<<<<< HEAD
-        """Exhaustively scans the channel via YouTube API, checks multiple recent uploads to guarantee zero duplication, and saves state."""
-        logger.info("🔍 PE Agent [TOPIC]: Querying YouTube Data API for the freshest unprocessed uploads...")
-
-        try:
-            import os
-            api_key = os.getenv("YT_API_KEY")
-            channel_id = "UCS2NdYUmv_PUyyKeDAo5zYA"
-            
-            url = "https://www.googleapis.com/youtube/v3/search"
-            params = {
-                "part": "snippet",
-                "channelId": channel_id,
-                "maxResults": 5, # Fetch top 5 recent uploads to find the first brand new one
-                "order": "date",
-                "type": "video",
-                "key": api_key
-            }
-            response = requests.get(url, params=params, timeout=10)
-            
-            if response.status_code == 200:
-                data = response.json()
-                items = data.get("items", [])
-                
-                for video in items:
-                    video_id = video["id"]["videoId"]
-                    title = video["snippet"]["title"]
-                    video_url = f"https://www.youtube.com/watch?v={video_id}"
-
-                    # Strictly skip if already processed in memory
-                    if self._is_video_processed(video_id, video_url):
-                        logger.info(f"🔍 PE Agent [TOPIC]: Video [ID: {video_id}] '{title}' already processed. Checking next...")
-                        continue
-
-                    logger.info(f"🚀 PE Agent [TOPIC]: Found brand new unprocessed video [ID: {video_id}]: {title}")
-                    
-                    title_lower = title.lower()
-                    session_tag = "[Post-Market Report]"
-                    if "pre" in title_lower or "morning" in title_lower:
-                        session_tag = "[Pre-Market Report]"
-
-                    transcript = self._fetch_youtube_transcript(video_id)
-                    summary_text = ""
-
-                    if transcript:
-                        truncated = transcript[:15000]
-                        try:
-                            summary_data = self._call_gemini(
-                                system_prompt="You are an expert financial market analyst and mythbuster.",
-                                user_prompt=(
-                                    f"Video Link: {video_url}\n"
-                                    f"Video Title: {title}\n\n"
-                                    "Extract the most important, shocking insights, core financial takeaways, or market movements in 3-4 concise, energetic sentences.\n\n"
-                                    f"Transcript:\n{truncated}"
-                                ),
-                                response_schema=types.Schema(
-                                    type=types.Type.OBJECT,
-                                    properties={"summary": types.Schema(type=types.Type.STRING)},
-                                    required=["summary"]
-                                )
-                            )
-                            if isinstance(summary_data, dict) and "summary" in summary_data:
-                                summary_text = summary_data["summary"]
-                        except Exception as e:
-                            logger.warning(f"🔍 PE Agent [TOPIC]: Failed to generate summary: {e}")
-
-                    if summary_text:
-                        final_topic = f"{session_tag} {title} [Video ID: {video_id}]\nLink: {video_url}\nShocking Summary: {summary_text}"
-                    else:
-                        final_topic = f"{session_tag} {title} [Video ID: {video_id}]\nLink: {video_url}\nFocus on analyzing: {title}"
-
-                    # Persist immediately to prevent race conditions or repeats
-                    self._save_processed_topic(video_id, final_topic)
-                    return final_topic
-
-=======
         """Fetches the latest topic directly from PR Sundar's YouTube channel."""
         logger.info("🔍 PE Agent [TOPIC]: Searching PR Sundar's YouTube channel for the latest topic...")
-        import os
+        import os, random
 
         channel_id = "UCS2NdYUmv_PUyyKeDAo5zYA"
         yt_api_key = os.getenv("YT_API_KEY")
@@ -254,7 +178,9 @@ class PromptEngineerAgent:
 
                         if v_id and not self._is_video_processed(v_id, v_url):
                             logger.info(f"🔍 PE Agent [TOPIC]: Found fresh video via Data API [ID: {v_id}]: {title}")
-                            return self._build_topic_with_summary(v_id, v_url, title)
+                            topic = self._build_topic_with_summary(v_id, v_url, title)
+                            if topic:
+                                return topic
                 else:
                     logger.warning(f"🔍 PE Agent [TOPIC]: YouTube Data API returned status {res.status_code}: {res.text[:150]}")
             except Exception as e:
@@ -283,15 +209,26 @@ class PromptEngineerAgent:
 
                     if not self._is_video_processed(video_id, video_url):
                         logger.info(f"🔍 PE Agent [TOPIC]: Found fresh video via RSS [ID: {video_id}]: {title}")
-                        return self._build_topic_with_summary(video_id, video_url, title)
->>>>>>> a71975d (feat: add YT_API_KEY support and YouTube Data API v3 search with RSS fallback)
+                        topic = self._build_topic_with_summary(video_id, video_url, title)
+                        if topic:
+                            return topic
         except Exception as e:
-            logger.warning(f"🔍 PE Agent [TOPIC]: Direct YouTube API search failed: {e}")
+            logger.warning(f"🔍 PE Agent [TOPIC]: PR Sundar RSS fetch failed: {e}")
 
-<<<<<<< HEAD
-        # Fallback if all top recent videos are already processed
-        logger.info("🔍 PE Agent [TOPIC]: No new videos found in API window. Checking fallback pool...")
-=======
+        # Fallback: static trending topic
+        logger.info("🔍 PE Agent [TOPIC]: Falling back to internal topic pool.")
+        fallback_topics = [
+            "Are high-yield dividend stocks a safe bet during market volatility?",
+            "Is SIP really the safest way to invest in mutual funds?",
+            "Do penny stocks actually make you rich or just broke?",
+            "Is gold really a hedge against inflation in 2026?",
+            "Can you beat the market by following stock tips on social media?"
+        ]
+        for topic in fallback_topics:
+            if not self._is_video_processed("", topic):
+                return topic
+        return random.choice(fallback_topics)
+
     def _build_topic_with_summary(self, video_id, video_url, title):
         """Helper to build transcript summary topic for a video."""
         transcript = self._fetch_youtube_transcript(video_id) if video_id else None
@@ -328,28 +265,6 @@ class PromptEngineerAgent:
             return f"PR Sundar analysis on {title} [Video ID: {video_id}]\nLink: {video_url}\nShocking Summary Today: {summary_text}"
         else:
             return f"PR Sundar latest market update: {title} [Video ID: {video_id}]\nLink: {video_url}"
-
-        # Source 2: Reddit scraping would go here (requires API keys)
-        # Source 3: Google Trends would go here
-
-        # Fallback: static trending topic
-        logger.info("🔍 PE Agent [TOPIC]: Falling back to internal topic pool.")
->>>>>>> a71975d (feat: add YT_API_KEY support and YouTube Data API v3 search with RSS fallback)
-        fallback_topics = [
-            "Are high-yield dividend stocks a safe bet during market volatility?",
-            "Is SIP really the safest way to invest in mutual funds?",
-            "Do penny stocks actually make you rich or just broke?",
-            "Is gold really a hedge against inflation in 2026?",
-            "Can you beat the market by following stock tips on social media?"
-        ]
-        
-        for topic in fallback_topics:
-            if not self._is_video_processed("", topic):
-                self._save_processed_topic("", topic)
-                return topic
-
-        # Absolute fallback if everything is exhausted
-        return random.choice(fallback_topics)
 
     # ──────────────────────────────────────────────
     #  SECTION 2: SCRIPT GENERATION
