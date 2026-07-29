@@ -396,7 +396,7 @@ class PromptEngineerAgent:
         user_prompt = "Generate optimal subtitle styling config."
         return self._call_gemini(system_prompt, user_prompt, SubtitleStyle, temperature=0.3)
 
-    def engineer_assembly_config(self, script):
+    def engineer_assembly_config(self, script, *args, **kwargs):
         """Engineers assembly parameters."""
         logger.info("🎬 PE Agent [ASSEMBLY]: Engineering assembly config...")
         system_prompt = (
@@ -406,7 +406,7 @@ class PromptEngineerAgent:
         user_prompt = "Generate optimal assembly config for 9:16 vertical Short video."
         return self._call_gemini(system_prompt, user_prompt, AssemblyConfig, temperature=0.3)
 
-    def engineer_publish_metadata(self, script):
+    def engineer_publish_metadata(self, script, *args, **kwargs):
         """Engineers publishing metadata (title, description, tags)."""
         logger.info("📢 PE Agent [PUBLISH]: Engineering publish metadata...")
         scenes = script.get("scenes", []) if isinstance(script, dict) else [s.model_dump() if hasattr(s, "model_dump") else s for s in getattr(script, "scenes", [])]
