@@ -299,13 +299,20 @@ class PromptEngineerAgent:
             response = requests.get(rss_url, timeout=10)
             if response.status_code == 200:
                 root = ET.fromstring(response.content)
-                ns = {'yt': 'http://www.youtube.com/xml/schemas/2015', 'default': 'http://www.w3.org/2005/Atom'}
+                ns = {
+                    'yt': 'http://www.youtube.com/xml/schemas/2015',
+                    'default': 'http://www.w3.org/2005/Atom',
+                    'media': 'http://search.yahoo.com/mrss/'
+                }
                 entries = root.findall("default:entry", ns)
                 
                 for entry in entries[:5]:
                     title = entry.findtext("default:title", namespaces=ns) or ""
                     link = entry.find("default:link", namespaces=ns)
                     video_url = link.attrib['href'] if link is not None else ""
+                    
+                    group = entry.find("media:group", ns)
+                    rss_description = group.findtext("media:description", namespaces=ns) if group is not None else ""
                     
                     video_id = entry.findtext("yt:videoId", namespaces=ns)
                     if not video_id:
@@ -316,7 +323,7 @@ class PromptEngineerAgent:
 
                     if video_id and not self._is_video_processed(video_id, video_url):
                         logger.info(f"🔍 PE Agent [TOPIC]: Found fresh video via RSS [ID: {video_id}]: {title}")
-                        topic = self._build_topic_with_summary(video_id, video_url, title)
+                        topic = self._build_topic_with_summary(video_id, video_url, title, rss_description=rss_description)
                         if topic:
                             return topic
         except Exception as e:
@@ -336,12 +343,16 @@ class PromptEngineerAgent:
                 return topic
         return random.choice(fallback_topics)
 
-    def _build_topic_with_summary(self, video_id, video_url, title):
-        """Helper to build transcript summary topic for a video strictly using actual transcript."""
-        transcript = self._fetch_youtube_transcript(video_id) if video_id else None
+    def _build_topic_with_summary(self, video_id, video_url, title, rss_description=None):
+        """Helper to build transcript summary topic for a video strictly using actual video text."""
+        source_text = self._fetch_youtube_transcript(video_id) if video_id else None
         
-        if not transcript:
-            logger.warning(f"🔍 PE Agent [TOPIC]: No transcript/subtitle available for video {video_id}. Skipping (no guessing from title).")
+        if not source_text and rss_description and len(rss_description.strip()) > 50:
+            logger.info(f"🔍 PE Agent [TOPIC]: Using detailed RSS video description fallback for {video_id}")
+            source_text = rss_description
+
+        if not source_text or len(source_text.strip()) < 20:
+            logger.warning(f"🔍 PE Agent [TOPIC]: No transcript or description available for video {video_id}. Skipping (no guessing from title).")
             return None
 
         truncated = transcript[:15000]
