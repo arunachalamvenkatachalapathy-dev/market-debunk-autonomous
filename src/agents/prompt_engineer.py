@@ -7,6 +7,7 @@ import logging
 import json
 import requests
 import random
+import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 from google.genai import types
 
