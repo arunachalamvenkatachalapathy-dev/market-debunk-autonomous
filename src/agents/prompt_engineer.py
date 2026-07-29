@@ -355,8 +355,8 @@ class PromptEngineerAgent:
             logger.warning(f"🔍 PE Agent [TOPIC]: No transcript or description available for video {video_id}. Skipping (no guessing from title).")
             return None
 
-        truncated = transcript[:15000]
-        logger.info("🔍 PE Agent [TOPIC]: Generating AI summary from actual video transcript...")
+        truncated = source_text[:15000]
+        logger.info("🔍 PE Agent [TOPIC]: Generating AI summary from actual video text...")
         try:
             summary_data = self._call_gemini(
                 system_prompt="You are an expert financial market analyst and mythbuster.",
