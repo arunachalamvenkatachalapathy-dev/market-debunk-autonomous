@@ -359,7 +359,8 @@ class PromptEngineerAgent:
         """Engineers precise mascot arrow state transitions with rationale."""
         logger.info("🏹 PE Agent [MASCOT]: Engineering mascot timeline...")
 
-        scenes_text = json.dumps(script.get("scenes", []), indent=2)
+        scenes = script.get("scenes", []) if isinstance(script, dict) else [s.model_dump() if hasattr(s, "model_dump") else s for s in getattr(script, "scenes", [])]
+        scenes_text = json.dumps(scenes, indent=2)
 
         system_prompt = (
             FRAMEWORK_RULES +
@@ -377,7 +378,7 @@ class PromptEngineerAgent:
             "- Position must not overlap with subtitle safe zone (60-75% down = pixels 1152-1440)\n"
         )
 
-        user_prompt = f"Here are the 5 scenes — determine the mascot timeline:\n{scenes_text}"
+        user_prompt = f"Here are the scenes — determine the mascot timeline:\n{scenes_text}"
         return self._call_gemini(system_prompt, user_prompt, MascotTimeline, temperature=0.3)
 
     # ──────────────────────────────────────────────
@@ -394,3 +395,25 @@ class PromptEngineerAgent:
         )
         user_prompt = "Generate optimal subtitle styling config."
         return self._call_gemini(system_prompt, user_prompt, SubtitleStyle, temperature=0.3)
+
+    def engineer_assembly_config(self, script):
+        """Engineers assembly parameters."""
+        logger.info("🎬 PE Agent [ASSEMBLY]: Engineering assembly config...")
+        system_prompt = (
+            FRAMEWORK_RULES +
+            "\nYour task: Define the assembly configuration including resolution (1080x1920), fps (30), and audio loudness normalization (-14 LUFS)."
+        )
+        user_prompt = "Generate optimal assembly config for 9:16 vertical Short video."
+        return self._call_gemini(system_prompt, user_prompt, AssemblyConfig, temperature=0.3)
+
+    def engineer_publish_metadata(self, script):
+        """Engineers publishing metadata (title, description, tags)."""
+        logger.info("📢 PE Agent [PUBLISH]: Engineering publish metadata...")
+        scenes = script.get("scenes", []) if isinstance(script, dict) else [s.model_dump() if hasattr(s, "model_dump") else s for s in getattr(script, "scenes", [])]
+        scenes_text = json.dumps(scenes, indent=2)
+        system_prompt = (
+            FRAMEWORK_RULES +
+            "\nYour task: Generate optimized YouTube Shorts title (with #Shorts), description, and tags for the video."
+        )
+        user_prompt = f"Generate publishing metadata for this script:\n{scenes_text}"
+        return self._call_gemini(system_prompt, user_prompt, PublishMetadata, temperature=0.3)
