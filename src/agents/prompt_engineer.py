@@ -104,8 +104,9 @@ class PromptEngineerAgent:
             return False
         try:
             with open("used_topics.json", "r") as f:
-                used = json.load(f)
-            for entry in used:
+                used_data = json.load(f)
+            entries = used_data.get("topics", []) if isinstance(used_data, dict) else used_data
+            for entry in entries:
                 if video_id and entry.get("video_id") == video_id:
                     return True
                 topic_str = entry.get("topic", "")
@@ -117,18 +118,23 @@ class PromptEngineerAgent:
             pass
         return False
 
-    def _save_processed_topic(self, video_id, topic_string):
+    def _save_processed_topic(self, video_id, topic_string, channel_index=0):
         import os, json
-        used = []
+        used_data = {"last_channel_index": 0, "topics": []}
         if os.path.exists("used_topics.json"):
             try:
                 with open("used_topics.json", "r") as f:
-                    used = json.load(f)
+                    loaded = json.load(f)
+                    if isinstance(loaded, dict):
+                        used_data = loaded
+                    elif isinstance(loaded, list):
+                        used_data["topics"] = loaded
             except Exception:
-                used = []
+                used_data = {"last_channel_index": 0, "topics": []}
         
-        # Append new entry
-        used.append({
+        # Record last channel index & topic entry
+        used_data["last_channel_index"] = channel_index
+        used_data["topics"].append({
             "video_id": video_id,
             "topic": topic_string,
             "timestamp": datetime.now(timezone.utc).isoformat()
@@ -136,8 +142,8 @@ class PromptEngineerAgent:
         
         try:
             with open("used_topics.json", "w") as f:
-                json.dump(used, f, indent=2)
-            logger.info(f"💾 PE Agent [MEMORY]: Successfully recorded video ID {video_id} to used_topics.json")
+                json.dump(used_data, f, indent=2)
+            logger.info(f"💾 PE Agent [MEMORY]: Recorded video ID '{video_id}' under Channel Index {channel_index} to used_topics.json")
         except Exception as e:
             logger.error(f"❌ PE Agent [MEMORY]: Failed to save used_topics.json: {e}")
 
@@ -272,10 +278,26 @@ class PromptEngineerAgent:
         
         yt_api_key = os.getenv("YT_API_KEY")
 
-        for ch in TARGET_CHANNELS:
+        # Determine Round-Robin start index from used_topics.json
+        last_idx = -1
+        if os.path.exists("used_topics.json"):
+            try:
+                with open("used_topics.json", "r") as f:
+                    u_data = json.load(f)
+                    if isinstance(u_data, dict):
+                        last_idx = u_data.get("last_channel_index", -1)
+            except Exception:
+                pass
+        
+        start_idx = (last_idx + 1) % len(TARGET_CHANNELS)
+        channel_indices = [(start_idx + i) % len(TARGET_CHANNELS) for i in range(len(TARGET_CHANNELS))]
+        logger.info(f"🔄 PE Agent [ROUND-ROBIN]: Starting channel scan at Index {start_idx} ('{TARGET_CHANNELS[start_idx]['name']}')")
+
+        for idx in channel_indices:
+            ch = TARGET_CHANNELS[idx]
             ch_name = ch["name"]
             channel_id = ch["channel_id"]
-            logger.info(f"🔍 PE Agent [TOPIC]: Checking target channel '{ch_name}' ({channel_id})...")
+            logger.info(f"🔍 PE Agent [TOPIC]: Checking target channel [{idx+1}/6] '{ch_name}' ({channel_id})...")
 
             # Source 1: YouTube Data API v3 Search
             if yt_api_key:
@@ -295,9 +317,10 @@ class PromptEngineerAgent:
                             v_url = f"https://www.youtube.com/watch?v={v_id}" if v_id else ""
 
                             if v_id and not self._is_video_processed(v_id, v_url):
-                                logger.info(f"🔍 PE Agent [TOPIC]: Found fresh video via API on '{ch_name}' [ID: {v_id}]: {title}")
+                                logger.info(f"🔍 PE Agent [TOPIC]: Found fresh video via API on [{ch_name}] [ID: {v_id}]: {title}")
                                 topic = self._build_topic_with_summary(v_id, v_url, title, channel_name=ch_name)
                                 if topic:
+                                    self._save_processed_topic(v_id, topic, channel_index=idx)
                                     return topic
                 except Exception as e:
                     logger.warning(f"🔍 PE Agent [TOPIC]: YouTube Data API search failed for '{ch_name}': {e}")
@@ -333,9 +356,10 @@ class PromptEngineerAgent:
                                 video_id = video_url.split("youtu.be/")[1].split("?")[0]
 
                         if video_id and not self._is_video_processed(video_id, video_url):
-                            logger.info(f"🔍 PE Agent [TOPIC]: Found fresh video via RSS on '{ch_name}' [ID: {video_id}]: {title}")
+                            logger.info(f"🔍 PE Agent [TOPIC]: Found fresh video via RSS on [{ch_name}] [ID: {video_id}]: {title}")
                             topic = self._build_topic_with_summary(video_id, video_url, title, rss_description=rss_description, channel_name=ch_name)
                             if topic:
+                                self._save_processed_topic(video_id, topic, channel_index=idx)
                                 return topic
             except Exception as e:
                 logger.warning(f"🔍 PE Agent [TOPIC]: RSS fetch failed for '{ch_name}': {e}")
@@ -345,6 +369,7 @@ class PromptEngineerAgent:
         import datetime
         timestamp_str = datetime.datetime.now().strftime("%Y-%m-%d-%H%M%S")
         dynamic_topic = f"Dynamic Financial Analysis & Stock Market Debunk [Ref: {timestamp_str}]"
+        self._save_processed_topic("", dynamic_topic, channel_index=(start_idx % len(TARGET_CHANNELS)))
         return dynamic_topic
 
     def _build_topic_with_summary(self, video_id, video_url, title, rss_description=None, channel_name="Financial Analyst"):

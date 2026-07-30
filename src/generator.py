@@ -94,18 +94,19 @@ def generate_scene_voice(tts_client, text, scene_index, voice_config_scene=None,
     
     audio_path = os.path.join(OUTPUT_DIR, f"scene_{scene_index}.mp3")
     
-    # Red Arrow (arrow_down) asks questions -> Natural Male Voice (GuyNeural)
-    # Green Arrow (arrow_up) answers -> Natural Female Voice (NeerjaNeural)
-    voice_name = "en-US-GuyNeural" if arrow_state == "arrow_down" else "en-IN-NeerjaNeural"
+    # Professional Broadcaster Financial Voices
+    # Setup/Myth (arrow_down) -> Deep Male Anchor (en-US-AndrewNeural)
+    # Debunk/Fact (arrow_up) -> Articulate Female Presenter (en-US-AvaNeural)
+    voice_name = "en-US-AndrewNeural" if arrow_state == "arrow_down" else "en-US-AvaNeural"
     
     try:
-        logger.info(f"Synthesizing voice for Scene {scene_index} (Arrow: {arrow_state}) using {voice_name} at +30% speed...")
+        logger.info(f"Synthesizing voice for Scene {scene_index} (Arrow: {arrow_state}) using {voice_name} at optimal finance speed (+3%)...")
         import time
         max_retries = 3
         for attempt in range(1, max_retries + 1):
             try:
                 result = subprocess.run(
-                    ["python", "-m", "edge_tts", "--voice", voice_name, "--rate", "+30%", "--text", text, "--write-media", audio_path],
+                    ["python", "-m", "edge_tts", "--voice", voice_name, "--rate", "+3%", "--text", text, "--write-media", audio_path],
                     capture_output=True, text=True, check=True
                 )
                 break
@@ -169,11 +170,11 @@ def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
             bg_files = sorted(glob.glob(os.path.join(bg_dir, "bg_*.mp4")))
 
     if bg_files:
-        # Determine weekly background video index (1 video per week in exact sequential order 0..14)
-        week_num = datetime.datetime.now().isocalendar()[1]
-        weekly_index = (week_num - 1) % len(bg_files)
-        selected_bg = bg_files[weekly_index]
-        logger.info(f"🎬 HYPNOTIC BACKGROUND [WEEK {week_num}]: Selected {os.path.basename(selected_bg)} (Index {weekly_index + 1}/15) for Scene {scene_index}")
+        # Dynamically rotate background video per scene & per run seed
+        seed_str = f"{visual_prompt}_{scene_index}_{int(time.time() // 120)}"
+        bg_index = (hash(seed_str) + scene_index) % len(bg_files)
+        selected_bg = bg_files[bg_index]
+        logger.info(f"🎬 HYPNOTIC BACKGROUND [DIVERSITY]: Selected {os.path.basename(selected_bg)} (Index {bg_index + 1}/15) for Scene {scene_index}")
         return {"type": "video", "path": selected_bg}
     else:
         logger.warning(f"⚠️ Falling back to default background asset for Scene {scene_index}")

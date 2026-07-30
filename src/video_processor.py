@@ -168,11 +168,11 @@ def generate_ass_file(processed_scenes, total_duration, subtitle_style=None, ass
         # Use Emphasis style for PE-flagged words
         style = "Emphasis" if item["is_emphasis"] else "Default"
         
-        # Add a pop-in scale animation using ASS override tags (scales from 80% to 100% in 100ms)
-        pop_tag = r"{\fscx80\fscy80\t(0,100,\fscx100\fscy100)}"
+        # Position anchored center at (540, 1450) to guarantee zero text stacking/overlay errors
+        pos_tag = r"{\an5\pos(540,1450)\fscx80\fscy80\t(0,100,\fscx100\fscy100)}"
         
         dialogue_lines.append(
-            f"Dialogue: 0,{start_str},{end_str},{style},,0,0,0,,{pop_tag}{word_text}"
+            f"Dialogue: 0,{start_str},{end_str},{style},,0,0,0,,{pos_tag}{word_text}"
         )
         
     with open(ass_path, "w", encoding="utf-8") as f:
