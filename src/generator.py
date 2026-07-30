@@ -94,13 +94,13 @@ def generate_scene_voice(tts_client, text, scene_index, voice_config_scene=None,
     
     audio_path = os.path.join(OUTPUT_DIR, f"scene_{scene_index}.mp3")
     
-    # Professional Broadcaster Financial Voices
-    # Setup/Myth (arrow_down) -> Deep Male Anchor (en-US-AndrewNeural)
-    # Debunk/Fact (arrow_up) -> Articulate Female Presenter (en-US-AvaNeural)
-    voice_name = "en-US-AndrewNeural" if arrow_state == "arrow_down" else "en-US-AvaNeural"
+    # Credible Indian English Financial Presenter Voices
+    # Setup/Skeptic (arrow_down) -> Deep Indian Male Anchor (en-IN-PrabhatNeural)
+    # Debunk/Fact (arrow_up) -> Articulate Indian Female Presenter (en-IN-NeerjaNeural)
+    voice_name = "en-IN-PrabhatNeural" if arrow_state == "arrow_down" else "en-IN-NeerjaNeural"
     
     try:
-        logger.info(f"Synthesizing voice for Scene {scene_index} (Arrow: {arrow_state}) using {voice_name} at optimal finance speed (+3%)...")
+        logger.info(f"Synthesizing voice for Scene {scene_index} (Arrow: {arrow_state}) using {voice_name} at credible finance speed (+3%)...")
         import time
         max_retries = 3
         for attempt in range(1, max_retries + 1):
