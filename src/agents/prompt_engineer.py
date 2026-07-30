@@ -262,7 +262,7 @@ class PromptEngineerAgent:
         import os, random
 
         TARGET_CHANNELS = [
-            {"name": "Money Pechu", "channel_id": "UCqhL6vNCwYLC9_jePXOIvBg"},
+            {"name": "Money Pechu", "channel_id": "UC7fQFl37yAOaPaoxQm-TqSA"},
             {"name": "Tiruppur Bulls", "channel_id": "UCqhL6vNCwYLC9_jePXOIvBg"},
             {"name": "Makkal Pechu", "channel_id": "UCRySNNVhiuLWciU_20H84-Q"},
             {"name": "Rupee Driver", "channel_id": "UCo5CAieenL0ExXzvjzs17QQ"},
