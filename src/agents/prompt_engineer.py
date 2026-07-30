@@ -258,78 +258,88 @@ class PromptEngineerAgent:
         return None
 
     def fetch_fresh_topic(self):
-        """Fetches the latest topic directly from Money Pechu (Anand Srinivasan)'s YouTube channel."""
-        logger.info("🔍 PE Agent [TOPIC]: Searching Money Pechu's YouTube channel for the latest topic...")
+        """Fetches the latest topic from any of the target channels in the multi-channel registry."""
         import os, random
 
-        channel_id = "UC7fQFl37yAOaPaoxQm-TqSA"
+        TARGET_CHANNELS = [
+            {"name": "Money Pechu", "channel_id": "UCqhL6vNCwYLC9_jePXOIvBg"},
+            {"name": "Makkal Pechu", "channel_id": "UCRySNNVhiuLWciU_20H84-Q"},
+            {"name": "Rupee Driver", "channel_id": "UCo5CAieenL0ExXzvjzs17QQ"},
+            {"name": "Trade Achievers", "channel_id": "UCsrnRWZSpE-q8s0SAOk8OOg"},
+            {"name": "Money Purse", "channel_id": "UChBT5TlUeG68PKvJSg6MkqQ"}
+        ]
+        
         yt_api_key = os.getenv("YT_API_KEY")
 
-        # Source 1: YouTube Data API v3 Search (if YT_API_KEY is available)
-        if yt_api_key:
-            try:
-                logger.info("🔍 PE Agent [TOPIC]: Attempting YouTube Data API v3 search...")
-                api_url = (
-                    f"https://www.googleapis.com/youtube/v3/search?"
-                    f"key={yt_api_key}&channelId={channel_id}&part=snippet&order=date&maxResults=5&type=video"
-                )
-                res = requests.get(api_url, timeout=10)
-                if res.status_code == 200:
-                    items = res.json().get("items", [])
-                    for item in items:
-                        v_id = item.get("id", {}).get("videoId")
-                        snippet = item.get("snippet", {})
-                        title = snippet.get("title", "")
-                        v_url = f"https://www.youtube.com/watch?v={v_id}" if v_id else ""
+        for ch in TARGET_CHANNELS:
+            ch_name = ch["name"]
+            channel_id = ch["channel_id"]
+            logger.info(f"🔍 PE Agent [TOPIC]: Checking target channel '{ch_name}' ({channel_id})...")
 
-                        if v_id and not self._is_video_processed(v_id, v_url):
-                            logger.info(f"🔍 PE Agent [TOPIC]: Found fresh video via Data API [ID: {v_id}]: {title}")
-                            topic = self._build_topic_with_summary(v_id, v_url, title)
+            # Source 1: YouTube Data API v3 Search
+            if yt_api_key:
+                try:
+                    logger.info(f"🔍 PE Agent [TOPIC]: Attempting YouTube Data API search for '{ch_name}'...")
+                    api_url = (
+                        f"https://www.googleapis.com/youtube/v3/search?"
+                        f"key={yt_api_key}&channelId={channel_id}&part=snippet&order=date&maxResults=5&type=video"
+                    )
+                    res = requests.get(api_url, timeout=10)
+                    if res.status_code == 200:
+                        items = res.json().get("items", [])
+                        for item in items:
+                            v_id = item.get("id", {}).get("videoId")
+                            snippet = item.get("snippet", {})
+                            title = snippet.get("title", "")
+                            v_url = f"https://www.youtube.com/watch?v={v_id}" if v_id else ""
+
+                            if v_id and not self._is_video_processed(v_id, v_url):
+                                logger.info(f"🔍 PE Agent [TOPIC]: Found fresh video via API on '{ch_name}' [ID: {v_id}]: {title}")
+                                topic = self._build_topic_with_summary(v_id, v_url, title, channel_name=ch_name)
+                                if topic:
+                                    return topic
+                except Exception as e:
+                    logger.warning(f"🔍 PE Agent [TOPIC]: YouTube Data API search failed for '{ch_name}': {e}")
+
+            # Source 2: YouTube RSS Feed (100% reliable fallback)
+            try:
+                logger.info(f"🔍 PE Agent [TOPIC]: Querying RSS feed for '{ch_name}'...")
+                rss_url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
+                response = requests.get(rss_url, timeout=10)
+                if response.status_code == 200:
+                    import xml.etree.ElementTree as ET
+                    root = ET.fromstring(response.content)
+                    ns = {
+                        'yt': 'http://www.youtube.com/xml/schemas/2015',
+                        'default': 'http://www.w3.org/2005/Atom',
+                        'media': 'http://search.yahoo.com/mrss/'
+                    }
+                    entries = root.findall("default:entry", ns)
+                    
+                    for entry in entries[:5]:
+                        title = entry.findtext("default:title", namespaces=ns) or ""
+                        link = entry.find("default:link", namespaces=ns)
+                        video_url = link.attrib['href'] if link is not None else ""
+                        
+                        group = entry.find("media:group", ns)
+                        rss_description = group.findtext("media:description", namespaces=ns) if group is not None else ""
+                        
+                        video_id = entry.findtext("yt:videoId", namespaces=ns)
+                        if not video_id:
+                            if "v=" in video_url:
+                                video_id = video_url.split("v=")[1].split("&")[0]
+                            elif "youtu.be/" in video_url:
+                                video_id = video_url.split("youtu.be/")[1].split("?")[0]
+
+                        if video_id and not self._is_video_processed(video_id, video_url):
+                            logger.info(f"🔍 PE Agent [TOPIC]: Found fresh video via RSS on '{ch_name}' [ID: {video_id}]: {title}")
+                            topic = self._build_topic_with_summary(video_id, video_url, title, rss_description=rss_description, channel_name=ch_name)
                             if topic:
                                 return topic
-                else:
-                    logger.warning(f"🔍 PE Agent [TOPIC]: YouTube Data API returned status {res.status_code}: {res.text[:150]}")
             except Exception as e:
-                logger.warning(f"🔍 PE Agent [TOPIC]: YouTube Data API v3 search failed: {e}")
+                logger.warning(f"🔍 PE Agent [TOPIC]: RSS fetch failed for '{ch_name}': {e}")
 
-        # Source 2: Money Pechu's YouTube RSS feed (Fallback if no API key or API limit)
-        try:
-            logger.info("🔍 PE Agent [TOPIC]: Querying Money Pechu's YouTube RSS feed...")
-            rss_url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
-            response = requests.get(rss_url, timeout=10)
-            if response.status_code == 200:
-                root = ET.fromstring(response.content)
-                ns = {
-                    'yt': 'http://www.youtube.com/xml/schemas/2015',
-                    'default': 'http://www.w3.org/2005/Atom',
-                    'media': 'http://search.yahoo.com/mrss/'
-                }
-                entries = root.findall("default:entry", ns)
-                
-                for entry in entries[:5]:
-                    title = entry.findtext("default:title", namespaces=ns) or ""
-                    link = entry.find("default:link", namespaces=ns)
-                    video_url = link.attrib['href'] if link is not None else ""
-                    
-                    group = entry.find("media:group", ns)
-                    rss_description = group.findtext("media:description", namespaces=ns) if group is not None else ""
-                    
-                    video_id = entry.findtext("yt:videoId", namespaces=ns)
-                    if not video_id:
-                        if "v=" in video_url:
-                            video_id = video_url.split("v=")[1].split("&")[0]
-                        elif "youtu.be/" in video_url:
-                            video_id = video_url.split("youtu.be/")[1].split("?")[0]
-
-                    if video_id and not self._is_video_processed(video_id, video_url):
-                        logger.info(f"🔍 PE Agent [TOPIC]: Found fresh video via RSS [ID: {video_id}]: {title}")
-                        topic = self._build_topic_with_summary(video_id, video_url, title, rss_description=rss_description)
-                        if topic:
-                            return topic
-        except Exception as e:
-            logger.warning(f"🔍 PE Agent [TOPIC]: Money Pechu RSS fetch failed: {e}")
-
-        # Fallback: static trending topic
+        # Fallback: static trending topic pool
         logger.info("🔍 PE Agent [TOPIC]: Falling back to internal topic pool.")
         fallback_topics = [
             "Are high-yield dividend stocks a safe bet during market volatility?",
@@ -343,7 +353,7 @@ class PromptEngineerAgent:
                 return topic
         return random.choice(fallback_topics)
 
-    def _build_topic_with_summary(self, video_id, video_url, title, rss_description=None):
+    def _build_topic_with_summary(self, video_id, video_url, title, rss_description=None, channel_name="Financial Analyst"):
         """Helper to build transcript summary topic for a video strictly using actual video text."""
         source_text = self._fetch_youtube_transcript(video_id) if video_id else None
         
@@ -356,17 +366,18 @@ class PromptEngineerAgent:
             return None
 
         truncated = source_text[:15000]
-        logger.info("🔍 PE Agent [TOPIC]: Generating AI summary from actual video text...")
+        logger.info(f"🔍 PE Agent [TOPIC]: Generating AI summary from actual video text ({channel_name})...")
         try:
             summary_data = self._call_gemini(
                 system_prompt="You are an expert financial market analyst and mythbuster.",
                 user_prompt=(
+                    f"Channel Name: {channel_name}\n"
                     f"Video Link: {video_url}\n"
                     f"Video Title: {title}\n\n"
-                    "What is the important, shocking summary of today's market and financial analysis from Money Pechu (Anand Srinivasan)?\n"
-                    "Analyze the following actual transcript and extract the most important, shocking insights, "
+                    f"What is the important, shocking summary of today's market and financial analysis from {channel_name}?\n"
+                    "Analyze the following actual video text/transcript and extract the most important, shocking insights, "
                     "core financial takeaways, market movements, or myth-busting points in 3-4 concise, energetic sentences.\n\n"
-                    f"Actual Video Transcript:\n{truncated}"
+                    f"Actual Video Text:\n{truncated}"
                 ),
                 response_schema=types.Schema(
                     type=types.Type.OBJECT,
@@ -378,9 +389,13 @@ class PromptEngineerAgent:
             )
             if isinstance(summary_data, dict) and "summary" in summary_data and summary_data["summary"]:
                 summary_text = summary_data["summary"]
-                return f"Money Pechu analysis on {title} [Video ID: {video_id}]\nLink: {video_url}\nShocking Summary Today: {summary_text}"
+                return (
+                    f"{channel_name} analysis on {title} [Video ID: {video_id}]\n"
+                    f"Link: {video_url}\n"
+                    f"Shocking Summary Today: {summary_text}"
+                )
         except Exception as e:
-            logger.warning(f"🔍 PE Agent [TOPIC]: Failed to generate summary from transcript: {e}")
+            logger.warning(f"🔍 PE Agent [TOPIC]: Gemini transcript summary failed for {video_id}: {e}")
             
         return None
 

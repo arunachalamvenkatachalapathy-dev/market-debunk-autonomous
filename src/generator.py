@@ -11,9 +11,20 @@ import concurrent.futures
 from pydantic import BaseModel, Field
 from google import genai
 from google.genai import types
-from google.cloud import secretmanager
-from google.cloud import firestore
-from google.cloud import texttospeech
+try:
+    from google.cloud import secretmanager
+except ImportError:
+    secretmanager = None
+
+try:
+    from google.cloud import firestore
+except ImportError:
+    firestore = None
+
+try:
+    from google.cloud import texttospeech
+except ImportError:
+    texttospeech = None
 from src.config import OUTPUT_DIR
 
 # Configure logging
