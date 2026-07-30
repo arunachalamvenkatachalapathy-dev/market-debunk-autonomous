@@ -9,9 +9,9 @@ from src.generator import get_secret
 logger = logging.getLogger(__name__)
 
 def upload_to_youtube(video_path, title, description, tags, category_id="27"):
-    """Upload video to YouTube channels as a Short using OAuth2 refresh tokens."""
+    """Upload video to YouTube channel as a Short using OAuth2 refresh tokens."""
     try:
-        # Fetch tokens from Secret Manager
+        # Fetch tokens from Secret Manager / env
         refresh_token = get_secret("YT_REFRESH_TOKEN")
         client_id = get_secret("YT_CLIENT_ID")
         client_secret = get_secret("YT_CLIENT_SECRET")
@@ -27,40 +27,53 @@ def upload_to_youtube(video_path, title, description, tags, category_id="27"):
         
         youtube_service = build("youtube", "v3", credentials=creds)
         
-        # Construct metadata
-        body = {
-            "snippet": {
-                "title": f"{title[:50]} #Shorts",
-                "description": description[:5000],
-                "tags": tags[:15],
-                "categoryId": category_id
-            },
-            "status": {
-                "privacyStatus": "public"  # Short-form video should be public
-            }
-        }
+        # Ensure tags is a valid list of strings
+        tags_list = tags if isinstance(tags, list) else [t.strip() for t in str(tags).split(",") if t.strip()]
+        tags_list = tags_list[:15]
         
-        logger.info("Starting YouTube upload stream...")
-        media = MediaFileUpload(video_path, chunksize=1024*1024, resumable=True, mimetype="video/mp4")
+        formatted_title = f"{str(title)[:88]} #Shorts"
+        formatted_desc = str(description)[:4900] if description else formatted_title
         
-        request = youtube_service.videos().insert(
-            part="snippet,status",
-            body=body,
-            media_body=media
-        )
-        
-        response = None
-        while response is None:
-            status, response = request.next_chunk()
-            if status:
-                logger.info(f"YouTube Upload progress: {int(status.progress() * 100)}%")
+        # Try uploading with public privacy status first, with fallback to unlisted/private
+        for privacy_status in ["public", "unlisted", "private"]:
+            try:
+                body = {
+                    "snippet": {
+                        "title": formatted_title,
+                        "description": formatted_desc,
+                        "tags": tags_list,
+                        "categoryId": str(category_id)
+                    },
+                    "status": {
+                        "privacyStatus": privacy_status
+                    }
+                }
                 
-        video_id = response.get("id")
-        logger.info(f"YouTube video published successfully. Video ID: {video_id}")
-        return {"success": True, "video_id": video_id}
-        
+                logger.info(f"Starting YouTube upload stream (privacyStatus: {privacy_status})...")
+                media = MediaFileUpload(video_path, chunksize=1024*1024, resumable=True, mimetype="video/mp4")
+                
+                request = youtube_service.videos().insert(
+                    part="snippet,status",
+                    body=body,
+                    media_body=media
+                )
+                
+                response = None
+                while response is None:
+                    status, response = request.next_chunk()
+                    if status:
+                        logger.info(f"YouTube Upload progress ({privacy_status}): {int(status.progress() * 100)}%")
+                        
+                video_id = response.get("id")
+                logger.info(f"✅ YouTube video published successfully (ID: {video_id}, Status: {privacy_status})")
+                return {"success": True, "video_id": video_id, "privacy_status": privacy_status}
+            except Exception as e:
+                logger.warning(f"YouTube upload attempt with privacyStatus='{privacy_status}' failed: {e}")
+                if privacy_status == "private":
+                    raise e
+                
     except Exception as error:
-        logger.error(f"YouTube Upload Failed: {error}")
+        logger.error(f"❌ YouTube Upload Failed: {error}")
         return {"success": False, "error": str(error)}
 
 def upload_to_telegram(video_path, caption):

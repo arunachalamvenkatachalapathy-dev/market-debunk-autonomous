@@ -135,106 +135,36 @@ def generate_scene_voice(tts_client, text, scene_index, voice_config_scene=None,
 
 def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
     """
-    Generate 9:16 visual content using Pollinations.ai.
-    Ensures 100% relevance to the script.
+    Selects one of the 10 curated hypnotic looping background MP4 videos for high retention.
+    Scraps scene-by-scene AI image generation and B-roll.
     """
-    import urllib.parse
-    import requests
     import random
-    import time
+    import glob
     
-    image_path = os.path.join(OUTPUT_DIR, f"scene_{scene_index}.jpg")
+    bg_dir = os.path.join(os.getcwd(), "assets", "backgrounds")
+    os.makedirs(bg_dir, exist_ok=True)
     
-    # Asset Pool Strategy Check
-    if visual_config_scene and visual_config_scene.get("animation_tag"):
-        tag = visual_config_scene["animation_tag"]
-        import glob
-        import random
-        # Support running from the project root
-        pool_pattern = f"assets/animations/{tag}_*.mp4"
-        available_assets = glob.glob(pool_pattern)
-        if available_assets:
-            selected_asset = random.choice(available_assets)
-            logger.info(f"🎬 ASSET POOL: Selected {selected_asset} for Scene {scene_index} (Tag: {tag})")
-            return {"type": "video", "path": selected_asset}
-        else:
-            logger.warning(f"⚠️ ASSET POOL: No video found for tag '{tag}'. Falling back to AI Image generation.")
-
-    # Use PE-enhanced prompt if available
-    if visual_config_scene and visual_config_scene.get("enhanced_prompt"):
-        styled_prompt = visual_config_scene["enhanced_prompt"]
-        logger.info(f"🎨 Using PE-engineered visual prompt for Scene {scene_index}")
-    else:
-        styled_prompt = (
-            f"{visual_prompt}, highly detailed, cinematic lighting, "
-            "dramatic shadows, 8k resolution"
-        )
-        
-    # Pexels Integration for Real Images
-    visual_category = visual_config_scene.get("visual_category", "ai_illustration") if visual_config_scene else "ai_illustration"
-    
-    if visual_category in ["stock_image", "stock_video"]:
-        logger.info(f"📸 Fetching REAL IMAGE from Pexels for Scene {scene_index} using prompt: {visual_prompt}")
-        pexels_key = os.getenv("PEXELS_API_KEY")
-        if pexels_key:
-            try:
-                headers = {"Authorization": pexels_key}
-                # Use a simpler query for Pexels search
-                search_query = visual_prompt.split(",")[0][:40] 
-                res = requests.get(f"https://api.pexels.com/v1/search?query={urllib.parse.quote(search_query)}&per_page=1&orientation=portrait", headers=headers, timeout=10)
-                if res.status_code == 200 and res.json().get("photos"):
-                    img_url = res.json()["photos"][0]["src"]["large2x"]
-                    img_res = requests.get(img_url, timeout=10)
-                    if img_res.status_code == 200:
-                        with open(image_path, "wb") as f:
-                            f.write(img_res.content)
-                        logger.info(f"✅ Real Image saved from Pexels to {image_path} for Scene {scene_index}")
-                        return {"type": "image", "path": image_path}
-            except Exception as e:
-                logger.warning(f"Pexels fetch failed, falling back to AI generation: {e}")
-    
-    negative = ""
-    if visual_config_scene and visual_config_scene.get("negative_prompt"):
-        negative = f"&negative={urllib.parse.quote(visual_config_scene['negative_prompt'])}"
-    
-    # Extremely aggressive stagger to prevent parallel 429 rate limits
-    stagger_delay = scene_index * 6.0
-    logger.info(f"Staggering Pollinations request for Scene {scene_index} by {stagger_delay}s to avoid rate limits...")
-    time.sleep(stagger_delay)
-    
-    max_retries = 10
-    base_delay = 5.0
-    
-    for attempt in range(max_retries):
-        seed = random.randint(1, 1000000)
-        encoded_prompt = urllib.parse.quote(styled_prompt)
-        pollinations_url = (
-            f"https://image.pollinations.ai/prompt/{encoded_prompt}"
-            f"?width=1080&height=1920&nologo=true&seed={seed}{negative}"
-        )
-        
+    # Ensure 10 background loop videos are available
+    bg_files = sorted(glob.glob(os.path.join(bg_dir, "bg_*.mp4")))
+    if len(bg_files) < 10:
+        logger.info("Initializing 10 hypnotic looping background videos...")
         try:
-            response = requests.get(pollinations_url, timeout=60)
-            
-            if response.status_code == 200:
-                with open(image_path, "wb") as f:
-                    f.write(response.content)
-                logger.info(f"✅ Image saved to {image_path} for Scene {scene_index}")
-                return {"type": "image", "path": image_path}
-            elif response.status_code == 429:
-                delay = base_delay * (1.5 ** attempt)
-                logger.warning(f"Pollinations 429 limit for Scene {scene_index}. Retrying in {delay:.1f}s...")
-                time.sleep(delay)
-            else:
-                logger.warning(f"Pollinations failed with {response.status_code}. Retrying...")
-                time.sleep(base_delay)
-        except Exception as error:
-            logger.warning(f"Pollinations network error for Scene {scene_index}: {error}")
-            time.sleep(base_delay)
-            
-    # Absolute final fallback if Pollinations is completely dead
-    logger.critical(f"Visual generator completely failed for Scene {scene_index} after {max_retries} retries.")
-    return {"type": "placeholder", "color": "#F4F6F9", "prompt": visual_prompt}
+            from scripts.download_stock_loops import download_all_stock_loops
+            download_all_stock_loops()
+            bg_files = sorted(glob.glob(os.path.join(bg_dir, "bg_*.mp4")))
+        except Exception as e:
+            logger.warning(f"Stock loop downloader warning: {e}")
+            bg_files = sorted(glob.glob(os.path.join(bg_dir, "bg_*.mp4")))
+
+    if bg_files:
+        # Pick background based on scene_index or random choice from set of 10
+        selected_bg = bg_files[scene_index % len(bg_files)]
+        logger.info(f"🎬 HYPNOTIC BACKGROUND: Selected {os.path.basename(selected_bg)} for Scene {scene_index}")
+        return {"type": "video", "path": selected_bg}
+    else:
+        logger.warning(f"⚠️ Falling back to default background asset for Scene {scene_index}")
+        fallback_path = os.path.join(os.getcwd(), "assets", "fallback.png")
+        return {"type": "image", "path": fallback_path}
 
 
 def process_scene_assets(tts_client, scene, index, voice_config=None, visual_config=None):

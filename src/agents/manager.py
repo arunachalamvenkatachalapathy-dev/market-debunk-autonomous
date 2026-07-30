@@ -310,8 +310,13 @@ class ManagerAgent:
                     publish_telegram=publish_telegram
                 )
                 logger.info(f"📢 Publish results: {publish_results}")
+                yt_res = publish_results.get("youtube", {})
+                tg_res = publish_results.get("telegram", {})
+                self.report.record_gate("publish_youtube", yt_res.get("success", False), f"YouTube: {yt_res}", yt_res)
+                self.report.record_gate("publish_telegram", tg_res.get("success", False), f"Telegram: {tg_res}", tg_res)
             except Exception as e:
                 logger.error(f"📢 Publishing failed: {e}")
+                self.report.record_gate("publishing", False, f"Exception: {e}", {})
 
         # ─────────────────────────────────────────
         #  FINAL REPORT
