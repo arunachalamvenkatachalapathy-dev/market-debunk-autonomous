@@ -320,7 +320,6 @@ class PromptEngineerAgent:
                                 logger.info(f"🔍 PE Agent [TOPIC]: Found fresh video via API on [{ch_name}] [ID: {v_id}]: {title}")
                                 topic = self._build_topic_with_summary(v_id, v_url, title, channel_name=ch_name)
                                 if topic:
-                                    self._save_processed_topic(v_id, topic, channel_index=idx)
                                     return topic
                 except Exception as e:
                     logger.warning(f"🔍 PE Agent [TOPIC]: YouTube Data API search failed for '{ch_name}': {e}")
@@ -359,7 +358,6 @@ class PromptEngineerAgent:
                             logger.info(f"🔍 PE Agent [TOPIC]: Found fresh video via RSS on [{ch_name}] [ID: {video_id}]: {title}")
                             topic = self._build_topic_with_summary(video_id, video_url, title, rss_description=rss_description, channel_name=ch_name)
                             if topic:
-                                self._save_processed_topic(video_id, topic, channel_index=idx)
                                 return topic
             except Exception as e:
                 logger.warning(f"🔍 PE Agent [TOPIC]: RSS fetch failed for '{ch_name}': {e}")
@@ -369,7 +367,6 @@ class PromptEngineerAgent:
         import datetime
         timestamp_str = datetime.datetime.now().strftime("%Y-%m-%d-%H%M%S")
         dynamic_topic = f"Dynamic Financial Analysis & Stock Market Debunk [Ref: {timestamp_str}]"
-        self._save_processed_topic("", dynamic_topic, channel_index=(start_idx % len(TARGET_CHANNELS)))
         return dynamic_topic
 
     def _build_topic_with_summary(self, video_id, video_url, title, rss_description=None, channel_name="Financial Analyst"):
