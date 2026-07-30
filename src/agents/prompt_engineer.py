@@ -385,17 +385,21 @@ class PromptEngineerAgent:
             return None
 
         truncated = source_text[:15000]
-        logger.info(f"🔍 PE Agent [TOPIC]: Generating AI summary from actual video text ({channel_name})...")
+        logger.info(f"🔍 PE Agent [TOPIC]: Generating AI summary in ENGLISH from actual video text ({channel_name})...")
         try:
             summary_data = self._call_gemini(
-                system_prompt="You are an expert financial market analyst and mythbuster.",
+                system_prompt=(
+                    "You are an expert financial market analyst and mythbuster. "
+                    "CRITICAL LANGUAGE MANDATE: Regardless of the source language (Tamil, Telugu, etc.), "
+                    "you MUST translate all financial insights, market analysis, and summaries into 100% FLUENT, NATIVE ENGLISH."
+                ),
                 user_prompt=(
                     f"Channel Name: {channel_name}\n"
                     f"Video Link: {video_url}\n"
                     f"Video Title: {title}\n\n"
                     f"What is the important, shocking summary of today's market and financial analysis from {channel_name}?\n"
-                    "Analyze the following actual video text/transcript and extract the most important, shocking insights, "
-                    "core financial takeaways, market movements, or myth-busting points in 3-4 concise, energetic sentences.\n\n"
+                    "Analyze the following actual video text/transcript, translate all core financial points into FLUENT ENGLISH, "
+                    "and extract the most important, shocking insights, core financial takeaways, market movements, or myth-busting points in 3-4 concise, energetic ENGLISH sentences.\n\n"
                     f"Actual Video Text:\n{truncated}"
                 ),
                 response_schema=types.Schema(
@@ -428,12 +432,13 @@ class PromptEngineerAgent:
 
         system_prompt = (
             FRAMEWORK_RULES +
-            "\nYour task: Generate a complete 5-12 scene video script for the given PR Sundar video topic.\n"
+            "\nYour task: Generate a complete 5-12 scene video script for the given financial topic.\n"
+            "CRITICAL LANGUAGE MANDATE: The ENTIRE script narration, visual prompts, and dialog MUST be written in 100% FLUENT, NATIVE ENGLISH. If the topic or source channel is in Tamil, translate all financial concepts, claims, and debunks into high-impact ENGLISH narration. Never output Tamil characters or words.\n"
             "CRITICAL: You must use your internal knowledge (Gemini) to find the absolute latest real-world information, stock prices, or news related to this exact topic to build the script. Do NOT just invent generic advice.\n"
-            "CRITICAL: Do NEVER mention PR Sundar's name, his channel, or the source video anywhere in the script, title, or description. You must act as an independent analyst discussing the topic itself.\n"
+            "CRITICAL: Do NEVER mention PR Sundar's name, any source creator's name, or the source channel in the script, title, or description. You must act as an independent analyst discussing the topic itself.\n"
             "Requirements:\n"
             "- Between 5 and 12 scenes\n"
-            "- Hook (scene 1 narration opening) MUST be ≤8 words\n"
+            "- Hook (scene 1 narration opening) MUST be ≤8 words in ENGLISH\n"
             "- Each scene needs: narration, visual_prompt, visual_category, arrow_state\n"
             "- Visual categories must rotate — never repeat the same category in adjacent scenes\n"
             "- CRITICAL DIALOGUE DYNAMIC: The script must be a conversation. The Red Arrow (arrow_down) acts as the skeptic asking questions/presenting the debunked theory, and the Green Arrow (arrow_up) acts as the expert answering and providing the facts.\n"
@@ -565,6 +570,7 @@ class PromptEngineerAgent:
         system_prompt = (
             FRAMEWORK_RULES +
             "\nYour task: Generate optimized YouTube Shorts title (with #Shorts), description, and tags for the video."
+            "\nCRITICAL LANGUAGE MANDATE: The title, description, and tags MUST be 100% in FLUENT, HIGH-IMPACT ENGLISH. Never use Tamil words or characters in the YouTube metadata."
         )
         user_prompt = f"Generate publishing metadata for this script:\n{scenes_text}"
         return self._call_gemini(system_prompt, user_prompt, PublishMetadata, temperature=0.3)
