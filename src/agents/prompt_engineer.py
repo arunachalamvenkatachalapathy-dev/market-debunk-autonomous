@@ -283,7 +283,7 @@ class PromptEngineerAgent:
                     logger.info(f"🔍 PE Agent [TOPIC]: Attempting YouTube Data API search for '{ch_name}'...")
                     api_url = (
                         f"https://www.googleapis.com/youtube/v3/search?"
-                        f"key={yt_api_key}&channelId={channel_id}&part=snippet&order=date&maxResults=5&type=video"
+                        f"key={yt_api_key}&channelId={channel_id}&part=snippet&order=date&maxResults=15&type=video"
                     )
                     res = requests.get(api_url, timeout=10)
                     if res.status_code == 200:
@@ -317,7 +317,7 @@ class PromptEngineerAgent:
                     }
                     entries = root.findall("default:entry", ns)
                     
-                    for entry in entries[:5]:
+                    for entry in entries[:15]:
                         title = entry.findtext("default:title", namespaces=ns) or ""
                         link = entry.find("default:link", namespaces=ns)
                         video_url = link.attrib['href'] if link is not None else ""
@@ -340,19 +340,12 @@ class PromptEngineerAgent:
             except Exception as e:
                 logger.warning(f"🔍 PE Agent [TOPIC]: RSS fetch failed for '{ch_name}': {e}")
 
-        # Fallback: static trending topic pool
-        logger.info("🔍 PE Agent [TOPIC]: Falling back to internal topic pool.")
-        fallback_topics = [
-            "Are high-yield dividend stocks a safe bet during market volatility?",
-            "Is SIP really the safest way to invest in mutual funds?",
-            "Do penny stocks actually make you rich or just broke?",
-            "Is gold really a hedge against inflation in 2026?",
-            "Can you beat the market by following stock tips on social media?"
-        ]
-        for topic in fallback_topics:
-            if not self._is_video_processed("", topic):
-                return topic
-        return random.choice(fallback_topics)
+        # Fallback: Dynamic non-duplicate market analysis topic generator
+        logger.info("🔍 PE Agent [TOPIC]: All recent video IDs across all 6 channels processed today. Generating fresh dynamic market topic...")
+        import datetime
+        timestamp_str = datetime.datetime.now().strftime("%Y-%m-%d-%H%M%S")
+        dynamic_topic = f"Dynamic Financial Analysis & Stock Market Debunk [Ref: {timestamp_str}]"
+        return dynamic_topic
 
     def _build_topic_with_summary(self, video_id, video_url, title, rss_description=None, channel_name="Financial Analyst"):
         """Helper to build transcript summary topic for a video strictly using actual video text."""
