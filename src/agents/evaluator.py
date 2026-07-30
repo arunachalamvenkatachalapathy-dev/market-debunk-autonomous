@@ -28,18 +28,34 @@ class EvaluatorAgent:
         self.used_topics_path = "used_topics.json"
 
     def _load_used_topics(self):
-        """Load the dedup topic log."""
+        """Load the dedup topic log supporting both dict and list structures."""
         if os.path.exists(self.used_topics_path):
             try:
                 with open(self.used_topics_path, "r") as f:
-                    return json.load(f)
+                    data = json.load(f)
+                    if isinstance(data, dict):
+                        return data.get("topics", [])
+                    elif isinstance(data, list):
+                        return data
             except Exception:
                 pass
         return []
 
     def _save_used_topic(self, topic):
-        """Append a topic to the dedup log."""
-        topics = self._load_used_topics()
+        """Append a topic to the dedup log while preserving last_channel_index."""
+        raw_data = {"last_channel_index": 0, "topics": []}
+        if os.path.exists(self.used_topics_path):
+            try:
+                with open(self.used_topics_path, "r") as f:
+                    loaded = json.load(f)
+                    if isinstance(loaded, dict):
+                        raw_data = loaded
+                    elif isinstance(loaded, list):
+                        raw_data["topics"] = loaded
+            except Exception:
+                pass
+                
+        topics = raw_data.get("topics", [])
         video_id = None
         if "[Video ID: " in topic:
             try:
@@ -52,11 +68,10 @@ class EvaluatorAgent:
             "hash": hashlib.md5(topic.encode()).hexdigest(),
             "timestamp": __import__("datetime").datetime.now().isoformat()
         })
-        # Keep last 90 days (approx 90 entries)
-        topics = topics[-90:]
+        raw_data["topics"] = topics[-90:]
         try:
             with open(self.used_topics_path, "w") as f:
-                json.dump(topics, f, indent=2)
+                json.dump(raw_data, f, indent=2)
         except Exception as e:
             logger.warning(f"Failed to save used topics: {e}")
 
@@ -108,7 +123,7 @@ class EvaluatorAgent:
                 intersection = topic_words & prev_words
                 union = topic_words | prev_words
                 similarity = len(intersection) / len(union) if union else 0
-                if similarity >= 0.40:
+                if similarity >= 0.75:
                     details["duplicate_of"] = entry.get("topic", "")
                     details["similarity"] = round(similarity, 2)
                     return False, f"Duplicate topic (similarity {similarity:.0%})", details
