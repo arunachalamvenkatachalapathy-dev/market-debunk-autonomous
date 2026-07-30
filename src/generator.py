@@ -135,19 +135,20 @@ def generate_scene_voice(tts_client, text, scene_index, voice_config_scene=None,
 
 def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
     """
-    Selects one of the 10 curated hypnotic looping background MP4 videos for high retention.
+    Selects one of the 15 curated hypnotic looping background MP4 videos.
+    Uses 1 background video per week in sequential order.
     Scraps scene-by-scene AI image generation and B-roll.
     """
-    import random
     import glob
+    import datetime
     
     bg_dir = os.path.join(os.getcwd(), "assets", "backgrounds")
     os.makedirs(bg_dir, exist_ok=True)
     
-    # Ensure 10 background loop videos are available
+    # Ensure 15 background loop videos are available
     bg_files = sorted(glob.glob(os.path.join(bg_dir, "bg_*.mp4")))
-    if len(bg_files) < 10:
-        logger.info("Initializing 10 hypnotic looping background videos...")
+    if len(bg_files) < 15:
+        logger.info("Initializing 15 hypnotic looping background videos...")
         try:
             from scripts.download_stock_loops import download_all_stock_loops
             download_all_stock_loops()
@@ -157,9 +158,11 @@ def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
             bg_files = sorted(glob.glob(os.path.join(bg_dir, "bg_*.mp4")))
 
     if bg_files:
-        # Pick background based on scene_index or random choice from set of 10
-        selected_bg = bg_files[scene_index % len(bg_files)]
-        logger.info(f"🎬 HYPNOTIC BACKGROUND: Selected {os.path.basename(selected_bg)} for Scene {scene_index}")
+        # Determine weekly background video index (1 video per week in exact sequential order 0..14)
+        week_num = datetime.datetime.now().isocalendar()[1]
+        weekly_index = (week_num - 1) % len(bg_files)
+        selected_bg = bg_files[weekly_index]
+        logger.info(f"🎬 HYPNOTIC BACKGROUND [WEEK {week_num}]: Selected {os.path.basename(selected_bg)} (Index {weekly_index + 1}/15) for Scene {scene_index}")
         return {"type": "video", "path": selected_bg}
     else:
         logger.warning(f"⚠️ Falling back to default background asset for Scene {scene_index}")
