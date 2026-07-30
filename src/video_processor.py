@@ -204,22 +204,16 @@ def process_single_scene_media(scene, assembly_config=None):
     
     if asset["type"] == "video":
         raw_path = asset["path"]
-        w, h, raw_dur = get_video_info(raw_path)
+        start_time = scene.get("start_time", 0.0)
         
-        # Calculate centered 9:16 bounding box crop dimensions
-        target_h = h
-        target_w = int(h * 9 / 16)
-        target_w = target_w - (target_w % 2)  # Ensure divisible by 2 for H264
-        x = int((w - target_w) / 2)
-        x = x - (x % 2)
-        
-        logger.info(f"Cropping raw video {w}x{h} to centered portrait 9:16 {target_w}x{target_h}")
+        logger.info(f"Full stretch background video loop for Scene {idx} (timeline start: {start_time:.2f}s, duration: {dur:.2f}s)")
         cmd = [
             "ffmpeg", "-y",
             "-stream_loop", "-1",
+            "-ss", f"{start_time:.3f}",
             "-i", raw_path,
             "-t", f"{dur:.3f}",
-            "-vf", f"crop={target_w}:{target_h}:{x}:0,scale=1080:1920",
+            "-vf", "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,setsar=1",
             "-c:v", "libx264",
             "-pix_fmt", "yuv420p",
             "-an",
@@ -308,9 +302,12 @@ def assemble_final_video(processed_scenes, subtitle_style=None, assembly_config=
     # 1. Process individual scene media clips matching audio lengths
     video_clips = []
     total_audio_dur = 0.0
+    current_timeline_pos = 0.0
     for scene in processed_scenes:
         audio_dur = get_audio_duration(scene["audio_path"])
         scene["audio_duration"] = audio_dur
+        scene["start_time"] = current_timeline_pos
+        current_timeline_pos += audio_dur
         total_audio_dur += audio_dur
         
         out_v = process_single_scene_media(scene, assembly_config=assembly_config)
