@@ -123,7 +123,7 @@ class EvaluatorAgent:
                 intersection = topic_words & prev_words
                 union = topic_words | prev_words
                 similarity = len(intersection) / len(union) if union else 0
-                if similarity >= 0.75:
+                if similarity >= 0.85:
                     details["duplicate_of"] = entry.get("topic", "")
                     details["similarity"] = round(similarity, 2)
                     return False, f"Duplicate topic (similarity {similarity:.0%})", details
