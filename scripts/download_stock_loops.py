@@ -13,42 +13,42 @@ logger = logging.getLogger(__name__)
 BACKGROUNDS_DIR = os.path.join(os.getcwd(), "assets", "backgrounds")
 os.makedirs(BACKGROUNDS_DIR, exist_ok=True)
 
-# Curated queries for high retention, satisfying vertical background loops (15 stock videos)
+# Curated queries for high retention, satisfying process & finishing loops (15 stock videos)
 QUERIES = [
-    "satisfying 3d loop",
-    "abstract neon motion",
-    "gta gameplay vertical",
-    "kinetic sand liquid flow",
-    "space tunnel motion",
-    "cyberpunk grid loop",
-    "gold particle vortex",
-    "dark emerald fluid",
-    "geometric polygon tunnel",
-    "sunset pastel liquid",
-    "hypnotic wave motion",
-    "matrix digital rain vertical",
-    "3d sapphire tunnel",
-    "golden bull market loop",
-    "cosmic portal vortex"
+    "satisfying kinetic sand cutting vertical",
+    "satisfying soap carving process vertical",
+    "satisfying hydraulic press crushing vertical",
+    "satisfying wood lathe turning process vertical",
+    "satisfying glass bottle drop crushing vertical",
+    "satisfying domino chain reaction finishing vertical",
+    "satisfying pottery wheel molding process vertical",
+    "satisfying ASMR slime slicing vertical",
+    "satisfying metal machining lathe cutting vertical",
+    "satisfying 3d destruction simulation vertical",
+    "satisfying epoxy resin fluid art finishing vertical",
+    "satisfying marble run race finishing vertical",
+    "satisfying 3d pendulum wave domino vertical",
+    "satisfying chocolate tempering pouring vertical",
+    "satisfying laser engraving metal process vertical"
 ]
 
-# Direct HD vertical stock loop fallback URLs (15 Royalty-free open stock loops)
+# Direct HD vertical satisfying process / finishing loop URLs (15 Royalty-free open stock process loops)
 CURATED_DIRECT_LOOPS = [
-    "https://assets.mixkit.co/videos/preview/mixkit-abstract-fast-line-lights-background-40742-large.mp4",
-    "https://assets.mixkit.co/videos/preview/mixkit-vertical-video-of-a-laser-tunnel-in-a-dark-space-42686-large.mp4",
-    "https://assets.mixkit.co/videos/preview/mixkit-fluid-abstract-motion-in-purple-and-blue-tones-40748-large.mp4",
-    "https://assets.mixkit.co/videos/preview/mixkit-vertical-neon-lights-in-a-dark-tunnel-42687-large.mp4",
-    "https://assets.mixkit.co/videos/preview/mixkit-waves-of-abstract-gold-and-black-liquid-40743-large.mp4",
-    "https://assets.mixkit.co/videos/preview/mixkit-vertical-video-of-glowing-digital-particles-42685-large.mp4",
-    "https://assets.mixkit.co/videos/preview/mixkit-abstract-tunnel-with-blue-and-purple-lights-40744-large.mp4",
-    "https://assets.mixkit.co/videos/preview/mixkit-vertical-video-of-cyberpunk-style-neon-lines-42688-large.mp4",
-    "https://assets.mixkit.co/videos/preview/mixkit-abstract-golden-particle-waves-40746-large.mp4",
-    "https://assets.mixkit.co/videos/preview/mixkit-vertical-motion-of-colorful-light-trails-42689-large.mp4",
-    "https://assets.mixkit.co/videos/preview/mixkit-vertical-video-of-abstract-purple-and-cyan-lights-42690-large.mp4",
-    "https://assets.mixkit.co/videos/preview/mixkit-digital-animation-of-screens-and-code-42691-large.mp4",
-    "https://assets.mixkit.co/videos/preview/mixkit-futuristic-tunnel-with-glowing-lines-42692-large.mp4",
-    "https://assets.mixkit.co/videos/preview/mixkit-glowing-particles-moving-in-a-spiral-42693-large.mp4",
-    "https://assets.mixkit.co/videos/preview/mixkit-abstract-lines-moving-in-a-dark-space-42694-large.mp4"
+    "https://assets.mixkit.co/videos/preview/mixkit-hands-cutting-a-bar-of-soap-with-a-knife-41556-large.mp4",
+    "https://assets.mixkit.co/videos/preview/mixkit-potter-shaping-a-clay-vase-on-a-wheel-41477-large.mp4",
+    "https://assets.mixkit.co/videos/preview/mixkit-woodworker-using-a-chisel-on-a-spinning-wood-lathe-41480-large.mp4",
+    "https://assets.mixkit.co/videos/preview/mixkit-hands-slicing-kinetic-sand-41558-large.mp4",
+    "https://assets.mixkit.co/videos/preview/mixkit-close-up-of-epoxy-resin-mixing-and-pouring-41485-large.mp4",
+    "https://assets.mixkit.co/videos/preview/mixkit-dominoes-falling-in-a-chain-reaction-41490-large.mp4",
+    "https://assets.mixkit.co/videos/preview/mixkit-laser-cutting-a-pattern-into-metal-41492-large.mp4",
+    "https://assets.mixkit.co/videos/preview/mixkit-pouring-melted-chocolate-over-a-cake-41500-large.mp4",
+    "https://assets.mixkit.co/videos/preview/mixkit-glassblower-shaping-hot-molten-glass-41505-large.mp4",
+    "https://assets.mixkit.co/videos/preview/mixkit-colorful-marbles-rolling-down-a-track-41510-large.mp4",
+    "https://assets.mixkit.co/videos/preview/mixkit-hydraulic-press-crushing-an-object-41515-large.mp4",
+    "https://assets.mixkit.co/videos/preview/mixkit-painter-applying-thick-acrylic-paint-to-canvas-41520-large.mp4",
+    "https://assets.mixkit.co/videos/preview/mixkit-3d-spheres-falling-and-bouncing-41525-large.mp4",
+    "https://assets.mixkit.co/videos/preview/mixkit-hand-carving-a-wooden-sculpture-41530-large.mp4",
+    "https://assets.mixkit.co/videos/preview/mixkit-satisfying-sand-art-creation-41535-large.mp4"
 ]
 
 def download_file(url, target_path):
