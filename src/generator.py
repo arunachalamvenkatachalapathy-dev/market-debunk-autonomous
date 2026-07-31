@@ -170,11 +170,11 @@ def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
             bg_files = sorted(glob.glob(os.path.join(bg_dir, "bg_*.mp4")))
 
     if bg_files:
-        # Dynamically rotate background video per scene & per run seed
-        seed_str = f"{visual_prompt}_{scene_index}_{int(time.time() // 120)}"
-        bg_index = (hash(seed_str) + scene_index) % len(bg_files)
+        # Select 1 continuous background video loop per Short (stretched across full video length 0..55s)
+        time_seed = int(time.time() // 120)
+        bg_index = (hash(f"short_video_{time_seed}") % len(bg_files))
         selected_bg = bg_files[bg_index]
-        logger.info(f"🎬 HYPNOTIC BACKGROUND [DIVERSITY]: Selected {os.path.basename(selected_bg)} (Index {bg_index + 1}/15) for Scene {scene_index}")
+        logger.info(f"🎬 HYPNOTIC BACKGROUND [FULL-STRETCH]: Selected {os.path.basename(selected_bg)} (Index {bg_index + 1}/15) continuously for Scene {scene_index}")
         return {"type": "video", "path": selected_bg}
     else:
         logger.warning(f"⚠️ Falling back to default background asset for Scene {scene_index}")
