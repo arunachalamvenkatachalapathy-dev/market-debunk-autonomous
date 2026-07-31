@@ -80,19 +80,23 @@ class PromptEngineerAgent:
                     
                 except Exception as e:
                     err_str = str(e).upper()
-                    if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
-                        logger.warning(f"Prompt Engineer hit Rate Limit (429). Rotating to next API key... ({len(self.clients)} total keys)")
+                    if any(code in err_str for code in ["429", "503", "500", "RESOURCE_EXHAUSTED", "UNAVAILABLE", "TIMEOUT", "DEADLINE"]):
+                        logger.warning(f"Prompt Engineer encountered transient error ({e}). Rotating key/retrying attempt {attempt+1}/{max_retries}...")
                         last_error = e
+                        import time
+                        time.sleep(3)
                         continue
                     logger.error(f"Prompt Engineer Gemini call failed: {e}")
                     raise
             
             if attempt < max_retries - 1:
-                logger.warning(f"All available Gemini API keys exhausted (429). Waiting 35 seconds before retry {attempt + 1}/{max_retries}...")
-                time.sleep(35)
+                logger.warning(f"Retrying Gemini call (Attempt {attempt + 1}/{max_retries}) after 5s delay...")
+                import time
+                time.sleep(5)
                 
-        logger.error("All available Gemini API keys have exhausted their rate limits (429) after retries.")
-        raise last_error
+        if last_error:
+            raise last_error
+        raise RuntimeError("Gemini call failed without explicit error.")
 
     # ──────────────────────────────────────────────
     #  SECTION 1: TOPIC DISCOVERY (EXHAUSTIVE & DUPLICATE-FREE)
