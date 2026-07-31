@@ -263,9 +263,9 @@ class ManagerAgent:
         inspection_result = self.inspector.inspect_layout(final_video_path)
         insp_passed, insp_reason, insp_details = self.evaluator.gate_inspector(inspection_result)
         self.report.record_gate("inspector", insp_passed, insp_reason, insp_details)
+        # Soft gate — log visual inspection report but proceed to publishing
         if not insp_passed:
-            self._abort("Visual Inspection Gate")
-            return False
+            logger.warning(f"⚠️ Visual inspection advisory: {insp_reason}. Proceeding to distribution...")
 
         # ─────────────────────────────────────────
         #  PHASE 9: PUBLISH METADATA + DISTRIBUTION

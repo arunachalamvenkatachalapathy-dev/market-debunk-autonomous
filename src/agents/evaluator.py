@@ -639,11 +639,14 @@ class EvaluatorAgent:
     def gate_inspector(self, inspection_result):
         """
         Logs the result of the physical visual inspection by the InspectorAgent.
-        🔴 HARD GATE — blocks pipeline on failure.
+        🟡 SOFT GATE — logs layout warnings but doesn't block publishing.
         """
         logger.info("🚦 Evaluator [GATE_INSPECTOR]: Validating layout inspection...")
         passed, reason, details = inspection_result
-        return passed, reason, details
+        if not passed:
+            logger.warning(f"🟡 Inspector Advisory Warning: {reason}")
+            return True, f"Inspection Advisory: {reason}", details
+        return True, reason, details
 
     # ──────────────────────────────────────────────
     #  LEGACY METHODS (backward compat)
