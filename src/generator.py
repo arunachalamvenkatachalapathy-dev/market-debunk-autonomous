@@ -116,7 +116,19 @@ def generate_scene_voice(tts_client, text, scene_index, voice_config_scene=None,
                     raise RuntimeError(f"Text-to-Speech synthesis failed: {e.stderr}")
                 time.sleep(2)
         
-        # Parse the JSON metadata for word boundaries
+        # Probe exact audio duration using ffprobe
+        audio_duration = 5.0
+        try:
+            probe_cmd = [
+                "ffprobe", "-v", "error", "-show_entries", "format=duration",
+                "-of", "default=noprint_wrappers=1:nokey=1", audio_path
+            ]
+            dur_res = subprocess.run(probe_cmd, capture_output=True, text=True, check=True)
+            audio_duration = float(dur_res.stdout.strip())
+        except Exception as pe:
+            logger.warning(f"Failed to probe audio duration for Scene {scene_index}: {pe}")
+        
+        # Parse word boundary metadata
         word_timings = []
         for line in result.stdout.strip().split('\n'):
             if not line:
@@ -133,17 +145,26 @@ def generate_scene_voice(tts_client, text, scene_index, voice_config_scene=None,
             except Exception as e:
                 pass
                 
-        if not word_timings:
-            # Fallback if metadata fails
-            words = text.split()
-            word_timings = [{"word": w, "time_seconds": i * 0.4} for i, w in enumerate(words)]
+        words = text.split()
+        if not word_timings or len(word_timings) < len(words) * 0.5:
+            # Uniform timing distribution fallback matched to actual audio_duration
+            step = (audio_duration * 0.85) / max(1, len(words))
+            word_timings = [{"word": w, "time_seconds": round(0.1 + i * step, 3)} for i, w in enumerate(words)]
+        else:
+            # Scale word timings to align perfectly with actual MP3 audio duration
+            last_time = word_timings[-1]["time_seconds"]
+            if last_time > 0 and audio_duration > 0:
+                target_end = max(0.5, audio_duration * 0.88)
+                scale_factor = target_end / last_time
+                for wt in word_timings:
+                    wt["time_seconds"] = round(wt["time_seconds"] * scale_factor, 3)
             
-        logger.info(f"Generated voice track for Scene {scene_index}.")
-        return audio_path, word_timings
+        logger.info(f"Generated voice track for Scene {scene_index} ({audio_duration:.2f}s) with {len(word_timings)} synced word timings.")
+        return audio_path, word_timings, audio_duration
         
-    except RuntimeError as e:
-        logger.error(str(e))
-        raise
+    except Exception as e:
+        logger.error(f"edge-tts failed: {e}")
+        raise RuntimeError(f"Text-to-Speech synthesis failed: {e}")
 
 def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
     """
@@ -208,7 +229,7 @@ def process_scene_assets(tts_client, scene, index, voice_config=None, visual_con
                 break
     
     # 1. Generate Voice with PE config
-    audio_path, word_timings = generate_scene_voice(
+    audio_path, word_timings, audio_duration = generate_scene_voice(
         tts_client, scene["narration"], index,
         voice_config_scene=voice_config_scene,
         arrow_state=scene.get("arrow_state", "arrow_up")
@@ -234,6 +255,7 @@ def process_scene_assets(tts_client, scene, index, voice_config=None, visual_con
         "narration": scene["narration"],
         "arrow_state": scene.get("arrow_state", "arrow_up"),
         "audio_path": audio_path,
+        "audio_duration": audio_duration,
         "word_timings": word_timings,
         "visual_asset": visual_asset,
         "emphasis_words": emphasis_words

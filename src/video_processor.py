@@ -137,8 +137,19 @@ def generate_ass_file(processed_scenes, total_duration, subtitle_style=None, ass
     current_time_offset = 0.0
     
     for scene in processed_scenes:
-        dur = scene["audio_duration"]
-        for item in scene["word_timings"]:
+        dur = scene.get("audio_duration")
+        if not dur:
+            try:
+                cmd = [
+                    "ffprobe", "-v", "error", "-show_entries", "format=duration",
+                    "-of", "default=noprint_wrappers=1:nokey=1", scene["audio_path"]
+                ]
+                res = subprocess.run(cmd, stdout=subprocess.PIPE, text=True, check=True)
+                dur = float(res.stdout.strip())
+            except Exception:
+                dur = 5.0
+        scene["audio_duration"] = dur
+        for item in scene.get("word_timings", []):
             word = item["word"].upper()
             flat_timings.append({
                 "word": word,
