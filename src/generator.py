@@ -87,10 +87,89 @@ def is_duplicate_topic(topic_hash):
         return False
 
 
-def generate_scene_voice(tts_client, text, scene_index, voice_config_scene=None, arrow_state="arrow_up"):
-    """Generate audio and word-level timing offsets using edge-tts.
-    Uses --write-subtitles to capture real word timestamps from a WebVTT file.
+def generate_fish_audio_voice(text, scene_index, arrow_state="arrow_up"):
     """
+    Synthesize audio using Fish Audio REST API.
+    Primary engine for human-like zero-shot / neural voice generation.
+    Returns (audio_path, word_timings, audio_duration) if successful.
+    Raises Exception if API fails or credit/quota limit is reached.
+    """
+    import requests
+    import subprocess
+    import re
+
+    api_key = None
+    try:
+        api_key = get_secret("FISH_AUDIO_API_KEY")
+    except Exception:
+        api_key = os.environ.get("FISH_AUDIO_API_KEY")
+
+    if not api_key:
+        api_key = "4a99d8002ba9464abf746d4803e58cca"
+
+    audio_path = os.path.join(OUTPUT_DIR, f"scene_{scene_index}.mp3")
+
+    # Clean any inline SSML/XML tags
+    clean_text = re.sub(r'<[^>]+>', '', text).strip()
+    clean_text = clean_text.replace('"', "'")
+
+    url = "https://api.fish.audio/v1/tts"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+        "model": "s2.1-pro"
+    }
+
+    payload = {
+        "text": clean_text,
+        "format": "mp3",
+        "normalize": True,
+        "prosody": {
+            "speed": 1.0,
+            "volume": 0.0
+        }
+    }
+
+    logger.info(f"🎙️ Synthesizing voice for Scene {scene_index} using Fish Audio API...")
+    response = requests.post(url, headers=headers, json=payload, timeout=35)
+
+    if response.status_code != 200:
+        raise RuntimeError(f"Fish Audio API returned status {response.status_code}: {response.text[:200]}")
+
+    with open(audio_path, "wb") as f:
+        f.write(response.content)
+
+    # Probe exact audio duration using ffprobe
+    audio_duration = 5.0
+    try:
+        probe_cmd = [
+            "ffprobe", "-v", "error", "-show_entries", "format=duration",
+            "-of", "default=noprint_wrappers=1:nokey=1", audio_path
+        ]
+        dur_res = subprocess.run(probe_cmd, capture_output=True, text=True, check=True, timeout=15)
+        audio_duration = float(dur_res.stdout.strip())
+    except Exception as pe:
+        logger.warning(f"Failed to probe Fish Audio duration for Scene {scene_index}: {pe}")
+
+    words = clean_text.split()
+    step = (audio_duration * 0.85) / max(1, len(words))
+    word_timings = [{"word": w, "time_seconds": round(0.1 + i * step, 3)} for i, w in enumerate(words)]
+
+    logger.info(f"✅ Fish Audio voice track generated for Scene {scene_index} ({audio_duration:.2f}s)")
+    return audio_path, word_timings, audio_duration
+
+
+def generate_scene_voice(tts_client, text, scene_index, voice_config_scene=None, arrow_state="arrow_up"):
+    """Generate audio and word-level timing offsets using Fish Audio API as primary engine,
+    with automatic fallback to edge-tts when credit/quota limits are reached.
+    """
+    # ─── PRIMARY ENGINE: FISH AUDIO ──────────────────────────────────────
+    try:
+        return generate_fish_audio_voice(text, scene_index, arrow_state=arrow_state)
+    except Exception as fish_err:
+        logger.warning(f"⚠️ Fish Audio synthesis failed ({fish_err}). Falling back to edge-tts engine...")
+
+    # ─── FALLBACK ENGINE: EDGE-TTS ───────────────────────────────────────
     import subprocess
     import re
     import time
