@@ -221,7 +221,6 @@ def process_single_scene_media(scene, assembly_config=None):
         cmd = [
             "ffmpeg", "-y",
             "-stream_loop", "-1",
-            "-ss", f"{start_time:.3f}",
             "-i", raw_path,
             "-t", f"{dur:.3f}",
             "-vf", "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,setsar=1",
