@@ -87,6 +87,19 @@ def is_duplicate_topic(topic_hash):
         return False
 
 
+import threading
+_KOKORO_LOCK = threading.Lock()
+_KOKORO_PIPELINE = None
+
+def get_kokoro_pipeline():
+    global _KOKORO_PIPELINE
+    with _KOKORO_LOCK:
+        if _KOKORO_PIPELINE is None:
+            from kokoro import KPipeline
+            _KOKORO_PIPELINE = KPipeline(lang_code='a')
+        return _KOKORO_PIPELINE
+
+
 def generate_kokoro_voice(text, scene_index, arrow_state="arrow_up"):
     """
     Synthesize audio using Kokoro-82M open-source neural model.
@@ -94,7 +107,6 @@ def generate_kokoro_voice(text, scene_index, arrow_state="arrow_up"):
     Returns (audio_path, word_timings, audio_duration) if successful.
     Raises Exception if Kokoro synthesis fails.
     """
-    from kokoro import KPipeline
     import soundfile as sf
     import numpy as np
     import subprocess
@@ -113,12 +125,13 @@ def generate_kokoro_voice(text, scene_index, arrow_state="arrow_up"):
     
     logger.info(f"🎙️ Synthesizing voice for Scene {scene_index} using Kokoro-82M (voice: {voice_name})...")
 
-    pipeline = KPipeline(lang_code='a')  # American English
-    generator = pipeline(clean_text, voice=voice_name, speed=1.1, split_pattern=r'\n+')
+    with _KOKORO_LOCK:
+        pipeline = get_kokoro_pipeline()
+        generator = pipeline(clean_text, voice=voice_name, speed=1.1, split_pattern=r'\n+')
 
-    all_audio = []
-    for _, _, audio in generator:
-        all_audio.append(audio)
+        all_audio = []
+        for _, _, audio in generator:
+            all_audio.append(audio)
 
     if not all_audio:
         raise RuntimeError("Kokoro TTS produced empty audio stream")
