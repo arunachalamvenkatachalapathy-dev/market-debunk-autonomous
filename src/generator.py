@@ -87,87 +87,76 @@ def is_duplicate_topic(topic_hash):
         return False
 
 
-def generate_fish_audio_voice(text, scene_index, arrow_state="arrow_up"):
+def generate_kokoro_voice(text, scene_index, arrow_state="arrow_up"):
     """
-    Synthesize audio using Fish Audio REST API.
-    Primary engine for human-like zero-shot / neural voice generation.
+    Synthesize audio using Kokoro-82M open-source neural model.
+    100% Free & Open Source engine delivering ultra-natural human speech.
     Returns (audio_path, word_timings, audio_duration) if successful.
-    Raises Exception if API fails or credit/quota limit is reached.
+    Raises Exception if Kokoro synthesis fails.
     """
-    import requests
+    from kokoro import KPipeline
+    import soundfile as sf
+    import numpy as np
     import subprocess
     import re
 
-    api_key = None
-    try:
-        api_key = get_secret("FISH_AUDIO_API_KEY")
-    except Exception:
-        api_key = os.environ.get("FISH_AUDIO_API_KEY")
-
-    if not api_key:
-        api_key = "4a99d8002ba9464abf746d4803e58cca"
-
     audio_path = os.path.join(OUTPUT_DIR, f"scene_{scene_index}.mp3")
 
-    # Clean any inline SSML/XML tags
+    # Clean narration text
     clean_text = re.sub(r'<[^>]+>', '', text).strip()
     clean_text = clean_text.replace('"', "'")
 
-    url = "https://api.fish.audio/v1/tts"
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-        "model": "s2.1-pro"
-    }
+    # Select Kokoro voice:
+    # Setup/Hook (arrow_up) -> 'am_adam' (Deep male narrator)
+    # Debunk/Reveal (arrow_down) -> 'af_heart' (Warm female presenter)
+    voice_name = "am_adam" if arrow_state == "arrow_up" else "af_heart"
+    
+    logger.info(f"🎙️ Synthesizing voice for Scene {scene_index} using Kokoro-82M (voice: {voice_name})...")
 
-    payload = {
-        "text": clean_text,
-        "format": "mp3",
-        "normalize": True,
-        "prosody": {
-            "speed": 1.0,
-            "volume": 0.0
-        }
-    }
+    pipeline = KPipeline(lang_code='a')  # American English
+    generator = pipeline(clean_text, voice=voice_name, speed=1.1, split_pattern=r'\n+')
 
-    logger.info(f"🎙️ Synthesizing voice for Scene {scene_index} using Fish Audio API...")
-    response = requests.post(url, headers=headers, json=payload, timeout=35)
+    all_audio = []
+    for _, _, audio in generator:
+        all_audio.append(audio)
 
-    if response.status_code != 200:
-        raise RuntimeError(f"Fish Audio API returned status {response.status_code}: {response.text[:200]}")
+    if not all_audio:
+        raise RuntimeError("Kokoro TTS produced empty audio stream")
 
-    with open(audio_path, "wb") as f:
-        f.write(response.content)
+    final_audio = np.concatenate(all_audio)
+    
+    # Save as WAV first, then convert to MP3 via ffmpeg
+    wav_path = os.path.join(OUTPUT_DIR, f"scene_{scene_index}_kokoro.wav")
+    sf.write(wav_path, final_audio, 24000)
 
-    # Probe exact audio duration using ffprobe
-    audio_duration = 5.0
-    try:
-        probe_cmd = [
-            "ffprobe", "-v", "error", "-show_entries", "format=duration",
-            "-of", "default=noprint_wrappers=1:nokey=1", audio_path
-        ]
-        dur_res = subprocess.run(probe_cmd, capture_output=True, text=True, check=True, timeout=15)
-        audio_duration = float(dur_res.stdout.strip())
-    except Exception as pe:
-        logger.warning(f"Failed to probe Fish Audio duration for Scene {scene_index}: {pe}")
+    conv_cmd = ["ffmpeg", "-y", "-i", wav_path, "-codec:a", "libmp3lame", "-qscale:a", "2", audio_path]
+    subprocess.run(conv_cmd, capture_output=True, check=True)
+
+    # Probe duration
+    probe_cmd = [
+        "ffprobe", "-v", "error", "-show_entries", "format=duration",
+        "-of", "default=noprint_wrappers=1:nokey=1", audio_path
+    ]
+    dur_res = subprocess.run(probe_cmd, capture_output=True, text=True, check=True, timeout=15)
+    audio_duration = float(dur_res.stdout.strip())
 
     words = clean_text.split()
     step = (audio_duration * 0.85) / max(1, len(words))
     word_timings = [{"word": w, "time_seconds": round(0.1 + i * step, 3)} for i, w in enumerate(words)]
 
-    logger.info(f"✅ Fish Audio voice track generated for Scene {scene_index} ({audio_duration:.2f}s)")
+    logger.info(f"✅ Kokoro-82M voice track generated for Scene {scene_index} ({audio_duration:.2f}s)")
     return audio_path, word_timings, audio_duration
 
 
 def generate_scene_voice(tts_client, text, scene_index, voice_config_scene=None, arrow_state="arrow_up"):
-    """Generate audio and word-level timing offsets using Fish Audio API as primary engine,
-    with automatic fallback to edge-tts when credit/quota limits are reached.
+    """Generate audio and word-level timing offsets using Kokoro-82M as primary 100% free engine,
+    with automatic fallback to edge-tts if Kokoro is unavailable.
     """
-    # ─── PRIMARY ENGINE: FISH AUDIO ──────────────────────────────────────
+    # ─── PRIMARY ENGINE: KOKORO-82M ─────────────────────────────────────
     try:
-        return generate_fish_audio_voice(text, scene_index, arrow_state=arrow_state)
-    except Exception as fish_err:
-        logger.warning(f"⚠️ Fish Audio synthesis failed ({fish_err}). Falling back to edge-tts engine...")
+        return generate_kokoro_voice(text, scene_index, arrow_state=arrow_state)
+    except Exception as kokoro_err:
+        logger.warning(f"⚠️ Kokoro-82M synthesis bypassed/failed ({kokoro_err}). Falling back to edge-tts engine...")
 
     # ─── FALLBACK ENGINE: EDGE-TTS ───────────────────────────────────────
     import subprocess
