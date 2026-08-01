@@ -28,15 +28,26 @@ class EvaluatorAgent:
         self.used_topics_path = "used_topics.json"
 
     def _load_used_topics(self):
-        """Load the dedup topic log supporting both dict and list structures."""
+        """Load the dedup topic log supporting both dict and list structures.
+        Auto-expires entries older than 7 days to prevent topic pool exhaustion."""
+        import datetime
+        cutoff = datetime.datetime.now() - datetime.timedelta(days=7)
         if os.path.exists(self.used_topics_path):
             try:
                 with open(self.used_topics_path, "r") as f:
                     data = json.load(f)
-                    if isinstance(data, dict):
-                        return data.get("topics", [])
-                    elif isinstance(data, list):
-                        return data
+                    topics = data.get("topics", []) if isinstance(data, dict) else data
+                    # Filter out entries older than 7 days
+                    fresh_topics = []
+                    for t in topics:
+                        ts_str = t.get("timestamp", "")
+                        try:
+                            ts = datetime.datetime.fromisoformat(ts_str.replace("Z", "+00:00").split("+")[0])
+                            if ts >= cutoff:
+                                fresh_topics.append(t)
+                        except Exception:
+                            fresh_topics.append(t)  # keep if unparseable
+                    return fresh_topics
             except Exception:
                 pass
         return []
@@ -123,7 +134,7 @@ class EvaluatorAgent:
                 intersection = topic_words & prev_words
                 union = topic_words | prev_words
                 similarity = len(intersection) / len(union) if union else 0
-                if similarity >= 0.85:
+                if similarity >= 0.90:
                     details["duplicate_of"] = entry.get("topic", "")
                     details["similarity"] = round(similarity, 2)
                     return False, f"Duplicate topic (similarity {similarity:.0%})", details

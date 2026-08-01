@@ -88,11 +88,20 @@ def is_duplicate_topic(topic_hash):
 
 
 def generate_scene_voice(tts_client, text, scene_index, voice_config_scene=None, arrow_state="arrow_up"):
-    """Generate audio and word-level timing offsets using edge-tts."""
+    """Generate audio and word-level timing offsets using edge-tts.
+    Uses --write-subtitles to capture real word timestamps from a WebVTT file.
+    """
     import subprocess
-    import ast
+    import re
+    import time
     
     audio_path = os.path.join(OUTPUT_DIR, f"scene_{scene_index}.mp3")
+    vtt_path = os.path.join(OUTPUT_DIR, f"scene_{scene_index}.vtt")
+    
+    # Clean any inline SSML/XML tags from narration to prevent TTS voice glitches
+    text = re.sub(r'<[^>]+>', '', text).strip()
+    # Escape any problematic characters
+    text = text.replace('"', "'")
     
     # Credible Indian English Financial Presenter Voices
     # Setup/Skeptic (arrow_down) -> Deep Indian Male Anchor (en-IN-PrabhatNeural)
@@ -101,21 +110,27 @@ def generate_scene_voice(tts_client, text, scene_index, voice_config_scene=None,
     
     try:
         logger.info(f"Synthesizing voice for Scene {scene_index} (Arrow: {arrow_state}) using {voice_name} at credible finance speed (+3%)...")
-        import time
         max_retries = 3
         for attempt in range(1, max_retries + 1):
             try:
-                result = subprocess.run(
-                    ["python", "-m", "edge_tts", "--voice", voice_name, "--rate", "+3%", "--text", text, "--write-media", audio_path],
-                    capture_output=True, text=True, check=True
+                subprocess.run(
+                    [
+                        "python", "-m", "edge_tts",
+                        "--voice", voice_name,
+                        "--rate", "+3%",
+                        "--text", text,
+                        "--write-media", audio_path,
+                        "--write-subtitles", vtt_path
+                    ],
+                    capture_output=True, text=True, check=True, timeout=60
                 )
                 break
             except subprocess.CalledProcessError as e:
-                logger.warning(f"edge-tts attempt {attempt} failed: {e.stderr}")
+                logger.warning(f"edge-tts attempt {attempt} failed: {e.stderr[:200]}")
                 if attempt == max_retries:
-                    raise RuntimeError(f"Text-to-Speech synthesis failed: {e.stderr}")
-                time.sleep(2)
-        
+                    raise RuntimeError(f"Text-to-Speech synthesis failed: {e.stderr[:500]}")
+                time.sleep(2 * attempt)
+
         # Probe exact audio duration using ffprobe
         audio_duration = 5.0
         try:
@@ -123,35 +138,61 @@ def generate_scene_voice(tts_client, text, scene_index, voice_config_scene=None,
                 "ffprobe", "-v", "error", "-show_entries", "format=duration",
                 "-of", "default=noprint_wrappers=1:nokey=1", audio_path
             ]
-            dur_res = subprocess.run(probe_cmd, capture_output=True, text=True, check=True)
+            dur_res = subprocess.run(probe_cmd, capture_output=True, text=True, check=True, timeout=15)
             audio_duration = float(dur_res.stdout.strip())
         except Exception as pe:
             logger.warning(f"Failed to probe audio duration for Scene {scene_index}: {pe}")
         
-        # Parse word boundary metadata
+        # Parse word boundary timing from WebVTT subtitle file (most reliable method)
         word_timings = []
-        for line in result.stdout.strip().split('\n'):
-            if not line:
-                continue
-            try:
-                data = json.loads(line)
-                if data.get("type") == "WordBoundary":
-                    # edge-tts offsets are in 100-nanosecond units. Convert to seconds.
-                    time_seconds = data["offset"] / 10_000_000.0
-                    word_timings.append({
-                        "word": data["text"],
-                        "time_seconds": time_seconds
-                    })
-            except Exception as e:
-                pass
-                
         words = text.split()
-        if not word_timings or len(word_timings) < len(words) * 0.5:
+        
+        if os.path.exists(vtt_path):
+            try:
+                with open(vtt_path, "r", encoding="utf-8") as vf:
+                    vtt_content = vf.read()
+                # Parse cue timestamps: 00:00:00.000 --> 00:00:00.500
+                cue_pattern = re.compile(
+                    r'(\d+:\d+:\d+\.\d+)\s+-->\s+(\d+:\d+:\d+\.\d+)\s*\n(.+?)(?:\n\n|\Z)',
+                    re.DOTALL
+                )
+                for match in cue_pattern.finditer(vtt_content):
+                    start_str, end_str, cue_text = match.group(1), match.group(2), match.group(3).strip()
+                    # Convert HH:MM:SS.mmm to seconds
+                    def vtt_to_sec(ts):
+                        parts = ts.split(":")
+                        h, m, s = int(parts[0]), int(parts[1]), float(parts[2])
+                        return h * 3600 + m * 60 + s
+                    start_sec = vtt_to_sec(start_str)
+                    # Each cue may have multiple words; distribute evenly within the cue duration
+                    cue_dur = vtt_to_sec(end_str) - start_sec
+                    cue_words = cue_text.split()
+                    per_word = cue_dur / max(1, len(cue_words))
+                    for wi, w in enumerate(cue_words):
+                        clean_word = re.sub(r'<[^>]*>', '', w).strip()
+                        if clean_word:
+                            word_timings.append({
+                                "word": clean_word,
+                                "time_seconds": round(start_sec + wi * per_word, 3)
+                            })
+                logger.info(f"Parsed {len(word_timings)} word timings from VTT for Scene {scene_index}")
+            except Exception as vtt_err:
+                logger.warning(f"VTT parse failed for Scene {scene_index}: {vtt_err}")
+                word_timings = []
+            finally:
+                # Clean up VTT file
+                try:
+                    os.remove(vtt_path)
+                except Exception:
+                    pass
+
+        if not word_timings or len(word_timings) < len(words) * 0.4:
             # Uniform timing distribution fallback matched to actual audio_duration
+            logger.info(f"Using uniform timing fallback for Scene {scene_index} ({audio_duration:.2f}s, {len(words)} words)")
             step = (audio_duration * 0.85) / max(1, len(words))
             word_timings = [{"word": w, "time_seconds": round(0.1 + i * step, 3)} for i, w in enumerate(words)]
         else:
-            # Scale word timings to align perfectly with actual MP3 audio duration
+            # Scale word timings to align with actual MP3 audio duration
             last_time = word_timings[-1]["time_seconds"]
             if last_time > 0 and audio_duration > 0:
                 target_end = max(0.5, audio_duration * 0.88)
@@ -159,7 +200,7 @@ def generate_scene_voice(tts_client, text, scene_index, voice_config_scene=None,
                 for wt in word_timings:
                     wt["time_seconds"] = round(wt["time_seconds"] * scale_factor, 3)
             
-        logger.info(f"Generated voice track for Scene {scene_index} ({audio_duration:.2f}s) with {len(word_timings)} synced word timings.")
+        logger.info(f"✅ Voice track for Scene {scene_index} ({audio_duration:.2f}s) with {len(word_timings)} synced word timings.")
         return audio_path, word_timings, audio_duration
         
     except Exception as e:
@@ -169,11 +210,9 @@ def generate_scene_voice(tts_client, text, scene_index, voice_config_scene=None,
 def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
     """
     Selects one of the 15 curated hypnotic looping background MP4 videos.
-    Uses 1 background video per week in sequential order.
-    Scraps scene-by-scene AI image generation and B-roll.
+    Rotates background video loops sequentially per video run using used_bg.json memory.
     """
     import glob
-    import datetime
     
     bg_dir = os.path.join(os.getcwd(), "assets", "backgrounds")
     os.makedirs(bg_dir, exist_ok=True)
@@ -191,9 +230,25 @@ def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
             bg_files = sorted(glob.glob(os.path.join(bg_dir, "bg_*.mp4")))
 
     if bg_files:
-        # Select 1 continuous background video loop per Short (stretched across full video length 0..55s)
-        time_seed = int(time.time() // 120)
-        bg_index = (hash(f"short_video_{time_seed}") % len(bg_files))
+        # Persistent non-repeating background rotation
+        bg_mem_file = os.path.join(os.getcwd(), "used_bg.json")
+        last_bg_idx = 0
+        if os.path.exists(bg_mem_file):
+            try:
+                with open(bg_mem_file, "r") as f:
+                    last_bg_idx = json.load(f).get("last_index", 0)
+            except Exception:
+                last_bg_idx = 0
+        
+        # Advance index for new video run
+        bg_index = (last_bg_idx + 1) % len(bg_files)
+        if scene_index == 0:
+            try:
+                with open(bg_mem_file, "w") as f:
+                    json.dump({"last_index": bg_index, "bg_file": os.path.basename(bg_files[bg_index])}, f)
+            except Exception:
+                pass
+                
         selected_bg = bg_files[bg_index]
         logger.info(f"🎬 HYPNOTIC BACKGROUND [FULL-STRETCH]: Selected {os.path.basename(selected_bg)} (Index {bg_index + 1}/15) continuously for Scene {scene_index}")
         return {"type": "video", "path": selected_bg}
