@@ -163,11 +163,13 @@ def generate_kokoro_voice(text, scene_index, arrow_state="arrow_up"):
 
 def generate_scene_voice(tts_client, text, scene_index, voice_config_scene=None, arrow_state="arrow_up"):
     """Generate audio and word-level timing offsets using Kokoro-82M as primary 100% free engine,
-    with automatic fallback to edge-tts if Kokoro is unavailable.
+    with automatic fallback to edge-tts if Kokoro is unavailable or times out (>25s).
     """
-    # ─── PRIMARY ENGINE: KOKORO-82M ─────────────────────────────────────
+    # ─── PRIMARY ENGINE: KOKORO-82M (25s max timeout) ───────────────────
     try:
-        return generate_kokoro_voice(text, scene_index, arrow_state=arrow_state)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as kokoro_exec:
+            future = kokoro_exec.submit(generate_kokoro_voice, text, scene_index, arrow_state)
+            return future.result(timeout=25.0)
     except Exception as kokoro_err:
         logger.warning(f"⚠️ Kokoro-82M synthesis bypassed/failed ({kokoro_err}). Falling back to edge-tts engine...")
 

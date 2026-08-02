@@ -26,8 +26,8 @@ jobs:
           python-version: '3.12'
           cache: 'pip' # Automatically caches pip dependencies
 
-      - name: Setup FFmpeg
-        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Setup FFmpeg & Espeak-NG
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg espeak-ng
           
       - name: Install Python Dependencies
         run: pip install -r requirements.txt
