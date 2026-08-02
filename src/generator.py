@@ -87,65 +87,56 @@ def is_duplicate_topic(topic_hash):
         return False
 
 
-import threading
-_KOKORO_LOCK = threading.Lock()
-_KOKORO_PIPELINE = None
-
-def get_kokoro_pipeline():
-    global _KOKORO_PIPELINE
-    with _KOKORO_LOCK:
-        if _KOKORO_PIPELINE is None:
-            from kokoro import KPipeline
-            _KOKORO_PIPELINE = KPipeline(lang_code='a')
-        return _KOKORO_PIPELINE
-
-
 def generate_kokoro_voice(text, scene_index, arrow_state="arrow_up"):
     """
-    Synthesize audio using Kokoro-82M open-source neural model.
-    100% Free & Open Source engine delivering ultra-natural human speech.
+    Synthesize audio using Kokoro-82M ONNX model (kokoro-onnx).
+    100% Free & Open Source engine delivering ultra-fast natural human speech.
     Returns (audio_path, word_timings, audio_duration) if successful.
-    Raises Exception if Kokoro synthesis fails.
     """
+    from kokoro_onnx import Kokoro
     import soundfile as sf
-    import numpy as np
+    import urllib.request
     import subprocess
     import re
 
+    models_dir = os.path.join(os.getcwd(), "assets", "kokoro_models")
+    os.makedirs(models_dir, exist_ok=True)
+
+    model_file = os.path.join(models_dir, "kokoro-v1.0.onnx")
+    voices_file = os.path.join(models_dir, "voices-v1.0.bin")
+
+    if not os.path.exists(model_file):
+        logger.info("Downloading Kokoro-82M ONNX model weights...")
+        urllib.request.urlretrieve(
+            "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx",
+            model_file
+        )
+
+    if not os.path.exists(voices_file):
+        logger.info("Downloading Kokoro-82M voice embeddings...")
+        urllib.request.urlretrieve(
+            "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin",
+            voices_file
+        )
+
     audio_path = os.path.join(OUTPUT_DIR, f"scene_{scene_index}.mp3")
 
-    # Clean narration text
     clean_text = re.sub(r'<[^>]+>', '', text).strip()
     clean_text = clean_text.replace('"', "'")
 
-    # Select Kokoro voice:
-    # Setup/Hook (arrow_up) -> 'am_adam' (Deep male narrator)
-    # Debunk/Reveal (arrow_down) -> 'af_heart' (Warm female presenter)
+    # Select voice: 'am_adam' (male hook) vs 'af_heart' (female reveal)
     voice_name = "am_adam" if arrow_state == "arrow_up" else "af_heart"
-    
-    logger.info(f"🎙️ Synthesizing voice for Scene {scene_index} using Kokoro-82M (voice: {voice_name})...")
+    logger.info(f"🎙️ Synthesizing voice for Scene {scene_index} using Kokoro-82M ONNX (voice: {voice_name})...")
 
-    with _KOKORO_LOCK:
-        pipeline = get_kokoro_pipeline()
-        generator = pipeline(clean_text, voice=voice_name, speed=1.1, split_pattern=r'\n+')
+    kokoro = Kokoro(model_file, voices_file)
+    samples, sample_rate = kokoro.create(clean_text, voice=voice_name, speed=1.1, lang="en-us")
 
-        all_audio = []
-        for _, _, audio in generator:
-            all_audio.append(audio)
-
-    if not all_audio:
-        raise RuntimeError("Kokoro TTS produced empty audio stream")
-
-    final_audio = np.concatenate(all_audio)
-    
-    # Save as WAV first, then convert to MP3 via ffmpeg
     wav_path = os.path.join(OUTPUT_DIR, f"scene_{scene_index}_kokoro.wav")
-    sf.write(wav_path, final_audio, 24000)
+    sf.write(wav_path, samples, sample_rate)
 
     conv_cmd = ["ffmpeg", "-y", "-i", wav_path, "-codec:a", "libmp3lame", "-qscale:a", "2", audio_path]
     subprocess.run(conv_cmd, capture_output=True, check=True)
 
-    # Probe duration
     probe_cmd = [
         "ffprobe", "-v", "error", "-show_entries", "format=duration",
         "-of", "default=noprint_wrappers=1:nokey=1", audio_path
@@ -157,7 +148,7 @@ def generate_kokoro_voice(text, scene_index, arrow_state="arrow_up"):
     step = (audio_duration * 0.85) / max(1, len(words))
     word_timings = [{"word": w, "time_seconds": round(0.1 + i * step, 3)} for i, w in enumerate(words)]
 
-    logger.info(f"✅ Kokoro-82M voice track generated for Scene {scene_index} ({audio_duration:.2f}s)")
+    logger.info(f"✅ Kokoro-82M ONNX voice track generated for Scene {scene_index} ({audio_duration:.2f}s)")
     return audio_path, word_timings, audio_duration
 
 
