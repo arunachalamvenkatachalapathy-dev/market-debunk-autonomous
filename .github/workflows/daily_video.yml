@@ -6,9 +6,14 @@ on:
     - cron: '0 3,15 * * *'
   workflow_dispatch: # Allows manual triggering from the GitHub UI
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   generate-and-publish:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     
     # Required permissions to commit the used_topics.json back to the repo
     permissions:
