@@ -105,10 +105,11 @@ def upload_to_telegram(video_path, caption):
         logger.error(f"Telegram Upload Failed: {error}")
         return {"success": False, "error": str(error)}
 
-def upload_to_twitter(video_path, caption, youtube_url=None):
+def upload_to_twitter(video_path, title, summary_hook=None, youtube_url=None):
     """
     Extract a 10-second clip from video_path, upload media to Twitter/X API v1.1,
-    and post a Tweet via Twitter API v2 redirecting users to the full YouTube video.
+    and post a Tweet via Twitter API v2 with a high-converting <=150 character summary hook
+    redirecting users to the full YouTube video.
     """
     import os
     import time
@@ -185,11 +186,17 @@ def upload_to_twitter(video_path, caption, youtube_url=None):
                 processing_info = status_res.json().get("processing_info", {})
                 state = processing_info.get("state")
 
-        # 3. Post Tweet with 10s teaser clip & YouTube URL via Twitter API v2
-        tweet_url = "https://api.twitter.com/2/tweets"
-        full_text = caption
+        # 3. Format 150-char summary hook & post Tweet via Twitter API v2
+        hook_text = summary_hook if summary_hook else title
+        clean_hook = hook_text.strip().replace('"', "'")
+        if len(clean_hook) > 150:
+            clean_hook = clean_hook[:147] + "..."
+
+        tweet_lines = [f"🚨 {clean_hook}", "", "Watch 10s preview below! 👇"]
         if youtube_url:
-            full_text = f"{caption}\n\n👇 Watch full video on YouTube:\n{youtube_url}"
+            tweet_lines.extend(["", "👇 Full Video:", youtube_url])
+
+        full_text = "\n".join(tweet_lines)
 
         tweet_body = {
             "text": full_text[:280],
@@ -198,8 +205,8 @@ def upload_to_twitter(video_path, caption, youtube_url=None):
             }
         }
 
-        logger.info("Publishing Tweet with 10s teaser video clip...")
-        tweet_res = requests.post(tweet_url, auth=auth, json=tweet_body)
+        logger.info(f"Publishing Tweet with 150-char hook ({len(clean_hook)} chars) & 10s teaser video clip...")
+        tweet_res = requests.post("https://api.twitter.com/2/tweets", auth=auth, json=tweet_body)
         tweet_res.raise_for_status()
         tweet_data = tweet_res.json()
         tweet_id = tweet_data.get("data", {}).get("id")
@@ -212,7 +219,7 @@ def upload_to_twitter(video_path, caption, youtube_url=None):
         return {"success": False, "error": str(error)}
 
 
-def publish_video(video_path, title, youtube_description, youtube_tags, telegram_caption, category_id="27", publish_youtube=True, publish_telegram=True, publish_twitter=True):
+def publish_video(video_path, title, youtube_description, youtube_tags, telegram_caption, category_id="27", summary_hook=None, publish_youtube=True, publish_telegram=True, publish_twitter=True):
     """Orchestrate video distribution to selected destinations (YouTube, Telegram, Twitter/X)."""
     results = {}
     yt_url = None
@@ -234,8 +241,7 @@ def publish_video(video_path, title, youtube_description, youtube_tags, telegram
 
     if publish_twitter:
         logger.info("Distribution target: Twitter / X")
-        twitter_caption = f"🚨 {title}\n\nWatch 10s preview below! 👇"
-        results["twitter"] = upload_to_twitter(video_path, twitter_caption, youtube_url=yt_url)
+        results["twitter"] = upload_to_twitter(video_path, title, summary_hook=summary_hook, youtube_url=yt_url)
     else:
         results["twitter"] = {"success": False, "status": "skipped"}
         
