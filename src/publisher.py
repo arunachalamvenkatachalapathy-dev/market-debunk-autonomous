@@ -146,90 +146,73 @@ def upload_to_twitter(video_path, title, summary_hook=None, youtube_url=None):
         elif bearer_token:
             headers = {"Authorization": f"Bearer {bearer_token}"}
 
-        # 1. Extract 10-second teaser clip using FFmpeg
-        teaser_path = os.path.join(os.path.dirname(video_path), "teaser_10s.mp4")
-        clip_cmd = ["ffmpeg", "-y", "-i", video_path, "-t", "10", "-c", "copy", teaser_path]
-        subprocess.run(clip_cmd, capture_output=True, check=True)
+        # 1. Attempt 10-second clip upload to Twitter API v1.1
+        media_id = None
+        try:
+            teaser_path = os.path.join(os.path.dirname(video_path), "teaser_10s.mp4")
+            clip_cmd = ["ffmpeg", "-y", "-i", video_path, "-t", "10", "-c", "copy", teaser_path]
+            subprocess.run(clip_cmd, capture_output=True, check=True)
 
-        file_size = os.path.getsize(teaser_path)
+            file_size = os.path.getsize(teaser_path)
+            upload_url = "https://upload.twitter.com/1.1/media/upload.json"
+            logger.info(f"Uploading 10s clip ({file_size} bytes) to Twitter/X...")
 
-        # 2. Chunked Media Upload to Twitter v1.1 API
-        upload_url = "https://upload.twitter.com/1.1/media/upload.json"
-        logger.info(f"Uploading 10s clip ({file_size} bytes) to Twitter/X...")
+            init_res = requests.post(upload_url, auth=auth, headers=headers, data={
+                "command": "INIT",
+                "total_bytes": file_size,
+                "media_type": "video/mp4",
+                "media_category": "tweet_video"
+            })
+            if init_res.status_code == 200:
+                media_id = init_res.json().get("media_id_string")
+                with open(teaser_path, "rb") as f:
+                    segment_id = 0
+                    while True:
+                        chunk = f.read(4 * 1024 * 1024)
+                        if not chunk:
+                            break
+                        app_res = requests.post(upload_url, auth=auth, headers=headers, data={
+                            "command": "APPEND",
+                            "media_id": media_id,
+                            "segment_index": segment_id
+                        }, files={"media": chunk})
+                        app_res.raise_for_status()
+                        segment_id += 1
 
-        # INIT
-        init_res = requests.post(upload_url, auth=auth, headers=headers, data={
-            "command": "INIT",
-            "total_bytes": file_size,
-            "media_type": "video/mp4",
-            "media_category": "tweet_video"
-        })
-        init_res.raise_for_status()
-        media_id = init_res.json()["media_id_string"]
-
-        # APPEND
-        with open(teaser_path, "rb") as f:
-            segment_id = 0
-            while True:
-                chunk = f.read(4 * 1024 * 1024)
-                if not chunk:
-                    break
-                app_res = requests.post(upload_url, auth=auth, headers=headers, data={
-                    "command": "APPEND",
-                    "media_id": media_id,
-                    "segment_index": segment_id
-                }, files={"media": chunk})
-                app_res.raise_for_status()
-                segment_id += 1
-
-        # FINALIZE
-        fin_res = requests.post(upload_url, auth=auth, headers=headers, data={
-            "command": "FINALIZE",
-            "media_id": media_id
-        })
-        fin_res.raise_for_status()
-
-        # Check processing status for video if required
-        processing_info = fin_res.json().get("processing_info")
-        if processing_info:
-            state = processing_info.get("state")
-            while state in ["pending", "in_progress"]:
-                check_after = processing_info.get("check_after_secs", 2)
-                time.sleep(check_after)
-                status_res = requests.get(upload_url, auth=auth, headers=headers, params={
-                    "command": "STATUS",
+                fin_res = requests.post(upload_url, auth=auth, headers=headers, data={
+                    "command": "FINALIZE",
                     "media_id": media_id
                 })
-                status_res.raise_for_status()
-                processing_info = status_res.json().get("processing_info", {})
-                state = processing_info.get("state")
+                fin_res.raise_for_status()
+        except Exception as media_err:
+            logger.warning(f"⚠️ Twitter media upload bypassed ({media_err}). Proceeding with text tweet & YouTube link.")
 
-        # 3. Format 150-char summary hook & post Tweet via Twitter API v2
+        # 2. Format 150-char summary hook & post Tweet via Twitter API v2
+        tweet_url = "https://api.twitter.com/2/tweets"
         hook_text = summary_hook if summary_hook else title
         clean_hook = hook_text.strip().replace('"', "'")
         if len(clean_hook) > 150:
             clean_hook = clean_hook[:147] + "..."
 
-        tweet_lines = [f"🚨 {clean_hook}", "", "Watch 10s preview below! 👇"]
+        tweet_lines = [f"🚨 {clean_hook}"]
+        if media_id:
+            tweet_lines.extend(["", "Watch 10s preview below! 👇"])
         if youtube_url:
-            tweet_lines.extend(["", "👇 Full Video:", youtube_url])
+            tweet_lines.extend(["", "👇 Watch full video on YouTube:", youtube_url])
 
         full_text = "\n".join(tweet_lines)
 
-        tweet_body = {
-            "text": full_text[:280],
-            "media": {
-                "media_ids": [media_id]
-            }
-        }
+        tweet_body = {"text": full_text[:280]}
+        if media_id:
+            tweet_body["media"] = {"media_ids": [media_id]}
 
-        logger.info(f"Publishing Tweet with 150-char hook ({len(clean_hook)} chars) & 10s teaser video clip...")
-        tweet_res = requests.post("https://api.twitter.com/2/tweets", auth=auth, headers=headers, json=tweet_body)
+        logger.info(f"Publishing Tweet with 150-char hook ({len(clean_hook)} chars) to Twitter/X...")
+        tweet_res = requests.post(tweet_url, auth=auth, headers=headers, json=tweet_body)
         tweet_res.raise_for_status()
         tweet_data = tweet_res.json()
         tweet_id = tweet_data.get("data", {}).get("id")
 
-        logger.info(f"✅ Posted 10s teaser clip to Twitter/X (Tweet ID: {tweet_id})")
+        logger.info(f"✅ Posted Tweet to Twitter/X (Tweet ID: {tweet_id})")
         return {"success": True, "tweet_id": tweet_id}
 
     except Exception as error:
