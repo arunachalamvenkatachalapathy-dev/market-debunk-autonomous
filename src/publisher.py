@@ -143,8 +143,10 @@ def upload_to_twitter(video_path, title, summary_hook=None, youtube_url=None):
         headers = {}
         if api_key and api_secret and access_token and access_token_secret:
             auth = OAuth1(api_key, api_secret, access_token, access_token_secret)
-        elif bearer_token:
-            headers = {"Authorization": f"Bearer {bearer_token}"}
+        
+        token_to_use = access_token or bearer_token
+        if token_to_use:
+            headers["Authorization"] = f"Bearer {token_to_use}"
 
         # 1. Attempt 10-second clip upload to Twitter API v1.1
         media_id = None
