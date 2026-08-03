@@ -205,11 +205,13 @@ def upload_to_twitter(video_path, title, summary_hook=None, youtube_url=None):
         full_text = "\n".join(tweet_lines)
 
         tweet_body = {"text": full_text[:280]}
-        if media_id:
-            tweet_body["media"] = {"media_ids": [media_id]}
+        headers["Content-Type"] = "application/json"
+        req_kwargs = {"headers": headers, "json": tweet_body}
+        if auth:
+            req_kwargs["auth"] = auth
 
         logger.info(f"Publishing Tweet with 150-char hook ({len(clean_hook)} chars) to Twitter/X...")
-        tweet_res = requests.post(tweet_url, auth=auth, headers=headers, json=tweet_body)
+        tweet_res = requests.post(tweet_url, **req_kwargs)
         tweet_res.raise_for_status()
         tweet_data = tweet_res.json()
         tweet_id = tweet_data.get("data", {}).get("id")
