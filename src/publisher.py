@@ -121,12 +121,18 @@ def upload_to_twitter(video_path, title, summary_hook=None, youtube_url=None):
         api_secret = get_secret("TWITTER_API_SECRET")
         access_token = get_secret("TWITTER_ACCESS_TOKEN")
         access_token_secret = get_secret("TWITTER_ACCESS_TOKEN_SECRET")
+        bearer_token = get_secret("TWITTER_BEARER_TOKEN")
 
-        if not (api_key and api_secret and access_token and access_token_secret):
-            logger.warning("⚠️ Twitter/X API credentials missing (TWITTER_API_KEY / ACCESS_TOKEN). Skipping Twitter post.")
+        if not (bearer_token or (api_key and access_token)):
+            logger.warning("⚠️ Twitter/X API credentials missing. Skipping Twitter post.")
             return {"success": False, "status": "skipped", "reason": "missing_credentials"}
 
-        auth = OAuth1(api_key, api_secret, access_token, access_token_secret)
+        auth = None
+        headers = {}
+        if api_key and api_secret and access_token and access_token_secret:
+            auth = OAuth1(api_key, api_secret, access_token, access_token_secret)
+        elif bearer_token:
+            headers = {"Authorization": f"Bearer {bearer_token}"}
 
         # 1. Extract 10-second teaser clip using FFmpeg
         teaser_path = os.path.join(os.path.dirname(video_path), "teaser_10s.mp4")
@@ -140,7 +146,7 @@ def upload_to_twitter(video_path, title, summary_hook=None, youtube_url=None):
         logger.info(f"Uploading 10s clip ({file_size} bytes) to Twitter/X...")
 
         # INIT
-        init_res = requests.post(upload_url, auth=auth, data={
+        init_res = requests.post(upload_url, auth=auth, headers=headers, data={
             "command": "INIT",
             "total_bytes": file_size,
             "media_type": "video/mp4",
@@ -156,7 +162,7 @@ def upload_to_twitter(video_path, title, summary_hook=None, youtube_url=None):
                 chunk = f.read(4 * 1024 * 1024)
                 if not chunk:
                     break
-                app_res = requests.post(upload_url, auth=auth, data={
+                app_res = requests.post(upload_url, auth=auth, headers=headers, data={
                     "command": "APPEND",
                     "media_id": media_id,
                     "segment_index": segment_id
@@ -165,7 +171,7 @@ def upload_to_twitter(video_path, title, summary_hook=None, youtube_url=None):
                 segment_id += 1
 
         # FINALIZE
-        fin_res = requests.post(upload_url, auth=auth, data={
+        fin_res = requests.post(upload_url, auth=auth, headers=headers, data={
             "command": "FINALIZE",
             "media_id": media_id
         })
@@ -178,7 +184,7 @@ def upload_to_twitter(video_path, title, summary_hook=None, youtube_url=None):
             while state in ["pending", "in_progress"]:
                 check_after = processing_info.get("check_after_secs", 2)
                 time.sleep(check_after)
-                status_res = requests.get(upload_url, auth=auth, params={
+                status_res = requests.get(upload_url, auth=auth, headers=headers, params={
                     "command": "STATUS",
                     "media_id": media_id
                 })
@@ -206,7 +212,7 @@ def upload_to_twitter(video_path, title, summary_hook=None, youtube_url=None):
         }
 
         logger.info(f"Publishing Tweet with 150-char hook ({len(clean_hook)} chars) & 10s teaser video clip...")
-        tweet_res = requests.post("https://api.twitter.com/2/tweets", auth=auth, json=tweet_body)
+        tweet_res = requests.post("https://api.twitter.com/2/tweets", auth=auth, headers=headers, json=tweet_body)
         tweet_res.raise_for_status()
         tweet_data = tweet_res.json()
         tweet_id = tweet_data.get("data", {}).get("id")
