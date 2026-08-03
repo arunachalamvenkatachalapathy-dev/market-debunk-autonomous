@@ -105,6 +105,18 @@ def upload_to_telegram(video_path, caption):
         logger.error(f"Telegram Upload Failed: {error}")
         return {"success": False, "error": str(error)}
 
+def get_optional_secret(key):
+    """Safely fetch secret without throwing exception if missing."""
+    import os
+    try:
+        val = get_secret(key)
+        if val:
+            return val
+    except Exception:
+        pass
+    return os.environ.get(key, "")
+
+
 def upload_to_twitter(video_path, title, summary_hook=None, youtube_url=None):
     """
     Extract a 10-second clip from video_path, upload media to Twitter/X API v1.1,
@@ -117,11 +129,11 @@ def upload_to_twitter(video_path, title, summary_hook=None, youtube_url=None):
     from requests_oauthlib import OAuth1
 
     try:
-        api_key = get_secret("TWITTER_API_KEY")
-        api_secret = get_secret("TWITTER_API_SECRET")
-        access_token = get_secret("TWITTER_ACCESS_TOKEN")
-        access_token_secret = get_secret("TWITTER_ACCESS_TOKEN_SECRET")
-        bearer_token = get_secret("TWITTER_BEARER_TOKEN")
+        api_key = get_optional_secret("TWITTER_API_KEY")
+        api_secret = get_optional_secret("TWITTER_API_SECRET")
+        access_token = get_optional_secret("TWITTER_ACCESS_TOKEN")
+        access_token_secret = get_optional_secret("TWITTER_ACCESS_TOKEN_SECRET")
+        bearer_token = get_optional_secret("TWITTER_BEARER_TOKEN")
 
         if not (bearer_token or (api_key and access_token)):
             logger.warning("⚠️ Twitter/X API credentials missing. Skipping Twitter post.")
