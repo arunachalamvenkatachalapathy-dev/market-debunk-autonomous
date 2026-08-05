@@ -139,35 +139,6 @@ class PromptEngineerAgent:
             pass
         return False
 
-    def _save_processed_topic(self, video_id, topic_string, channel_index=0):
-        import os, json
-        used_data = {"last_channel_index": 0, "topics": []}
-        if os.path.exists("used_topics.json"):
-            try:
-                with open("used_topics.json", "r") as f:
-                    loaded = json.load(f)
-                    if isinstance(loaded, dict):
-                        used_data = loaded
-                    elif isinstance(loaded, list):
-                        used_data["topics"] = loaded
-            except Exception:
-                used_data = {"last_channel_index": 0, "topics": []}
-        
-        # Record last channel index & topic entry
-        used_data["last_channel_index"] = channel_index
-        used_data["topics"].append({
-            "video_id": video_id,
-            "topic": topic_string,
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        })
-        
-        try:
-            with open("used_topics.json", "w") as f:
-                json.dump(used_data, f, indent=2)
-            logger.info(f"💾 PE Agent [MEMORY]: Recorded video ID '{video_id}' under Channel Index {channel_index} to used_topics.json")
-        except Exception as e:
-            logger.error(f"❌ PE Agent [MEMORY]: Failed to save used_topics.json: {e}")
-
     def _fetch_youtube_transcript(self, video_id):
         """Attempts to download the YouTube transcript text for a video using API and yt-dlp fallback."""
         try:
@@ -332,10 +303,10 @@ class PromptEngineerAgent:
                             title = snippet.get("title", "")
                             v_url = f"https://www.youtube.com/watch?v={v_id}" if v_id else ""
 
-                            if v_id and not self._is_video_processed(v_id, v_url):
+                            if v_id and not self._is_video_processed(v_id, v_url) and not self._is_topic_used(title):
                                 logger.info(f"🔍 PE Agent [TOPIC]: Found fresh video via API on [{ch_name}] [ID: {v_id}]: {title}")
-                                topic = self._build_topic_with_summary(v_id, v_url, title, channel_name=ch_name, channel_index=idx)
-                                if topic:
+                                topic = self._build_topic_with_summary(v_id, v_url, title, channel_name=ch_name)
+                                if topic and not self._is_topic_used(topic):
                                     return topic
                 except Exception as e:
                     logger.warning(f"🔍 PE Agent [TOPIC]: YouTube Data API search failed for '{ch_name}': {e}")
@@ -368,21 +339,20 @@ class PromptEngineerAgent:
                             elif "youtu.be/" in video_url:
                                 video_id = video_url.split("youtu.be/")[1].split("?")[0]
 
-                        if video_id and not self._is_video_processed(video_id, video_url):
+                        if video_id and not self._is_video_processed(video_id, video_url) and not self._is_topic_used(title):
                             logger.info(f"🔍 PE Agent [TOPIC]: Found fresh video via RSS on [{ch_name}] [ID: {video_id}]: {title}")
-                            topic = self._build_topic_with_summary(video_id, video_url, title, rss_description=rss_description, channel_name=ch_name, channel_index=idx)
-                            if topic:
+                            topic = self._build_topic_with_summary(video_id, video_url, title, rss_description=rss_description, channel_name=ch_name)
+                            if topic and not self._is_topic_used(topic):
                                 return topic
             except Exception as e:
                 logger.warning(f"🔍 PE Agent [TOPIC]: RSS fetch failed for '{ch_name}': {e}")
 
-        logger.info("🔍 PE Agent [TOPIC]: All recent video IDs across all 6 channels processed today. Generating fresh dynamic market topic...")
+        logger.info("🔍 PE Agent [TOPIC]: All recent video IDs across channels processed. Generating fresh dynamic market topic...")
         timestamp_str = datetime.now().strftime("%Y-%m-%d-%H%M%S")
         dynamic_topic = f"Dynamic Financial Analysis & Stock Market Debunk [Ref: {timestamp_str}]"
-        self._save_processed_topic(hashlib.md5(dynamic_topic.encode()).hexdigest()[:8], dynamic_topic, channel_index=0)
         return dynamic_topic
 
-    def _build_topic_with_summary(self, video_id, video_url, title, rss_description=None, channel_name="Financial Analyst", channel_index=0):
+    def _build_topic_with_summary(self, video_id, video_url, title, rss_description=None, channel_name="Financial Analyst"):
         """Helper to build transcript summary topic for a video strictly using actual video text."""
         source_text = self._fetch_youtube_transcript(video_id) if video_id else None
         
@@ -427,7 +397,6 @@ class PromptEngineerAgent:
                     f"Link: {video_url}\n"
                     f"Shocking Summary Today: {summary_text}"
                 )
-                self._save_processed_topic(video_id, topic_str, channel_index=channel_index)
                 return topic_str
         except Exception as e:
             logger.warning(f"🔍 PE Agent [TOPIC]: Gemini transcript summary failed for {video_id}: {e}")
