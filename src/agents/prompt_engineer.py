@@ -7,6 +7,7 @@ import logging
 import json
 import requests
 import random
+import hashlib
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 from google.genai import types
@@ -122,6 +123,22 @@ class PromptEngineerAgent:
             pass
         return False
 
+    def _is_topic_used(self, topic_str):
+        import os, json
+        if not os.path.exists("used_topics.json"):
+            return False
+        try:
+            with open("used_topics.json", "r") as f:
+                used_data = json.load(f)
+            entries = used_data.get("topics", []) if isinstance(used_data, dict) else used_data
+            for entry in entries:
+                t = entry.get("topic", "")
+                if topic_str.lower() in t.lower() or t.lower() in topic_str.lower():
+                    return True
+        except Exception:
+            pass
+        return False
+
     def _save_processed_topic(self, video_id, topic_string, channel_index=0):
         import os, json
         used_data = {"last_channel_index": 0, "topics": []}
@@ -153,7 +170,6 @@ class PromptEngineerAgent:
 
     def _fetch_youtube_transcript(self, video_id):
         """Attempts to download the YouTube transcript text for a video using API and yt-dlp fallback."""
-        # Method 1: youtube_transcript_api
         try:
             from youtube_transcript_api import YouTubeTranscriptApi
             ytt = YouTubeTranscriptApi()
@@ -174,7 +190,6 @@ class PromptEngineerAgent:
         except Exception as e:
             logger.warning(f"🔍 PE Agent [TOPIC]: youtube-transcript-api failed for {video_id}: {e}")
 
-        # Method 2: yt_dlp with js_runtimes node
         try:
             import yt_dlp, xml.etree.ElementTree as ET
             url = f"https://www.youtube.com/watch?v={video_id}"
@@ -232,7 +247,6 @@ class PromptEngineerAgent:
         except Exception as e:
             logger.warning(f"🔍 PE Agent [TOPIC]: yt-dlp node transcript fetch failed for {video_id}: {e}")
 
-        # Method 3: Direct HTML scraping of ytInitialPlayerResponse
         try:
             import json, re, xml.etree.ElementTree as ET
             url = f"https://www.youtube.com/watch?v={video_id}"
@@ -282,7 +296,6 @@ class PromptEngineerAgent:
         
         yt_api_key = os.getenv("YT_API_KEY")
 
-        # Determine Round-Robin start index from used_topics.json
         last_idx = -1
         if os.path.exists("used_topics.json"):
             try:
@@ -303,7 +316,6 @@ class PromptEngineerAgent:
             channel_id = ch["channel_id"]
             logger.info(f"🔍 PE Agent [TOPIC]: Checking target channel [{idx+1}/6] '{ch_name}' ({channel_id})...")
 
-            # Source 1: YouTube Data API v3 Search
             if yt_api_key:
                 try:
                     logger.info(f"🔍 PE Agent [TOPIC]: Attempting YouTube Data API search for '{ch_name}'...")
@@ -322,19 +334,17 @@ class PromptEngineerAgent:
 
                             if v_id and not self._is_video_processed(v_id, v_url):
                                 logger.info(f"🔍 PE Agent [TOPIC]: Found fresh video via API on [{ch_name}] [ID: {v_id}]: {title}")
-                                topic = self._build_topic_with_summary(v_id, v_url, title, channel_name=ch_name)
+                                topic = self._build_topic_with_summary(v_id, v_url, title, channel_name=ch_name, channel_index=idx)
                                 if topic:
                                     return topic
                 except Exception as e:
                     logger.warning(f"🔍 PE Agent [TOPIC]: YouTube Data API search failed for '{ch_name}': {e}")
 
-            # Source 2: YouTube RSS Feed (100% reliable fallback)
             try:
                 logger.info(f"🔍 PE Agent [TOPIC]: Querying RSS feed for '{ch_name}'...")
                 rss_url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
                 response = requests.get(rss_url, timeout=10)
                 if response.status_code == 200:
-                    import xml.etree.ElementTree as ET
                     root = ET.fromstring(response.content)
                     ns = {
                         'yt': 'http://www.youtube.com/xml/schemas/2015',
@@ -360,20 +370,19 @@ class PromptEngineerAgent:
 
                         if video_id and not self._is_video_processed(video_id, video_url):
                             logger.info(f"🔍 PE Agent [TOPIC]: Found fresh video via RSS on [{ch_name}] [ID: {video_id}]: {title}")
-                            topic = self._build_topic_with_summary(video_id, video_url, title, rss_description=rss_description, channel_name=ch_name)
+                            topic = self._build_topic_with_summary(video_id, video_url, title, rss_description=rss_description, channel_name=ch_name, channel_index=idx)
                             if topic:
                                 return topic
             except Exception as e:
                 logger.warning(f"🔍 PE Agent [TOPIC]: RSS fetch failed for '{ch_name}': {e}")
 
-        # Fallback: Dynamic non-duplicate market analysis topic generator
         logger.info("🔍 PE Agent [TOPIC]: All recent video IDs across all 6 channels processed today. Generating fresh dynamic market topic...")
-        import datetime
-        timestamp_str = datetime.datetime.now().strftime("%Y-%m-%d-%H%M%S")
+        timestamp_str = datetime.now().strftime("%Y-%m-%d-%H%M%S")
         dynamic_topic = f"Dynamic Financial Analysis & Stock Market Debunk [Ref: {timestamp_str}]"
+        self._save_processed_topic(hashlib.md5(dynamic_topic.encode()).hexdigest()[:8], dynamic_topic, channel_index=0)
         return dynamic_topic
 
-    def _build_topic_with_summary(self, video_id, video_url, title, rss_description=None, channel_name="Financial Analyst"):
+    def _build_topic_with_summary(self, video_id, video_url, title, rss_description=None, channel_name="Financial Analyst", channel_index=0):
         """Helper to build transcript summary topic for a video strictly using actual video text."""
         source_text = self._fetch_youtube_transcript(video_id) if video_id else None
         
@@ -413,11 +422,13 @@ class PromptEngineerAgent:
             )
             if isinstance(summary_data, dict) and "summary" in summary_data and summary_data["summary"]:
                 summary_text = summary_data["summary"]
-                return (
+                topic_str = (
                     f"{channel_name} analysis on {title} [Video ID: {video_id}]\n"
                     f"Link: {video_url}\n"
                     f"Shocking Summary Today: {summary_text}"
                 )
+                self._save_processed_topic(video_id, topic_str, channel_index=channel_index)
+                return topic_str
         except Exception as e:
             logger.warning(f"🔍 PE Agent [TOPIC]: Gemini transcript summary failed for {video_id}: {e}")
             
@@ -575,3 +586,9 @@ class PromptEngineerAgent:
         )
         user_prompt = f"Generate publishing metadata for this script:\n{scenes_text}"
         return self._call_gemini(system_prompt, user_prompt, PublishMetadata, temperature=0.3)
+
+    def execute(self):
+        """Legacy entry point: Find topic -> Write Script -> Return."""
+        topic = self.fetch_fresh_topic()
+        script = self.generate_script(topic)
+        return script, topic
