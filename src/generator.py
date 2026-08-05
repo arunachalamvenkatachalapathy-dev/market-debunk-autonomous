@@ -177,15 +177,6 @@ def generate_scene_voice(tts_client, text, scene_index, voice_config_scene=None,
     # Escape any problematic characters
     text = text.replace('"', "'")
     
-    # ─── ULTRA-NATURAL VOICE SELECTION ───────────────────────────────────
-    # Using Microsoft's most natural conversational neural voices (2025 Multilingual series)
-    # These are Copilot-tuned voices with human-like breathing, dynamic intonation, and emotional flow.
-    #
-    # Setup/Hook (arrow_up) → en-US-AndrewMultilingualNeural — Deep, confident male narrator (9.2/10 naturalness)
-    # Debunk/Reveal (arrow_down) → en-US-AvaMultilingualNeural — Warm, empathetic female presenter (9.2/10 naturalness)
-    #
-    # Rate: +12% for engaging YouTube Shorts pacing without sacrificing clarity
-    # Pitch: +2Hz for natural vocal warmth
     voice_name = "en-US-AndrewMultilingualNeural" if arrow_state == "arrow_up" else "en-US-AvaMultilingualNeural"
     rate = "+12%"
     pitch = "+2Hz"
@@ -234,20 +225,17 @@ def generate_scene_voice(tts_client, text, scene_index, voice_config_scene=None,
             try:
                 with open(vtt_path, "r", encoding="utf-8") as vf:
                     vtt_content = vf.read()
-                # Parse cue timestamps: 00:00:00.000 --> 00:00:00.500
                 cue_pattern = re.compile(
                     r'(\d+:\d+:\d+\.\d+)\s+-->\s+(\d+:\d+:\d+\.\d+)\s*\n(.+?)(?:\n\n|\Z)',
                     re.DOTALL
                 )
                 for match in cue_pattern.finditer(vtt_content):
                     start_str, end_str, cue_text = match.group(1), match.group(2), match.group(3).strip()
-                    # Convert HH:MM:SS.mmm to seconds
                     def vtt_to_sec(ts):
                         parts = ts.split(":")
                         h, m, s = int(parts[0]), int(parts[1]), float(parts[2])
                         return h * 3600 + m * 60 + s
                     start_sec = vtt_to_sec(start_str)
-                    # Each cue may have multiple words; distribute evenly within the cue duration
                     cue_dur = vtt_to_sec(end_str) - start_sec
                     cue_words = cue_text.split()
                     per_word = cue_dur / max(1, len(cue_words))
@@ -263,19 +251,16 @@ def generate_scene_voice(tts_client, text, scene_index, voice_config_scene=None,
                 logger.warning(f"VTT parse failed for Scene {scene_index}: {vtt_err}")
                 word_timings = []
             finally:
-                # Clean up VTT file
                 try:
                     os.remove(vtt_path)
                 except Exception:
                     pass
 
         if not word_timings or len(word_timings) < len(words) * 0.4:
-            # Uniform timing distribution fallback matched to actual audio_duration
             logger.info(f"Using uniform timing fallback for Scene {scene_index} ({audio_duration:.2f}s, {len(words)} words)")
             step = (audio_duration * 0.85) / max(1, len(words))
             word_timings = [{"word": w, "time_seconds": round(0.1 + i * step, 3)} for i, w in enumerate(words)]
         else:
-            # Scale word timings to align with actual MP3 audio duration
             last_time = word_timings[-1]["time_seconds"]
             if last_time > 0 and audio_duration > 0:
                 target_end = max(0.5, audio_duration * 0.88)
@@ -293,7 +278,7 @@ def generate_scene_voice(tts_client, text, scene_index, voice_config_scene=None,
 def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
     """
     Selects one of the 15 curated hypnotic looping background MP4 videos.
-    Rotates background video loops sequentially per video run using used_bg.json memory.
+    Rotates background video loops per scene and per video run using used_bg.json memory.
     """
     import glob
     
@@ -313,7 +298,7 @@ def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
             bg_files = sorted(glob.glob(os.path.join(bg_dir, "bg_*.mp4")))
 
     if bg_files:
-        # Persistent non-repeating background rotation
+        # Persistent non-repeating background rotation per scene
         bg_mem_file = os.path.join(os.getcwd(), "used_bg.json")
         last_bg_idx = 0
         if os.path.exists(bg_mem_file):
@@ -323,17 +308,16 @@ def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
             except Exception:
                 last_bg_idx = 0
         
-        # Advance index for new video run
-        bg_index = (last_bg_idx + 1) % len(bg_files)
-        if scene_index == 0:
-            try:
-                with open(bg_mem_file, "w") as f:
-                    json.dump({"last_index": bg_index, "bg_file": os.path.basename(bg_files[bg_index])}, f)
-            except Exception:
-                pass
+        # Advance index per scene so every scene within the video gets a distinct background video
+        bg_index = (last_bg_idx + scene_index) % len(bg_files)
+        try:
+            with open(bg_mem_file, "w") as f:
+                json.dump({"last_index": bg_index + 1, "bg_file": os.path.basename(bg_files[bg_index])}, f)
+        except Exception:
+            pass
                 
         selected_bg = bg_files[bg_index]
-        logger.info(f"🎬 HYPNOTIC BACKGROUND [FULL-STRETCH]: Selected {os.path.basename(selected_bg)} (Index {bg_index + 1}/15) continuously for Scene {scene_index}")
+        logger.info(f"🎬 HYPNOTIC BACKGROUND [SCENE {scene_index + 1}]: Selected {os.path.basename(selected_bg)} (Index {bg_index + 1}/{len(bg_files)})")
         return {"type": "video", "path": selected_bg}
     else:
         logger.warning(f"⚠️ Falling back to default background asset for Scene {scene_index}")
@@ -348,32 +332,29 @@ def process_scene_assets(tts_client, scene, index, voice_config=None, visual_con
     """
     logger.info(f"=== Processing Scene {index} ===")
     
-    # Get PE configs for this scene
     voice_config_scene = None
     visual_config_scene = None
     
     if voice_config:
         voice_scenes = voice_config.get("scenes", [])
         for vs in voice_scenes:
-            if vs.get("scene_number") == index + 1:  # 1-indexed
+            if vs.get("scene_number") == index + 1:
                 voice_config_scene = vs
                 break
     
     if visual_config:
         visual_scenes = visual_config.get("scenes", [])
         for vs in visual_scenes:
-            if vs.get("scene_number") == index + 1:  # 1-indexed
+            if vs.get("scene_number") == index + 1:
                 visual_config_scene = vs
                 break
     
-    # 1. Generate Voice with PE config
     audio_path, word_timings, audio_duration = generate_scene_voice(
         tts_client, scene["narration"], index,
         voice_config_scene=voice_config_scene,
         arrow_state=scene.get("arrow_state", "arrow_up")
     )
     
-    # 2. Generate Image with PE config
     visual_prompt = scene.get("visual_prompt", "")
     if visual_config_scene and visual_config_scene.get("enhanced_prompt"):
         visual_prompt = visual_config_scene["enhanced_prompt"]
@@ -383,7 +364,6 @@ def process_scene_assets(tts_client, scene, index, voice_config=None, visual_con
         visual_config_scene=visual_config_scene
     )
     
-    # Get emphasis words from PE voice config
     emphasis_words = []
     if voice_config_scene:
         emphasis_words = voice_config_scene.get("emphasis_words", [])
@@ -427,7 +407,6 @@ def run_synthesis_pipeline(script_data, voice_config=None, visual_config=None):
             for future in concurrent.futures.as_completed(futures):
                 processed_scenes.append(future.result())
                 
-        # Sort scenes by index to preserve chronological order
         processed_scenes.sort(key=lambda x: x["index"])
         
         return processed_scenes
