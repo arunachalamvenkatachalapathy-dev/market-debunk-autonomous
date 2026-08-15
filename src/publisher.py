@@ -248,14 +248,14 @@ def upload_to_twitter(video_path, title, summary_hook=None, youtube_url=None):
         return {"success": False, "error": str(error)}
 
 
-def publish_video(video_path, title, youtube_description, youtube_tags, telegram_caption, category_id="27", summary_hook=None, pinned_comment=None, publish_youtube=True, publish_telegram=True, publish_twitter=True, channel_name=None):
+def publish_video(video_path, title, youtube_description, youtube_tags, telegram_caption, category_id="27", summary_hook=None, pinned_comment=None, publish_youtube=True, publish_telegram=True, publish_twitter=True):
     """Orchestrate video distribution to selected destinations (YouTube, Telegram, Twitter/X)."""
     results = {}
     yt_url = None
     
     if publish_youtube:
-        logger.info(f"Distribution target: YouTube Shorts (Channel: {channel_name or 'Default'})")
-        yt_res = upload_to_youtube(video_path, title, youtube_description, youtube_tags, category_id, pinned_comment=pinned_comment, channel_name=channel_name)
+        logger.info(f"Distribution target: YouTube Shorts (Channel: Default)")
+        yt_res = upload_to_youtube(video_path, title, youtube_description, youtube_tags, category_id, pinned_comment=pinned_comment)
         results["youtube"] = yt_res
         if yt_res.get("success") and yt_res.get("video_id"):
             yt_url = f"https://youtube.com/shorts/{yt_res['video_id']}"
