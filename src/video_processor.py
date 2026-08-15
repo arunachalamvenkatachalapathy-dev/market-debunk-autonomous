@@ -4,6 +4,7 @@ import logging
 import subprocess
 from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageEnhance
 from src.config import OUTPUT_DIR
+from src.lip_sync import run_wav2lip_hf
 
 # ---------------------------------------------------------
 # CENTRALIZED LAYOUT CONFIGURATION
@@ -189,12 +190,20 @@ def generate_ass_file(processed_scenes, total_duration, subtitle_style=None, ass
     return ass_path
 
 
-def render_debate_studio_frame(scene, scene_index):
+def render_debate_studio_frame(scene, scene_index, skip_avatar=False):
     """
     Renders a high-definition 1080x1920 Split-Screen Debate Studio frame.
     Top: The Skeptic (Red Team / Myth Speaker)
     Bottom: The Analyst (Green Team / Truth Speaker)
     Center: VS Divider & Dynamic Stat/Data Callout
+
+    Parameters
+    ----------
+    skip_avatar : bool
+        When True, avatars are NOT pasted into the frame.  The active speaker's
+        half is left as a plain coloured rectangle so that the Wav2Lip talking-
+        face video can be composited on top afterwards via FFmpeg overlay.
+        The listening speaker's avatar IS still painted (static, dimmed).
     """
     from scripts.generate_studio_avatars import ensure_studio_avatars
     ensure_studio_avatars()
@@ -214,8 +223,16 @@ def render_debate_studio_frame(scene, scene_index):
     
     # Paths for avatars
     avatars_dir = os.path.join(os.getcwd(), "assets", "avatars")
-    skeptic_file = os.path.join(avatars_dir, f"skeptic_{'open' if speaker == 'skeptic' else 'closed'}.png")
-    analyst_file = os.path.join(avatars_dir, f"analyst_{'open' if speaker == 'analyst' else 'closed'}.png")
+    skeptic_open   = os.path.join(avatars_dir, "skeptic_open.png")
+    skeptic_closed = os.path.join(avatars_dir, "skeptic_closed.png")
+    analyst_open   = os.path.join(avatars_dir, "analyst_open.png")
+    analyst_closed = os.path.join(avatars_dir, "analyst_closed.png")
+
+    # When skip_avatar=True the *speaking* half gets no avatar painted here;
+    # the Wav2Lip clip is overlaid by FFmpeg later.
+    # The *listening* half always gets its static dimmed avatar.
+    skeptic_file = skeptic_open   if speaker == "skeptic" else skeptic_closed
+    analyst_file = analyst_open   if speaker == "analyst" else analyst_closed
     
     # Top Panel Background (The Skeptic Studio)
     top_bg_color = (25, 20, 28) if speaker == "skeptic" else (16, 18, 24)
@@ -225,8 +242,10 @@ def render_debate_studio_frame(scene, scene_index):
     bot_bg_color = (15, 28, 22) if speaker == "analyst" else (16, 18, 24)
     draw.rectangle([0, 965, w, h], fill=bot_bg_color)
     
-    # Load and paste Skeptic avatar
-    if os.path.exists(skeptic_file):
+    # ── Skeptic avatar ──────────────────────────────────────────────────────
+    # Paint the skeptic only if: (a) not skipping, OR (b) they are not the speaker
+    paint_skeptic = (not skip_avatar) or (speaker != "skeptic")
+    if paint_skeptic and os.path.exists(skeptic_file):
         sk_img = Image.open(skeptic_file).convert("RGBA")
         if speaker != "skeptic":
             # Dim the listening character slightly
@@ -237,8 +256,10 @@ def render_debate_studio_frame(scene, scene_index):
         sk_img = sk_img.resize(sk_size, Image.Resampling.LANCZOS)
         frame.paste(sk_img, ((w - sk_size[0]) // 2, 140), sk_img)
 
-    # Load and paste Analyst avatar
-    if os.path.exists(analyst_file):
+    # ── Analyst avatar ──────────────────────────────────────────────────────
+    # Paint the analyst only if: (a) not skipping, OR (b) they are not the speaker
+    paint_analyst = (not skip_avatar) or (speaker != "analyst")
+    if paint_analyst and os.path.exists(analyst_file):
         an_img = Image.open(analyst_file).convert("RGBA")
         if speaker != "analyst":
             # Dim the listening character slightly
@@ -313,47 +334,123 @@ def render_debate_studio_frame(scene, scene_index):
 
     out_frame_path = os.path.join(OUTPUT_DIR, f"scene_{scene_index}_debate_frame.png")
     frame.save(out_frame_path, format="PNG")
-    logger.info(f"🎨 Rendered Debate Studio Frame for Scene {scene_index} (Speaker: {speaker}) -> {os.path.basename(out_frame_path)}")
-    return out_frame_path
+    logger.info(f"🎨 Rendered Debate Studio Frame for Scene {scene_index} (Speaker: {speaker}, skip_avatar={skip_avatar}) -> {os.path.basename(out_frame_path)}")
+    return out_frame_path, speaker
+
+
+# ---------------------------------------------------------------------------
+# Layout constants for lip-sync overlay positions
+# ---------------------------------------------------------------------------
+# The studio frame is 1080×1920.
+# Top half (skeptic):   y=140, height=620  → centre y ≈ 140 + 310 = 450
+# Bottom half (analyst): y=1020, height=620 → centre y ≈ 1020 + 310 = 1330
+_LIPSYNC_OVERLAY = {
+    "skeptic": {"x": (1080 - 620) // 2, "y": 140, "w": 620, "h": 620},
+    "analyst": {"x": (1080 - 620) // 2, "y": 1020, "w": 620, "h": 620},
+}
 
 
 def process_single_scene_media(scene, assembly_config=None):
     """
-    Renders media for a single scene using the 100% Free AI Debate Studio Engine.
-    Animates the 2-person face-off studio frame with Ken Burns motion & audio duration.
+    Renders animated media for a single debate-studio scene.
+
+    Pipeline:
+      1. Render studio background PNG with the *listening* avatar painted
+         statically, but the *speaking* avatar slot left empty.
+      2. Generate a talking-face video for the speaker via Hugging Face
+         Wav2Lip (or audio-reactive fallback).
+      3. FFmpeg: loop background PNG + overlay talking-face video → scene MP4.
     """
     idx = scene["index"]
     dur = scene["audio_duration"]
+    audio_path = scene["audio_path"]
     out_video_path = os.path.join(OUTPUT_DIR, f"scene_{idx}_processed.mp4")
-    
-    zoom_rate = 0.0003
+
     fps = 25
     if assembly_config:
-        zoom_rate = assembly_config.get("ken_burns_zoom_rate", 0.0003)
         fps = assembly_config.get("output_fps", 25)
-    
+
     logger.info(f"🎬 Processing AI Debate Studio Scene {idx} (duration: {dur}s, fps: {fps})")
-    
-    # Generate the custom Debate Studio frame
-    studio_frame_path = render_debate_studio_frame(scene, idx)
-    
+
+    # ── Step 1: Render background frame (speaking slot left blank) ───────────
+    studio_frame_path, speaker = render_debate_studio_frame(scene, idx, skip_avatar=True)
+
+    # ── Step 2: Generate talking-face lip-sync video ─────────────────────────
+    avatars_dir = os.path.join(os.getcwd(), "assets", "avatars")
+    speaker_open_img   = os.path.join(avatars_dir, f"{speaker}_open.png")
+    speaker_closed_img = os.path.join(avatars_dir, f"{speaker}_closed.png")
+    # Use the closed/neutral face as the source for Wav2Lip (cleaner input)
+    speaker_src_img    = speaker_closed_img if os.path.exists(speaker_closed_img) else speaker_open_img
+
+    hf_token = os.environ.get("HF_API_KEY", "")
+    lipsync_video_path = os.path.join(OUTPUT_DIR, f"scene_{idx}_lipsync.mp4")
+
+    try:
+        run_wav2lip_hf(
+            image_path=speaker_src_img,
+            audio_path=audio_path,
+            output_path=lipsync_video_path,
+            hf_token=hf_token,
+            open_img_path=speaker_open_img,
+            closed_img_path=speaker_closed_img,
+        )
+        logger.info(f"✅ Lip-sync generated for scene {idx}")
+    except Exception as exc:
+        logger.error(f"❌ Lip-sync failed for scene {idx}: {exc}")
+        # Last-resort: paint a static open-mouth frame as a minimal fallback
+        lipsync_video_path = None
+
+    # ── Step 3: Composite background + talking-face → final scene MP4 ────────
+    overlay = _LIPSYNC_OVERLAY.get(speaker, _LIPSYNC_OVERLAY["analyst"])
+    ov_x, ov_y, ov_w, ov_h = overlay["x"], overlay["y"], overlay["w"], overlay["h"]
+
     num_frames = max(10, int(fps * dur))
-    cmd = [
-        "ffmpeg", "-y",
-        "-loop", "1",
-        "-i", studio_frame_path,
-        "-t", f"{dur:.3f}",
-        "-vf", (
-            f"zoompan=z='min(max(zoom,pzoom)+{zoom_rate},1.03)':"
-            f"x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':"
-            f"d={num_frames}:s=1080x1920,fps={fps}"
-        ),
-        "-c:v", "libx264",
-        "-pix_fmt", "yuv420p",
-        "-r", str(fps),
-        "-an",
-        out_video_path
-    ]
+
+    if lipsync_video_path and os.path.exists(lipsync_video_path):
+        # Scale the lipsync clip to avatar slot size, then overlay onto background loop
+        cmd = [
+            "ffmpeg", "-y",
+            "-loop", "1",  "-i", studio_frame_path,           # input 0: bg image (looped)
+            "-i", lipsync_video_path,                         # input 1: lipsync video
+            "-filter_complex",
+            (
+                # Scale lipsync face to match the avatar slot dimensions
+                f"[1:v]scale={ov_w}:{ov_h}[face];"
+                # Loop background for the exact audio duration, add subtle zoom
+                f"[0:v]zoompan="
+                f"z='min(max(zoom,pzoom)+0.0002,1.02)':"
+                f"x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':"
+                f"d={num_frames}:s=1080x1920,fps={fps}[bg];"
+                # Overlay the talking face onto the correct studio slot
+                f"[bg][face]overlay={ov_x}:{ov_y}:shortest=1[vout]"
+            ),
+            "-map", "[vout]",
+            "-t", f"{dur:.3f}",
+            "-c:v", "libx264",
+            "-pix_fmt", "yuv420p",
+            "-r", str(fps),
+            "-an",
+            out_video_path,
+        ]
+    else:
+        # Full static fallback — Ken Burns zoom on the full studio frame
+        logger.warning(f"⚠️  No lipsync video for scene {idx} — using static Ken Burns fallback.")
+        cmd = [
+            "ffmpeg", "-y",
+            "-loop", "1", "-i", studio_frame_path,
+            "-t", f"{dur:.3f}",
+            "-vf", (
+                f"zoompan=z='min(max(zoom,pzoom)+0.0003,1.03)':"
+                f"x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':"
+                f"d={num_frames}:s=1080x1920,fps={fps}"
+            ),
+            "-c:v", "libx264",
+            "-pix_fmt", "yuv420p",
+            "-r", str(fps),
+            "-an",
+            out_video_path,
+        ]
+
     subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
     return out_video_path
 
