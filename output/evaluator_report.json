@@ -1,102 +1,88 @@
 {
-  "timestamp": "2026-07-19T06:13:45.411006+00:00",
-  "topic": "PR Sundar latest analysis on: Good days ahead for OPTIONS TRADERS? (Video URL: https://www.youtube.com/watch?v=O_1xaPRUuys)",
+  "timestamp": "2026-08-15T12:26:52.369674+00:00",
+  "topic": "The hidden dangers of algorithmic trading in 2024",
   "gates": {
     "topic": {
       "passed": true,
       "reason": "Topic is fresh and valid",
       "details": {
-        "word_count": 14,
+        "word_count": 8,
         "status": "fresh"
       },
-      "timestamp": "2026-07-19T06:13:45.536466+00:00"
+      "timestamp": "2026-08-15T12:26:52.379275+00:00"
     },
     "script": {
       "passed": true,
-      "reason": "Script passes all framework rules",
+      "reason": "Script passes all framework rules (thesis coherent, 5-act arc)",
       "details": {
-        "scene_count": 7,
-        "hook_word_count": 8,
+        "scene_count": 5,
+        "hook_word_count": 4,
+        "thesis": "Algorithmic trading platforms are secretly draining your portfolio through hidden execution slippage.",
+        "thesis_scene_coverage": "4/5",
         "categories": [
-          "digital",
-          "crowds",
-          "growth",
-          "paperwork",
-          "vaults",
-          "digital",
-          "hands"
+          "none",
+          "ui",
+          "chart",
+          "meme",
+          "bold_text"
         ],
-        "unique_categories": 6,
-        "word_count": 117,
-        "est_runtime": 46.8
+        "unique_categories": 5,
+        "word_count": 72,
+        "est_runtime": 28.8
       },
-      "timestamp": "2026-07-19T06:13:49.218060+00:00"
+      "timestamp": "2026-08-15T12:27:00.309878+00:00"
     },
     "voice_engineering": {
       "passed": true,
       "reason": "Voice config valid",
       "details": {
-        "scene_count": 7
+        "scene_count": 5
       },
-      "timestamp": "2026-07-19T06:13:51.851519+00:00"
+      "timestamp": "2026-08-15T12:27:02.344109+00:00"
     },
     "visual_engineering": {
       "passed": true,
       "reason": "Visual config valid",
       "details": {
         "categories": [
+          "hands",
           "digital",
-          "crowds",
           "growth",
-          "paperwork",
           "vaults",
-          "digital",
-          "hands"
+          "paperwork"
         ]
       },
-      "timestamp": "2026-07-19T06:13:55.643562+00:00"
+      "timestamp": "2026-08-15T12:27:05.989640+00:00"
     },
     "voice": {
       "passed": true,
-      "reason": "Voice output valid — total 41.6s",
+      "reason": "Voice output valid — total 35.0s",
       "details": {
         "scene_durations": [
-          3.38,
-          4.34,
-          6.48,
-          5.5,
-          7.9,
-          5.54,
-          8.45
+          7.0,
+          7.0,
+          7.0,
+          7.0,
+          7.0
         ],
-        "total_duration": 41.59
+        "total_duration": 35.0
       },
-      "timestamp": "2026-07-19T06:14:06.614082+00:00"
+      "timestamp": "2026-08-15T12:31:24.077163+00:00"
     },
     "visuals": {
       "passed": true,
       "reason": "All visual assets valid and unique",
       "details": {
         "file_sizes": [
-          22618,
-          22618,
-          22618,
-          22618,
-          22618,
-          22618,
-          22618
+          806842,
+          806842,
+          806842,
+          806842,
+          806842
         ],
-        "min_hash_distance": Infinity
+        "perceptual_check": "skipped"
       },
-      "timestamp": "2026-07-19T06:14:06.726262+00:00"
-    },
-    "mascot": {
-      "passed": true,
-      "reason": "Falling back to script states",
-      "details": {
-        "fallback": true
-      },
-      "timestamp": "2026-07-19T06:14:14.275903+00:00"
+      "timestamp": "2026-08-15T12:31:24.104023+00:00"
     },
     "subtitle_style": {
       "passed": true,
@@ -105,7 +91,7 @@
         "margin_v": 480,
         "font_size": 85
       },
-      "timestamp": "2026-07-19T06:14:15.533961+00:00"
+      "timestamp": "2026-08-15T12:31:25.685743+00:00"
     },
     "assembly_config": {
       "passed": true,
@@ -116,53 +102,17 @@
         "fps": 30,
         "logo_width": 150
       },
-      "timestamp": "2026-07-19T06:14:16.643344+00:00"
+      "timestamp": "2026-08-15T12:31:26.766710+00:00"
     },
     "assembly": {
-      "passed": true,
-      "reason": "Final video passes all assembly checks",
-      "details": {
-        "file_size_mb": 1.33,
-        "video_duration": 41.6,
-        "duration_diff": 0.01,
-        "resolution": "1080x1920",
-        "video_codec": "h264",
-        "audio_codec": "aac"
-      },
-      "timestamp": "2026-07-19T06:14:42.092534+00:00"
-    },
-    "subtitles": {
-      "passed": true,
-      "reason": "Subtitles valid — 117 events",
-      "details": {
-        "file_size": 12353,
-        "dialogue_count": 117
-      },
-      "timestamp": "2026-07-19T06:14:42.093393+00:00"
-    },
-    "inspector": {
-      "passed": true,
-      "reason": "Layout orientation demands verified successfully.",
-      "details": {
-        "mascot_in_top_half": true,
-        "subtitles_below_mascot": true
-      },
-      "timestamp": "2026-07-19T06:14:44.680813+00:00"
-    },
-    "publish_metadata": {
-      "passed": true,
-      "reason": "Publish metadata valid",
-      "details": {
-        "title_count": 3,
-        "tag_count": 13,
-        "telegram_len": 229,
-        "instagram_len": 505
-      },
-      "timestamp": "2026-07-19T06:14:47.074215+00:00"
+      "passed": false,
+      "reason": "Crashed: [WinError 2] The system cannot find the file specified",
+      "details": {},
+      "timestamp": "2026-08-15T12:31:26.883929+00:00"
     }
   },
-  "recommendation": "PUBLISH",
-  "total_gates": 13,
-  "passed_gates": 13,
-  "failed_gates": 0
+  "recommendation": "BLOCK",
+  "total_gates": 9,
+  "passed_gates": 8,
+  "failed_gates": 1
 }
