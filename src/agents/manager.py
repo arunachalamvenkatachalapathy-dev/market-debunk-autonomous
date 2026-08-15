@@ -297,6 +297,7 @@ class ManagerAgent:
                 youtube_description = publish_metadata.get("youtube_description", "")
                 youtube_tags = publish_metadata.get("youtube_tags", [])
                 telegram_caption = publish_metadata.get("telegram_caption", "")
+                pinned_comment = publish_metadata.get("pinned_comment", "Are you holding or panic selling at these levels? Drop your strategy below 👇")
                 category_id = publish_metadata.get("category_id", "27")
                 
                 publish_results = publish_video(
@@ -305,10 +306,12 @@ class ManagerAgent:
                     youtube_description=youtube_description,
                     youtube_tags=youtube_tags,
                     telegram_caption=telegram_caption,
+                    pinned_comment=pinned_comment,
                     category_id=category_id,
                     publish_youtube=publish_youtube,
                     publish_telegram=publish_telegram
                 )
+
                 logger.info(f"📢 Publish results: {publish_results}")
                 yt_res = publish_results.get("youtube", {})
                 tg_res = publish_results.get("telegram", {})

@@ -2,8 +2,8 @@ name: Autonomous Market Debunk Pipeline
 
 on:
   schedule:
-    # Runs at 8:30 AM IST (03:00 UTC) and 8:30 PM IST (15:00 UTC) every day
-    - cron: '0 3,15 * * *'
+    # Peak viral Indian viewer slots: 8:30 AM IST (03:00 UTC) and 7:15 PM IST (13:45 UTC) every day
+    - cron: '0 3,13 * * *'
   workflow_dispatch: # Allows manual triggering from the GitHub UI
 
 concurrency:
@@ -39,6 +39,7 @@ jobs:
         
       - name: Run Autonomous Pipeline
         env:
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
           LLM_API_KEYS: ${{ secrets.LLM_API_KEYS }}
           YT_API_KEY: ${{ secrets.YT_API_KEY }}
           YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
@@ -55,6 +56,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           python github_action_run.py
+
 
       - name: Persist AI Memory (Commit used_topics.json)
         # Always run this step even if publishing fails, so we don't repeat topics!

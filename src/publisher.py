@@ -8,8 +8,8 @@ from src.generator import get_secret
 # Configure logging
 logger = logging.getLogger(__name__)
 
-def upload_to_youtube(video_path, title, description, tags, category_id="27"):
-    """Upload video to YouTube channel as a Short using OAuth2 refresh tokens."""
+def upload_to_youtube(video_path, title, description, tags, category_id="27", pinned_comment=None):
+    """Upload video to YouTube channel as a Short using OAuth2 refresh tokens and pin discussion comment."""
     try:
         # Fetch tokens from Secret Manager / env
         refresh_token = get_secret("YT_REFRESH_TOKEN")
@@ -31,7 +31,8 @@ def upload_to_youtube(video_path, title, description, tags, category_id="27"):
         tags_list = tags if isinstance(tags, list) else [t.strip() for t in str(tags).split(",") if t.strip()]
         tags_list = tags_list[:15]
         
-        formatted_title = f"{str(title)[:88]} #Shorts"
+        title_str = str(title).strip()
+        formatted_title = f"{title_str[:88]} #Shorts" if "#Shorts" not in title_str else title_str[:100]
         formatted_desc = str(description)[:4900] if description else formatted_title
         
         # Try uploading with public privacy status first, with fallback to unlisted/private
@@ -66,6 +67,28 @@ def upload_to_youtube(video_path, title, description, tags, category_id="27"):
                         
                 video_id = response.get("id")
                 logger.info(f"✅ YouTube video published successfully (ID: {video_id}, Status: {privacy_status})")
+
+                # Auto-post high-engagement pinned comment
+                if video_id and pinned_comment:
+                    try:
+                        logger.info(f"Posting pinned discussion comment on video {video_id}...")
+                        youtube_service.commentThreads().insert(
+                            part="snippet",
+                            body={
+                                "snippet": {
+                                    "videoId": video_id,
+                                    "topLevelComment": {
+                                        "snippet": {
+                                            "textOriginal": str(pinned_comment)
+                                        }
+                                    }
+                                }
+                            }
+                        ).execute()
+                        logger.info(f"✅ Discussion comment posted successfully on video {video_id}!")
+                    except Exception as ce:
+                        logger.warning(f"Could not auto-post discussion comment: {ce}")
+
                 return {"success": True, "video_id": video_id, "privacy_status": privacy_status}
             except Exception as e:
                 logger.warning(f"YouTube upload attempt with privacyStatus='{privacy_status}' failed: {e}")
@@ -75,6 +98,7 @@ def upload_to_youtube(video_path, title, description, tags, category_id="27"):
     except Exception as error:
         logger.error(f"❌ YouTube Upload Failed: {error}")
         return {"success": False, "error": str(error)}
+
 
 def upload_to_telegram(video_path, caption):
     """Upload video directly to a Telegram Channel or Group via Bot API."""
@@ -224,14 +248,14 @@ def upload_to_twitter(video_path, title, summary_hook=None, youtube_url=None):
         return {"success": False, "error": str(error)}
 
 
-def publish_video(video_path, title, youtube_description, youtube_tags, telegram_caption, category_id="27", summary_hook=None, publish_youtube=True, publish_telegram=True, publish_twitter=True):
+def publish_video(video_path, title, youtube_description, youtube_tags, telegram_caption, category_id="27", summary_hook=None, pinned_comment=None, publish_youtube=True, publish_telegram=True, publish_twitter=True):
     """Orchestrate video distribution to selected destinations (YouTube, Telegram, Twitter/X)."""
     results = {}
     yt_url = None
     
     if publish_youtube:
         logger.info("Distribution target: YouTube Shorts")
-        yt_res = upload_to_youtube(video_path, title, youtube_description, youtube_tags, category_id)
+        yt_res = upload_to_youtube(video_path, title, youtube_description, youtube_tags, category_id, pinned_comment=pinned_comment)
         results["youtube"] = yt_res
         if yt_res.get("success") and yt_res.get("video_id"):
             yt_url = f"https://youtube.com/shorts/{yt_res['video_id']}"
@@ -251,3 +275,4 @@ def publish_video(video_path, title, youtube_description, youtube_tags, telegram
         results["twitter"] = {"success": False, "status": "skipped"}
         
     return results
+

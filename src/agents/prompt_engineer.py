@@ -16,41 +16,45 @@ from src.models import (
     VideoScript, VoiceConfig, VisualConfig,
     MascotTimeline, SubtitleStyle, AssemblyConfig, PublishMetadata
 )
+from .nvidia_client import NvidiaClient
 
 logger = logging.getLogger(__name__)
 
 # ──────────────────────────────────────────────
-#  FRAMEWORK RULES (injected into every Gemini call)
+#  FRAMEWORK RULES (injected into every LLM call)
 # ──────────────────────────────────────────────
 FRAMEWORK_RULES = (
-    "You are the Prompt Engineer AI for 'Market Debunk' — a daily 30-60 second "
-    "finance mythbusting Short hosted by Market, a mascot shaped like an arrow.\n"
-    "CORE RULES you must ALWAYS enforce:\n"
+    "You are the Lead Growth & Creative AI for 'Market Debunk' — a high-velocity, viral daily 30-50 second "
+    "finance mythbusting Short hosted by Market, an animated mascot shaped like an arrow.\n"
+    "VIRAL RETENTION RULES you must ALWAYS enforce:\n"
     "- NO citations ever. Never say 'according to', 'sources say', 'experts claim'.\n"
-    "- 40-60 second target runtime.\n"
-    "- Cold open hook ≤8 words, phrased as a question or contradiction.\n"
-    "- Energetic delivery: vary sentence lengths, CAPS on stressed words (max 1-2/sentence), "
-    "em-dashes/ellipses for breath beats, hyped-friend tone.\n"
-    "- One rhetorical question per 15 seconds.\n"
-    "- Mascot Arrow: 'arrow_up' (green) for Setup/Truth, 'arrow_down' (red) for Reveal/Myth.\n"
+    "- 35-50 second target runtime (maximum retention rate, minimal dropoff).\n"
+    "- Cold open hook MUST BE 3 TO 5 PUNCHY WORDS MAXIMUM (must complete speech under 1.8 seconds).\n"
+    "- Hook style: Loss Aversion, Number Shock, or Contradiction (e.g. 'STOP Buying This Stock!', 'The ₹50,000 ATH Trap!').\n"
+    "- High-energy dialogue: Red Arrow (arrow_down) asks the skeptical/myth question; Green Arrow (arrow_up) debunks with evidence.\n"
+    "- 1-2 punchy sentences per scene with CAPS on 1-2 stressed impact words.\n"
     "- Visual categories: vaults/security, crowds/markets, paperwork/bureaucracy, "
-    "growth/decline, digital/data, hands/decisions. Use 3-4 per video, never same twice in a row.\n"
-    "- Asset Pool Tags: For 'animation_tag', pick EXACTLY one of: 'bullish', 'bearish', 'neutral', 'educational'. "
-    "This must match the emotion of the scene to pull the correct 3D character animation.\n"
+    "growth/decline, digital/data, hands/decisions. Rotate every scene.\n"
+    "- Asset Pool Tags: For 'animation_tag', pick EXACTLY one of: 'bullish', 'bearish', 'neutral', 'educational'.\n"
     "- Color grade: light slate (#F4F6F9) base, dark accents.\n"
-    "- Subtitle safe zone: 60-75% down the 1920px frame.\n"
+    "- Subtitle safe zone: 65-75% down the 1920px frame.\n"
     "- Audio loudness: -14 LUFS integrated.\n"
 )
 
 
 class PromptEngineerAgent:
-    """The creative AI controlling every section of the pipeline."""
+    """The creative AI controlling every section of the pipeline with NVIDIA NIM & Gemini engines."""
 
     def __init__(self, gemini_client_or_clients):
         if isinstance(gemini_client_or_clients, list):
             self.clients = gemini_client_or_clients
         else:
             self.clients = [gemini_client_or_clients]
+        try:
+            self.nvidia = NvidiaClient()
+        except Exception as e:
+            logger.warning(f"Could not initialize NvidiaClient: {e}. Falling back to Gemini.")
+            self.nvidia = None
 
     def _call_gemini(self, system_prompt, user_prompt, response_schema, temperature=0.7):
         """Unified Gemini call with structured output and API key rotation for rate limits."""
@@ -58,6 +62,7 @@ class PromptEngineerAgent:
         
         import time
         max_retries = 3
+
         for attempt in range(max_retries):
             for client in self.clients:
                 try:
@@ -404,27 +409,42 @@ class PromptEngineerAgent:
         return None
 
     # ──────────────────────────────────────────────
-    #  SECTION 2: SCRIPT GENERATION
+    #  SECTION 2: SCRIPT GENERATION (VIRAL RETENTION ENGINE)
     # ──────────────────────────────────────────────
 
     def generate_script(self, topic):
-        """Generates the full dynamic-scene structured script following framework rules."""
+        """Generates the full dynamic-scene structured script following viral retention rules."""
         logger.info(f"📝 PE Agent [SCRIPT]: Writing script for: '{topic[:60]}...'")
+
+        # Use NVIDIA NIM to brainstorm 3 ultra-punchy viral hooks if available
+        suggested_hook = ""
+        if self.nvidia:
+            try:
+                hook_res = self.nvidia.generate_json(
+                    prompt=f"Topic: {topic}\nBrainstorm ONE ultra-punchy 3-5 word viral hook in English for a YouTube Short (e.g. 'STOP Buying This Stock!', 'The ₹50,000 ATH Trap!').",
+                    system_prompt="You are a YouTube Shorts hook engineer. Output JSON with key 'hook'."
+                )
+                suggested_hook = hook_res.get("hook", "")
+                if suggested_hook:
+                    logger.info(f"🔥 NVIDIA NIM Brainstormed Hook: '{suggested_hook}'")
+            except Exception as e:
+                logger.warning(f"NVIDIA hook brainstorming skipped: {e}")
 
         system_prompt = (
             FRAMEWORK_RULES +
-            "\nYour task: Generate a complete 5-12 scene video script for the given financial topic.\n"
+            "\nYour task: Generate a high-retention 5-10 scene video script for the given financial topic.\n"
             "CRITICAL LANGUAGE MANDATE: The ENTIRE script narration, visual prompts, and dialog MUST be written in 100% FLUENT, NATIVE ENGLISH. If the topic or source channel is in Tamil, translate all financial concepts, claims, and debunks into high-impact ENGLISH narration. Never output Tamil characters or words.\n"
-            "CRITICAL: You must use your internal knowledge (Gemini) to find the absolute latest real-world information, stock prices, or news related to this exact topic to build the script. Do NOT just invent generic advice.\n"
-            "CRITICAL: Do NEVER mention PR Sundar's name, any source creator's name, or the source channel in the script, title, or description. You must act as an independent analyst discussing the topic itself.\n"
-            "Requirements:\n"
-            "- Between 5 and 12 scenes\n"
-            "- Hook (scene 1 narration opening) MUST be ≤8 words in ENGLISH\n"
-            "- Each scene needs: narration, visual_prompt, visual_category, arrow_state\n"
-            "- Visual categories must rotate — never repeat the same category in adjacent scenes\n"
-            "- CRITICAL DIALOGUE DYNAMIC: The script must be a conversation. The Red Arrow (arrow_down) acts as the skeptic asking questions/presenting the debunked theory, and the Green Arrow (arrow_up) acts as the expert answering and providing the facts.\n"
-            "- Explicitly alternate between 'arrow_down' (Red Arrow questioning) and 'arrow_up' (Green Arrow answering) across the scenes.\n"
-            "- Include a YouTube title and description with hashtags\n"
+            "CRITICAL: You must use your internal knowledge to find the absolute latest real-world information, stock prices, or news related to this exact topic to build the script. Do NOT just invent generic advice.\n"
+            "CRITICAL: NEVER mention any creator name, PR Sundar, or the source channel name in the script, title, or description. You must act as an independent analyst discussing the topic itself.\n"
+            "VIRAL SCRIPT CONSTRAINTS:\n"
+            "- Between 5 and 9 scenes (total script reading time 35-50 seconds).\n"
+            "- Scene 1 MUST start with a 3 TO 5-WORD ULTRA PUNCHY HOOK in English" + (f" (e.g. '{suggested_hook}')" if suggested_hook else "") + ".\n"
+            "- CRITICAL DIALOGUE DYNAMIC: The script is a fast-paced debate between two forces:\n"
+            "  * Red Arrow (arrow_down): The retail skeptic asking the burning question or stating the popular myth.\n"
+            "  * Green Arrow (arrow_up): The expert analyst busting the myth with concrete numbers and proof.\n"
+            "- Alternate between 'arrow_down' and 'arrow_up' across scenes.\n"
+            "- Visual categories must rotate (vaults, crowds, paperwork, growth, digital, hands) — never repeat same category in adjacent scenes.\n"
+            "- Include a high-CTR YouTube title (with #Shorts) and description with hashtags.\n"
         )
 
         user_prompt = f"Topic to debunk/analyze: {topic}"
@@ -448,14 +468,15 @@ class PromptEngineerAgent:
             "- Pacing rate (hooks faster, reveals slower)\n"
             "- 2-3 emphasis words per scene that should get CAPS in subtitles\n"
             "Rules:\n"
-            "- Scene 1 (hook): fastest pacing (+15% to +20%)\n"
-            "- Reveal scene: slightly slower pacing (+5% to +10%), add <break time='400ms'/> before the key reveal\n"
-            "- Final scene (CTA): medium pacing (+10%)\n"
+            "- Scene 1 (hook): FASTEST PACING (+25% to +30%) to hook viewer in under 1.8 seconds.\n"
+            "- Setup scenes: energetic pacing (+15% to +20%)\n"
+            "- Reveal scene: dramatic pacing (+5% to +10%), add <break time='350ms'/> before the key reveal\n"
+            "- Final scene (CTA): clear punchy pacing (+10%)\n"
             "- Use <emphasis level='strong'> on reveal words\n"
             "- Voice name should be 'Adam' for ElevenLabs\n"
         )
 
-        user_prompt = f"Here are the 5 scenes to engineer voice for:\n{scenes_text}"
+        user_prompt = f"Here are the scenes to engineer voice for:\n{scenes_text}"
         return self._call_gemini(system_prompt, user_prompt, VoiceConfig)
 
     # ──────────────────────────────────────────────
@@ -479,13 +500,13 @@ class PromptEngineerAgent:
             "Rules:\n"
             "- EVERY prompt MUST end with 'bright white and light gray studio background, cinematic lighting, 8k resolution'\n"
             "- Category tags MUST NOT repeat in adjacent scenes\n"
-            "- Use at least 3 different categories across 5 scenes\n"
+            "- Use at least 3 different categories across scenes\n"
             "- Composition should avoid center-bottom (mascot zone) and 60-75% vertical (subtitle zone)\n"
             "- Each prompt must be COMPLETELY unique — no two should describe similar imagery\n"
             "- The global_style_suffix should be: 'bright white and light gray studio background, cinematic lighting, 8k resolution'\n"
         )
 
-        user_prompt = f"Here are the 5 scenes to generate visual prompts for:\n{scenes_text}"
+        user_prompt = f"Here are the scenes to generate visual prompts for:\n{scenes_text}"
         return self._call_gemini(system_prompt, user_prompt, VisualConfig)
 
     # ──────────────────────────────────────────────
@@ -544,17 +565,47 @@ class PromptEngineerAgent:
         return self._call_gemini(system_prompt, user_prompt, AssemblyConfig, temperature=0.3)
 
     def engineer_publish_metadata(self, script, *args, **kwargs):
-        """Engineers publishing metadata (title, description, tags)."""
+        """Engineers publishing metadata with High-CTR titles, SEO descriptions, and automated pinned comment."""
         logger.info("📢 PE Agent [PUBLISH]: Engineering publish metadata...")
         scenes = script.get("scenes", []) if isinstance(script, dict) else [s.model_dump() if hasattr(s, "model_dump") else s for s in getattr(script, "scenes", [])]
         scenes_text = json.dumps(scenes, indent=2)
+
+        # Use NVIDIA NIM for high-CTR title formulas if available
+        nvidia_titles = []
+        if self.nvidia:
+            try:
+                res = self.nvidia.generate_json(
+                    prompt=(
+                        f"Script Summary:\n{scenes_text}\n\n"
+                        "Generate 3 VIRAL YouTube Shorts titles (max 50 chars each, include #Shorts, use 1 alert emoji like 🚨, 📉, ❌, ⚠️) "
+                        "using Curiosity-Gap & Loss-Aversion formulas. Also generate 1 controversial pinned_comment question for comments."
+                    ),
+                    system_prompt="You are a YouTube Shorts viral growth specialist. Return JSON with keys: 'titles' (list of 3 strings), 'pinned_comment' (string)."
+                )
+                nvidia_titles = res.get("titles", [])
+                logger.info(f"🔥 NVIDIA NIM Engineered Titles: {nvidia_titles}")
+            except Exception as e:
+                logger.warning(f"NVIDIA publish metadata skipped: {e}")
+
         system_prompt = (
             FRAMEWORK_RULES +
-            "\nYour task: Generate optimized YouTube Shorts title (with #Shorts), description, and tags for the video."
-            "\nCRITICAL LANGUAGE MANDATE: The title, description, and tags MUST be 100% in FLUENT, HIGH-IMPACT ENGLISH. Never use Tamil words or characters in the YouTube metadata."
+            "\nYour task: Generate optimized YouTube Shorts titles (with #Shorts), description, tags, and a pinned discussion comment."
+            "\nTITLE FORMULAS TO FOLLOW (Max 50 chars each):"
+            "\n1. [Shock Warning] + [Stock/Asset] ⚠️ #Shorts"
+            "\n2. Why Buying [Stock] at All-Time High is DANGEROUS 📉 #Shorts"
+            "\n3. The [Asset] Trap Nobody Warned You About 🚨 #Shorts"
+            "\nPINNED COMMENT: Must ask a direct, polarizing question to trigger debate in comments."
+            "\nCRITICAL LANGUAGE MANDATE: All metadata MUST be 100% in FLUENT, HIGH-IMPACT ENGLISH. Never use Tamil words or characters."
         )
         user_prompt = f"Generate publishing metadata for this script:\n{scenes_text}"
-        return self._call_gemini(system_prompt, user_prompt, PublishMetadata, temperature=0.3)
+        data = self._call_gemini(system_prompt, user_prompt, PublishMetadata, temperature=0.3)
+        
+        # If NVIDIA generated stronger titles, blend them in
+        if nvidia_titles and isinstance(data, dict):
+            data["youtube_titles"] = [t if "#Shorts" in t else f"{t} #Shorts" for t in nvidia_titles[:3]]
+        
+        return data
+
 
     def execute(self):
         """Legacy entry point: Find topic -> Write Script -> Return."""

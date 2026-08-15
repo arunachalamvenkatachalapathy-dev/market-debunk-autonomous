@@ -206,6 +206,11 @@ class PublishMetadata(BaseModel):
     instagram_description: str = Field(
         description="Instagram caption. SEO-optimized and highly engaging with emojis and 10-15 hashtags. Max 600 chars."
     )
+    pinned_comment: str = Field(
+        default="Are you holding or panic selling at these levels? Drop your strategy below 👇",
+        description="A highly engaging, polarizing or curiosity-driven discussion question to pin as the top comment to boost algorithmic engagement."
+    )
     category_id: str = Field(
         description="YouTube category ID. '27' for Education, '25' for News. Recommended: '27'."
     )
+

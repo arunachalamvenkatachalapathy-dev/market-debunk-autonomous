@@ -82,28 +82,27 @@ def generate_ass_file(processed_scenes, total_duration, subtitle_style=None, ass
     - MarginV safe zone placement
     - Outline and shadow depth
     """
-    # Hormozi-style defaults
     if not subtitle_style:
         font_name = "Arial Black"
-        font_size = 110
-        primary_color = "&H00FFFFFF" # White
-        emphasis_color = "&H0000D7FF" # Gold/Yellow
-        outline_color = "&H00000000"
-        outline_width = 8
+        font_size = 112
+        primary_color = "&H00FFFFFF"    # Crisp White
+        emphasis_color = "&H002EFFFF"   # Vibrant Gold / Yellow
+        outline_color = "&H00000000"    # Deep Black Outline
+        outline_width = 10
         shadow_depth = 0
-        margin_v = LAYOUT_CONFIG["subtitle_margin_v"] # Safe zone margin from bottom
+        margin_v = LAYOUT_CONFIG["subtitle_margin_v"]
         alignment = 5  # Middle center alignment
     else:
         font_name = subtitle_style.get("font_name", "Arial Black")
-        font_size = 110
+        font_size = 112
         primary_color = subtitle_style.get("primary_color", "&H00FFFFFF")
-        emphasis_color = subtitle_style.get("emphasis_color", "&H0000D7FF")
+        emphasis_color = subtitle_style.get("emphasis_color", "&H0000FFA3") # Electric Neon Green
         outline_color = subtitle_style.get("outline_color", "&H00000000")
-        outline_width = 8
+        outline_width = 10
         shadow_depth = 0
         margin_v = subtitle_style.get("margin_v", LAYOUT_CONFIG["subtitle_margin_v"])
         alignment = 5
-        logger.info(f"📝 Using Hormozi-style subtitle overrides: {font_name} {font_size}pt, MarginV={margin_v}")
+        logger.info(f"📝 Using High-Retention subtitle styling: {font_name} {font_size}pt, MarginV={margin_v}")
 
     ass_header = (
         "[Script Info]\n"
@@ -119,8 +118,8 @@ def generate_ass_file(processed_scenes, total_duration, subtitle_style=None, ass
         f"Style: Default,{font_name},{font_size},{primary_color},&H000000FF,{outline_color},"
         f"&H80000000,-1,0,0,0,100,100,0,0,1,{outline_width},{shadow_depth},{alignment},"
         f"60,60,{margin_v},1\n"
-        f"Style: Emphasis,{font_name},{font_size},{emphasis_color},&H000000FF,{outline_color},"
-        f"&H80000000,-1,0,0,0,100,100,0,0,1,{outline_width},{shadow_depth},{alignment},"
+        f"Style: Emphasis,{font_name},{font_size + 4},{emphasis_color},&H000000FF,{outline_color},"
+        f"&H80000000,-1,0,0,0,105,105,0,0,1,{outline_width + 2},{shadow_depth},{alignment},"
         f"60,60,{margin_v},1\n\n"
         "[Events]\n"
         "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n"
@@ -164,10 +163,10 @@ def generate_ass_file(processed_scenes, total_duration, subtitle_style=None, ass
         if idx + 1 < len(flat_timings):
             end = flat_timings[idx+1]["abs_time"]
             # Prevent lingering text during natural pauses
-            if end - start > 1.2:
-                end = start + 0.8
+            if end - start > 1.0:
+                end = start + 0.75
         else:
-            end = start + 1.0
+            end = start + 0.9
             
         if end > total_duration:
             end = total_duration
@@ -179,8 +178,8 @@ def generate_ass_file(processed_scenes, total_duration, subtitle_style=None, ass
         # Use Emphasis style for PE-flagged words
         style = "Emphasis" if item["is_emphasis"] else "Default"
         
-        # Position anchored center at (540, 1450) to guarantee zero text stacking/overlay errors
-        pos_tag = r"{\an5\pos(540,1450)\fscx80\fscy80\t(0,100,\fscx100\fscy100)}"
+        # Dynamic micro-bounce pop tag anchored at safe zone (540, 1400)
+        pos_tag = r"{\an5\pos(540,1400)\fscx85\fscy85\t(0,70,\fscx108\fscy108)\t(70,140,\fscx100\fscy100)}"
         
         dialogue_lines.append(
             f"Dialogue: 0,{start_str},{end_str},{style},,0,0,0,,{pos_tag}{word_text}"
