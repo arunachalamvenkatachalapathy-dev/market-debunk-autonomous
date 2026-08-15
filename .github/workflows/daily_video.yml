@@ -62,6 +62,7 @@ jobs:
       - name: Persist AI Memory (Commit used_topics.json)
         # Always run this step even if publishing fails, so we don't repeat topics!
         if: always()
+        continue-on-error: true
         run: |
           git config --global user.name "MarketDebunk-AI-Bot"
           git config --global user.email "bot@marketdebunk.com"
