@@ -111,33 +111,6 @@ class VisualConfig(BaseModel):
     scenes: list[SceneVisualConfig] = Field(description="Visual config per scene, matching the exact number of scenes in the script")
 
 
-# ──────────────────────────────────────────────
-#  MASCOT TIMELINE MODELS
-# ──────────────────────────────────────────────
-
-class MascotSegment(BaseModel):
-    scene_number: int = Field(description="Which scene this segment applies to")
-    arrow_state: str = Field(description="'arrow_up' (green, confident) or 'arrow_down' (red, knowing)")
-    transition_rationale: str = Field(
-        description="Why the arrow is in this state for this scene. "
-        "E.g., 'Setup phase — presenting the myth as true' or 'Reveal — busting the myth'"
-    )
-    position_x: str = Field(
-        description="Horizontal position: '(W-w)/2' for center, 'W-w-50' for right. "
-        "Center is recommended."
-    )
-    position_y: str = Field(
-        description="Vertical position: 'H-h-600' to stay above subtitle safe zone"
-    )
-
-
-class MascotTimeline(BaseModel):
-    flip_scene: int = Field(
-        description="The scene number where the arrow flips from up to down (the reveal moment). "
-        "Usually scene 3 or 4."
-    )
-    segments: list[MascotSegment] = Field(description="One segment per scene, matching the exact number of scenes in the script")
-
 
 # ──────────────────────────────────────────────
 #  SUBTITLE STYLE MODELS

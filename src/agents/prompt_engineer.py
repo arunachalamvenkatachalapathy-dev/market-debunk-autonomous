@@ -14,7 +14,7 @@ from google.genai import types
 
 from src.models import (
     VideoScript, VoiceConfig, VisualConfig,
-    MascotTimeline, SubtitleStyle, AssemblyConfig, PublishMetadata
+    SubtitleStyle, AssemblyConfig, PublishMetadata
 )
 from .nvidia_client import NvidiaClient
 
@@ -518,35 +518,6 @@ class PromptEngineerAgent:
         user_prompt = f"Here are the scenes to generate visual prompts for:\n{scenes_text}"
         return self._call_gemini(system_prompt, user_prompt, VisualConfig)
 
-    # ──────────────────────────────────────────────
-    #  SECTION 5: MASCOT TIMELINE ENGINEERING
-    # ──────────────────────────────────────────────
-
-    def engineer_mascot_timeline(self, script):
-        """Engineers precise mascot arrow state transitions with rationale."""
-        logger.info("🏹 PE Agent [MASCOT]: Engineering mascot timeline...")
-
-        scenes = script.get("scenes", []) if isinstance(script, dict) else [s.model_dump() if hasattr(s, "model_dump") else s for s in getattr(script, "scenes", [])]
-        scenes_text = json.dumps(scenes, indent=2)
-
-        system_prompt = (
-            FRAMEWORK_RULES +
-            "\nYour task: Engineer the MASCOT TIMELINE for the Market arrow character.\n"
-            "For each scene, specify:\n"
-            "- arrow_state: 'arrow_up' (green, confident) or 'arrow_down' (red, knowing)\n"
-            "- transition_rationale: WHY the arrow is in this state\n"
-            "- position_x: horizontal position formula, use '(W-w)/2' for center\n"
-            "- position_y: vertical position formula, use 'H-h-600' to stay above subtitles\n"
-            "Rules:\n"
-            "- The arrow starts 'arrow_up' during the myth/setup phase\n"
-            "- The arrow flips to 'arrow_down' at the REVEAL moment (usually scene 3 or 4)\n"
-            "- The flip_scene should be the scene number where the myth gets busted\n"
-            "- Once flipped to 'arrow_down', it stays down for the rest of the video\n"
-            "- Position must not overlap with subtitle safe zone (60-75% down = pixels 1152-1440)\n"
-        )
-
-        user_prompt = f"Here are the scenes — determine the mascot timeline:\n{scenes_text}"
-        return self._call_gemini(system_prompt, user_prompt, MascotTimeline, temperature=0.3)
 
     # ──────────────────────────────────────────────
     #  SECTION 6: SUBTITLE STYLE ENGINEERING

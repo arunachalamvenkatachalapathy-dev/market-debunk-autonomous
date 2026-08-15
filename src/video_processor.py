@@ -196,11 +196,15 @@ def render_single_host_frame(scene, scene_index, skip_avatar=False):
     Top: Dynamic Popups (text or generated assets)
     """
     w, h = 1080, 1920
-    frame = Image.new("RGB", (w, h), (13, 17, 23))  # Deep Studio Dark background
+    frame = Image.new("RGB", (w, h), (240, 242, 245))  # Bright, clean, premium studio wall (light gray/white)
     draw = ImageDraw.Draw(frame)
     
-    # Simple neon grid/gradient effect
-    draw.rectangle([0, 0, w, 1000], fill=(20, 24, 32))
+    # Subtle studio lighting gradient (top to bottom)
+    for y in range(h):
+        r = int(240 - (y / h) * 30)
+        g = int(242 - (y / h) * 30)
+        b = int(245 - (y / h) * 20)
+        draw.line([(0, y), (w, y)], fill=(r, g, b))
     
     # Popup Text
     popup_text = scene.get("popup_text", "")
@@ -216,12 +220,18 @@ def render_single_host_frame(scene, scene_index, skip_avatar=False):
         card_w = cw + callout_pad * 2
         card_h = ch + 40
         
-        # Draw popup box
+        # Draw modern, clean popup box (iOS style rounded rectangle)
         draw.rounded_rectangle(
             [(w - card_w) // 2, 200, (w + card_w) // 2, 200 + card_h],
-            radius=20, fill=(10, 14, 20), outline=(0, 255, 163), width=4
+            radius=30, fill=(255, 255, 255), outline=(200, 200, 200), width=2
         )
-        draw.text(((w - cw) // 2, 215), popup_text.upper(), fill=(255, 255, 255), font=stat_font)
+        # Add subtle shadow (simulated)
+        draw.rounded_rectangle(
+            [(w - card_w) // 2 + 5, 205, (w + card_w) // 2 + 5, 205 + card_h],
+            radius=30, fill=None, outline=(220, 220, 220), width=2
+        )
+        
+        draw.text(((w - cw) // 2, 215), popup_text.upper(), fill=(30, 30, 30), font=stat_font)
         
     # Visual Asset (if provided in scene)
     asset = scene.get("visual_asset")
@@ -229,10 +239,11 @@ def render_single_host_frame(scene, scene_index, skip_avatar=False):
         try:
             img = Image.open(asset.get("path")).convert("RGBA")
             img = img.resize((700, 400), Image.Resampling.LANCZOS)
-            # Add rounded corners or simple paste
+            # Add rounded corners or simple paste with a clean white border (premium look)
             frame.paste(img, ((w - 700)//2, 350))
             # border
-            draw.rectangle([(w - 700)//2, 350, (w + 700)//2, 750], outline=(0, 255, 163), width=5)
+            draw.rounded_rectangle([(w - 700)//2, 350, (w + 700)//2, 750], radius=15, outline=(255, 255, 255), width=8)
+            draw.rounded_rectangle([(w - 700)//2 - 2, 348, (w + 700)//2 + 2, 752], radius=15, outline=(200, 200, 200), width=2)
         except Exception as e:
             logger.warning(f"Could not load asset image {asset.get('path')}: {e}")
 
