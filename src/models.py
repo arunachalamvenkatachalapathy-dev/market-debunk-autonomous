@@ -12,6 +12,19 @@ from pydantic import BaseModel, Field
 
 class Scene(BaseModel):
     scene_number: int = Field(description="Chronological scene index starting at 1")
+    speaker: str = Field(
+        default="analyst",
+        description="The active speaker for this scene: 'skeptic' (The retail investor asking/doubting) "
+        "or 'analyst' (The expert debunking with data)."
+    )
+    speaker_emotion: str = Field(
+        default="confident",
+        description="Emotion of the speaker: 'shocked', 'skeptical', 'confident', 'explaining', or 'triumphant'."
+    )
+    stat_callout: str = Field(
+        default="",
+        description="Optional punchy data badge or stat to display at center (e.g. '+100% RECOVERY', '₹0 TAX', 'REPEALED 1990'). Max 20 chars."
+    )
     narration: str = Field(description="The voiceover text for this scene (around 15-25 words), punchy and high impact")
     visual_prompt: str = Field(
         description="Descriptive text-to-image prompt matching the narration scene. "

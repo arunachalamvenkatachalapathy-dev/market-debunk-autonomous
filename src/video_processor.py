@@ -1,21 +1,17 @@
-"""
-Video processor — stitches clips, burns subtitles, overlays mascots, normalizes audio.
-Now accepts configs from the Prompt Engineer AI for subtitle styling and assembly parameters.
-"""
 import os
 import json
 import logging
 import subprocess
+from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageEnhance
 from src.config import OUTPUT_DIR
 
 # ---------------------------------------------------------
 # CENTRALIZED LAYOUT CONFIGURATION
 # ---------------------------------------------------------
-# Edit these variables to adjust the visual layout of the final video.
 LAYOUT_CONFIG = {
-    "subtitle_margin_v": 450,       # Vertical margin from bottom for subtitles (higher number = higher up)
-    "mascot_pos_x": "(W-w)/2",      # Mascot X position (default: centered)
-    "mascot_pos_y": "300",      # Mascot Y position (default: comfortably above subtitles)
+    "subtitle_margin_v": 480,       # Vertical margin from bottom for subtitles
+    "mascot_pos_x": "(W-w)/2",      # Mascot X position
+    "mascot_pos_y": "300",          # Mascot Y position
     "mascot_height": 400,           # Mascot overlay height (pixels)
 }
 # ---------------------------------------------------------
@@ -196,90 +192,172 @@ def generate_ass_file(processed_scenes, total_duration, subtitle_style=None, ass
 def process_single_scene_media(scene, assembly_config=None):
     """
     Crop, loop, and scale scene visual asset to 9:16 portrait matching audio duration.
-    Now accepts assembly_config from the PE for Ken Burns zoom rate.
+def render_debate_studio_frame(scene, scene_index):
+    """
+    Renders a high-definition 1080x1920 Split-Screen Debate Studio frame.
+    Top: The Skeptic (Red Team / Myth Speaker)
+    Bottom: The Analyst (Green Team / Truth Speaker)
+    Center: VS Divider & Dynamic Stat/Data Callout
+    """
+    from scripts.generate_studio_avatars import ensure_studio_avatars
+    ensure_studio_avatars()
+    
+    w, h = 1080, 1920
+    frame = Image.new("RGB", (w, h), (13, 17, 23))  # Deep Studio Dark background
+    draw = ImageDraw.Draw(frame)
+    
+    # Determine who is active speaker
+    arrow_state = scene.get("arrow_state", "arrow_up")
+    speaker = scene.get("speaker")
+    if not speaker:
+        speaker = "skeptic" if arrow_state == "arrow_down" else "analyst"
+    speaker = speaker.lower()
+    
+    stat_callout = scene.get("stat_callout", "")
+    
+    # Paths for avatars
+    avatars_dir = os.path.join(os.getcwd(), "assets", "avatars")
+    skeptic_file = os.path.join(avatars_dir, f"skeptic_{'open' if speaker == 'skeptic' else 'closed'}.png")
+    analyst_file = os.path.join(avatars_dir, f"analyst_{'open' if speaker == 'analyst' else 'closed'}.png")
+    
+    # Top Panel Background (The Skeptic Studio)
+    top_bg_color = (25, 20, 28) if speaker == "skeptic" else (16, 18, 24)
+    draw.rectangle([0, 0, w, 955], fill=top_bg_color)
+    
+    # Bottom Panel Background (The Analyst Studio)
+    bot_bg_color = (15, 28, 22) if speaker == "analyst" else (16, 18, 24)
+    draw.rectangle([0, 965, w, h], fill=bot_bg_color)
+    
+    # Load and paste Skeptic avatar
+    if os.path.exists(skeptic_file):
+        sk_img = Image.open(skeptic_file).convert("RGBA")
+        if speaker != "skeptic":
+            # Dim the listening character slightly
+            r, g, b, a = sk_img.split()
+            a = a.point(lambda p: int(p * 0.60))
+            sk_img = Image.merge("RGBA", (r, g, b, a))
+        sk_size = (620, 620)
+        sk_img = sk_img.resize(sk_size, Image.Resampling.LANCZOS)
+        frame.paste(sk_img, ((w - sk_size[0]) // 2, 140), sk_img)
+
+    # Load and paste Analyst avatar
+    if os.path.exists(analyst_file):
+        an_img = Image.open(analyst_file).convert("RGBA")
+        if speaker != "analyst":
+            # Dim the listening character slightly
+            r, g, b, a = an_img.split()
+            a = a.point(lambda p: int(p * 0.60))
+            an_img = Image.merge("RGBA", (r, g, b, a))
+        an_size = (620, 620)
+        an_img = an_img.resize(an_size, Image.Resampling.LANCZOS)
+        frame.paste(an_img, ((w - an_size[0]) // 2, 1020), an_img)
+
+    # Top Banner Badge (Speaker Status)
+    sk_badge_color = (255, 46, 84) if speaker == "skeptic" else (80, 85, 100)
+    sk_text = "🔴 THE SKEPTIC  [SPEAKING]" if speaker == "skeptic" else "⚪ THE SKEPTIC"
+    draw.rounded_rectangle([40, 40, 360, 95], radius=12, fill=(20, 24, 33), outline=sk_badge_color, width=3)
+    
+    # Bottom Banner Badge (Speaker Status)
+    an_badge_color = (0, 255, 163) if speaker == "analyst" else (80, 85, 100)
+    an_text = "🟢 THE ANALYST  [SPEAKING]" if speaker == "analyst" else "⚪ THE ANALYST"
+    draw.rounded_rectangle([40, 990, 360, 1045], radius=12, fill=(20, 24, 33), outline=an_badge_color, width=3)
+
+    try:
+        badge_font = ImageFont.truetype("arial.ttf", 22)
+        vs_font = ImageFont.truetype("arial.ttf", 28)
+        stat_font = ImageFont.truetype("arial.ttf", 32)
+    except Exception:
+        badge_font = ImageFont.load_default()
+        vs_font = ImageFont.load_default()
+        stat_font = ImageFont.load_default()
+
+    draw.text((60, 55), sk_text, fill=(255, 255, 255), font=badge_font)
+    draw.text((60, 1005), an_text, fill=(255, 255, 255), font=badge_font)
+
+    # Active Speaker Border Glow around the respective half
+    if speaker == "skeptic":
+        draw.rectangle([4, 4, w - 4, 955], outline=(255, 46, 84), width=6)
+    else:
+        draw.rectangle([4, 965, w - 4, h - 4], outline=(0, 255, 163), width=6)
+
+    # Center Divider Bar (Y: 955 to 965)
+    divider_color = (255, 215, 0)
+    draw.rectangle([0, 955, w, 965], fill=divider_color)
+    
+    # Center VS Emblem
+    vs_box_w, vs_box_h = 120, 50
+    draw.rounded_rectangle(
+        [(w - vs_box_w) // 2, 960 - vs_box_h // 2, (w + vs_box_w) // 2, 960 + vs_box_h // 2],
+        radius=14,
+        fill=(15, 18, 25),
+        outline=divider_color,
+        width=3
+    )
+    vs_bbox = draw.textbbox((0, 0), "VS", font=vs_font)
+    vsw = vs_bbox[2] - vs_bbox[0]
+    draw.text(((w - vsw) // 2, 946), "VS", fill=(255, 215, 0), font=vs_font)
+
+    # Optional Center Floating Stat/Data Callout Box
+    if stat_callout and stat_callout.strip():
+        callout_text = f"📊 {stat_callout.strip().upper()}"
+        c_bbox = draw.textbbox((0, 0), callout_text, font=stat_font)
+        cw, ch = c_bbox[2] - c_bbox[0], c_bbox[3] - c_bbox[1]
+        callout_pad = 25
+        card_w = cw + callout_pad * 2
+        card_h = ch + 20
+        draw.rounded_rectangle(
+            [(w - card_w) // 2, 870, (w + card_w) // 2, 870 + card_h],
+            radius=16,
+            fill=(10, 14, 20),
+            outline=(0, 255, 163),
+            width=3
+        )
+        draw.text(((w - cw) // 2, 878), callout_text, fill=(255, 255, 255), font=stat_font)
+
+    out_frame_path = os.path.join(OUTPUT_DIR, f"scene_{scene_index}_debate_frame.png")
+    frame.save(out_frame_path, format="PNG")
+    logger.info(f"🎨 Rendered Debate Studio Frame for Scene {scene_index} (Speaker: {speaker}) -> {os.path.basename(out_frame_path)}")
+    return out_frame_path
+
+
+def process_single_scene_media(scene, assembly_config=None):
+    """
+    Renders media for a single scene using the 100% Free AI Debate Studio Engine.
+    Animates the 2-person face-off studio frame with Ken Burns motion & audio duration.
     """
     idx = scene["index"]
     dur = scene["audio_duration"]
-    asset = scene["visual_asset"]
     out_video_path = os.path.join(OUTPUT_DIR, f"scene_{idx}_processed.mp4")
     
-    # Get PE-configured zoom rate
-    zoom_rate = 0.0005  # default
+    zoom_rate = 0.0003
     fps = 25
     if assembly_config:
-        zoom_rate = assembly_config.get("ken_burns_zoom_rate", 0.0005)
+        zoom_rate = assembly_config.get("ken_burns_zoom_rate", 0.0003)
         fps = assembly_config.get("output_fps", 25)
     
-    logger.info(f"Processing media for Scene {idx} (duration: {dur}s, asset type: {asset['type']}, zoom: {zoom_rate})")
+    logger.info(f"🎬 Processing AI Debate Studio Scene {idx} (duration: {dur}s, fps: {fps})")
     
-    if asset["type"] == "video":
-        raw_path = asset["path"]
-        start_time = scene.get("start_time", 0.0)
-        
-        logger.info(f"Full stretch background video loop for Scene {idx} (timeline start: {start_time:.2f}s, duration: {dur:.2f}s)")
-        cmd = [
-            "ffmpeg", "-y",
-            "-stream_loop", "-1",
-            "-i", raw_path,
-            "-t", f"{dur:.3f}",
-            "-vf", f"scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,setsar=1,fps={fps}",
-            "-c:v", "libx264",
-            "-pix_fmt", "yuv420p",
-            "-r", str(fps),
-            "-an",
-            out_video_path
-        ]
-        subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
-        
-    elif asset["type"] == "image":
-        raw_path = asset["path"]
-        # Step 1: Crop the image to portrait
-        cropped_img_path = os.path.join(OUTPUT_DIR, f"scene_{idx}_cropped.jpg")
-        crop_cmd = [
-            "ffmpeg", "-y",
-            "-i", raw_path,
-            "-vf", "crop=ih*9/16:ih",
-            cropped_img_path
-        ]
-        subprocess.run(crop_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
-        
-        # Step 2: Ken Burns zoom with PE-configured zoom rate
-        num_frames = int(fps * dur)
-        logger.info(f"Ken Burns: zoom_rate={zoom_rate}, frames={num_frames}, fps={fps}")
-        
-        cmd = [
-            "ffmpeg", "-y",
-            "-loop", "1",
-            "-i", cropped_img_path,
-            "-t", f"{dur:.3f}",
-            "-vf", (
-                f"zoompan=z='zoom+{zoom_rate}':"
-                f"x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':"
-                f"d={num_frames}:s=1080x1920"
-            ),
-            "-c:v", "libx264",
-            "-pix_fmt", "yuv420p",
-            "-r", str(fps),
-            "-an",
-            out_video_path
-        ]
-        subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
-        
-    else:  # placeholder
-        logger.info("Using relevant trading background fallback.")
-        cmd = [
-            "ffmpeg", "-y",
-            "-loop", "1",
-            "-i", "assets/fallback.png",
-            "-t", f"{dur:.3f}",
-            "-c:v", "libx264",
-            "-pix_fmt", "yuv420p",
-            "-r", str(fps),
-            "-an",
-            out_video_path
-        ]
-        subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
-        
+    # Generate the custom Debate Studio frame
+    studio_frame_path = render_debate_studio_frame(scene, idx)
+    
+    num_frames = max(10, int(fps * dur))
+    cmd = [
+        "ffmpeg", "-y",
+        "-loop", "1",
+        "-i", studio_frame_path,
+        "-t", f"{dur:.3f}",
+        "-vf", (
+            f"zoompan=z='min(max(zoom,pzoom)+{zoom_rate},1.03)':"
+            f"x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':"
+            f"d={num_frames}:s=1080x1920,fps={fps}"
+        ),
+        "-c:v", "libx264",
+        "-pix_fmt", "yuv420p",
+        "-r", str(fps),
+        "-an",
+        out_video_path
+    ]
+    subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
     return out_video_path
 
 

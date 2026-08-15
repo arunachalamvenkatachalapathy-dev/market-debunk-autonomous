@@ -124,12 +124,19 @@ def generate_kokoro_voice(text, scene_index, arrow_state="arrow_up"):
     clean_text = re.sub(r'<[^>]+>', '', text).strip()
     clean_text = clean_text.replace('"', "'")
 
-    # Select voice: 'am_adam' (male hook) vs 'af_heart' (female reveal)
-    voice_name = "am_adam" if arrow_state == "arrow_up" else "af_heart"
-    logger.info(f"🎙️ Synthesizing voice for Scene {scene_index} using Kokoro-82M ONNX (voice: {voice_name})...")
+    # Select voice based on speaker persona
+    # Skeptic = fast, high-energy / questioning; Analyst = deep, calm, authoritative
+    if arrow_state == "arrow_down" or "skeptic" in str(arrow_state).lower():
+        voice_name = "am_michael"
+        speed = 1.18
+    else:
+        voice_name = "am_adam"
+        speed = 1.08
+
+    logger.info(f"🎙️ Synthesizing voice for Scene {scene_index} (Speaker: {arrow_state}, Kokoro voice: {voice_name})...")
 
     kokoro = Kokoro(model_file, voices_file)
-    samples, sample_rate = kokoro.create(clean_text, voice=voice_name, speed=1.1, lang="en-us")
+    samples, sample_rate = kokoro.create(clean_text, voice=voice_name, speed=speed, lang="en-us")
 
     wav_path = os.path.join(OUTPUT_DIR, f"scene_{scene_index}_kokoro.wav")
     sf.write(wav_path, samples, sample_rate)
@@ -177,12 +184,18 @@ def generate_scene_voice(tts_client, text, scene_index, voice_config_scene=None,
     # Escape any problematic characters
     text = text.replace('"', "'")
     
-    voice_name = "en-US-AndrewMultilingualNeural" if arrow_state == "arrow_up" else "en-US-AvaMultilingualNeural"
-    rate = "+12%"
-    pitch = "+2Hz"
+    # Skeptic voice vs Analyst voice
+    if arrow_state == "arrow_down" or "skeptic" in str(arrow_state).lower():
+        voice_name = "en-US-GuyNeural"
+        rate = "+15%"
+        pitch = "+3Hz"
+    else:
+        voice_name = "en-US-ChristopherNeural"
+        rate = "+8%"
+        pitch = "+0Hz"
     
     try:
-        logger.info(f"Synthesizing voice for Scene {scene_index} (Arrow: {arrow_state}) using {voice_name} at engaging pace ({rate})...")
+        logger.info(f"Synthesizing voice for Scene {scene_index} (Speaker: {arrow_state}) using {voice_name} at rate ({rate})...")
         max_retries = 3
         for attempt in range(1, max_retries + 1):
             try:
