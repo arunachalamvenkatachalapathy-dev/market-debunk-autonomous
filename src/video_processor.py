@@ -189,9 +189,6 @@ def generate_ass_file(processed_scenes, total_duration, subtitle_style=None, ass
     return ass_path
 
 
-def process_single_scene_media(scene, assembly_config=None):
-    """
-    Crop, loop, and scale scene visual asset to 9:16 portrait matching audio duration.
 def render_debate_studio_frame(scene, scene_index):
     """
     Renders a high-definition 1080x1920 Split-Screen Debate Studio frame.
