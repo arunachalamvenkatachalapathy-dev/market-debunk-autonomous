@@ -500,9 +500,14 @@ class PromptEngineerAgent:
 
         system_prompt = (
             FRAMEWORK_RULES +
-            "\nYour task: Engineer DETAILED image generation prompts for each scene.\n"
-            "For each scene, generate:\n"
-            "- An enhanced_prompt that is 30-60 words, highly descriptive, cinematic\n"
+            "\nYour task: Generate the visual configuration for this script.\n"
+            "This video uses a SPLIT-SCREEN layout. The top half displays your generated B-Roll, and the bottom half is the host.\n\n"
+            "1. For each scene, write an `enhanced_prompt` for the top-half B-Roll.\n"
+            "CRITICAL: The prompt MUST generate ABSOLUTELY REALISTIC, PHOTOREALISTIC, HIGH-DEFINITION cinematic photography or stock footage.\n"
+            "BAN: DO NOT use words like 'illustration', 'cartoon', 'minimalist', 'vector', 'flat design'. \n"
+            "MANDATORY STYLE KEYWORDS: 'photorealistic', 'cinematic lighting', 'high definition', 'real world photography', '8k resolution'.\n"
+            "Example: 'A photorealistic wide shot of a bustling Wall Street trading floor, cinematic lighting, high contrast, 8k resolution.'\n\n"
+            "2. (Optional) Provide a `popup_text` (1-3 words max, e.g., 'CRASH!', '90% LOSS') to display cleanly over the B-Roll.\n"
             "- A negative_prompt to avoid bad generations\n"
             "- A category_tag from: vaults, crowds, paperwork, growth, digital, hands\n"
             "- A composition_directive: center, left-third, right-third, top-heavy, bottom-heavy\n"
@@ -510,9 +515,8 @@ class PromptEngineerAgent:
             "- EVERY prompt MUST end with 'bright white and light gray studio background, cinematic lighting, 8k resolution'\n"
             "- Category tags MUST NOT repeat in adjacent scenes\n"
             "- Use at least 3 different categories across scenes\n"
-            "- Composition should avoid center-bottom (mascot zone) and 60-75% vertical (subtitle zone)\n"
             "- Each prompt must be COMPLETELY unique — no two should describe similar imagery\n"
-            "- The global_style_suffix should be: 'bright white and light gray studio background, cinematic lighting, 8k resolution'\n"
+            "- The global_style_suffix should be: 'cinematic lighting, photorealistic, 8k resolution'\n"
         )
 
         user_prompt = f"Here are the scenes to generate visual prompts for:\n{scenes_text}"
@@ -529,7 +533,10 @@ class PromptEngineerAgent:
         
         system_prompt = (
             FRAMEWORK_RULES +
-            "\nYour task: Define the subtitle configuration style including font, size, primary color, outline, and vertical positioning."
+            "\nYour task: Define the subtitle configuration style including font, size, primary color, outline, and vertical positioning.\n"
+            "CRITICAL: We are using a SPLIT-SCREEN layout. The B-Roll is on top (0 to 840), and the host is on the bottom (840 to 1920).\n"
+            "You MUST set `margin_v` (distance from the bottom of the screen) to exactly 1050 to 1100. This places the subtitles right at the dividing line (Y=820 to 870), ensuring they never block the host's face!\n"
+            "You MUST set `font_size` to 80 or 90 to be clearly readable."
         )
         user_prompt = "Generate optimal subtitle styling config."
         return self._call_gemini(system_prompt, user_prompt, SubtitleStyle, temperature=0.3)

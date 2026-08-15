@@ -212,46 +212,56 @@ def render_single_host_frame(scene, scene_index, skip_avatar=False):
     frame = Image.new("RGB", (w, h), bg_color)
     draw = ImageDraw.Draw(frame)
     
-    # Popup Text
+    # Visual Asset (if provided in scene) -> SPLIT SCREEN B-ROLL (Top Half)
+    asset = scene.get("visual_asset")
+    if asset and asset.get("path") and os.path.exists(asset.get("path")):
+        try:
+            img = Image.open(asset.get("path")).convert("RGBA")
+            # The top half is Y=0 to Y=840, width=1080.
+            target_bw, target_bh = 1080, 840
+            # Use ImageOps.fit to perfectly crop/resize the asset to fill the top half
+            from PIL import ImageOps
+            img_fitted = ImageOps.fit(img, (target_bw, target_bh), method=Image.Resampling.LANCZOS)
+            
+            # Paste at the top
+            frame.paste(img_fitted, (0, 0))
+            
+            # Draw a sleek dividing line
+            draw.line([(0, target_bh), (w, target_bh)], fill=(255, 255, 255), width=8)
+            draw.line([(0, target_bh+4), (w, target_bh+4)], fill=(200, 200, 200), width=2)
+        except Exception as e:
+            logger.warning(f"Could not load asset image {asset.get('path')}: {e}")
+            
+    # Popup Text (Optional overlay on B-Roll)
     popup_text = scene.get("popup_text", "")
     if popup_text and popup_text.strip():
+        # Load a nice bold font for stats
         try:
-            stat_font = ImageFont.truetype("arial.ttf", 64)
+            stat_font = ImageFont.truetype(os.path.join("assets", "fonts", "Montserrat-Bold.ttf"), 65)
         except:
             stat_font = ImageFont.load_default()
+            
+        bbox = stat_font.getbbox(popup_text.upper())
+        cw = bbox[2] - bbox[0]
+        ch = bbox[3] - bbox[1]
         
-        c_bbox = draw.textbbox((0, 0), popup_text.upper(), font=stat_font)
-        cw, ch = c_bbox[2] - c_bbox[0], c_bbox[3] - c_bbox[1]
         callout_pad = 40
         card_w = cw + callout_pad * 2
         card_h = ch + 40
         
-        # Draw modern, clean popup box (iOS style rounded rectangle)
+        # Draw modern, clean popup box (iOS style rounded rectangle) centered in the top half
+        box_y = (840 - card_h) // 2
         draw.rounded_rectangle(
-            [(w - card_w) // 2, 200, (w + card_w) // 2, 200 + card_h],
+            [(w - card_w) // 2, box_y, (w + card_w) // 2, box_y + card_h],
             radius=30, fill=(255, 255, 255), outline=(200, 200, 200), width=2
         )
         # Add subtle shadow (simulated)
         draw.rounded_rectangle(
-            [(w - card_w) // 2 + 5, 205, (w + card_w) // 2 + 5, 205 + card_h],
+            [(w - card_w) // 2 + 5, box_y + 5, (w + card_w) // 2 + 5, box_y + 5 + card_h],
             radius=30, fill=None, outline=(220, 220, 220), width=2
         )
         
-        draw.text(((w - cw) // 2, 215), popup_text.upper(), fill=(30, 30, 30), font=stat_font)
-        
-    # Visual Asset (if provided in scene)
-    asset = scene.get("visual_asset")
-    if asset and asset.get("type") == "image" and asset.get("path") and os.path.exists(asset.get("path")):
-        try:
-            img = Image.open(asset.get("path")).convert("RGBA")
-            img = img.resize((700, 400), Image.Resampling.LANCZOS)
-            # Add rounded corners or simple paste with a clean white border (premium look)
-            frame.paste(img, ((w - 700)//2, 350))
-            # border
-            draw.rounded_rectangle([(w - 700)//2, 350, (w + 700)//2, 750], radius=15, outline=(255, 255, 255), width=8)
-            draw.rounded_rectangle([(w - 700)//2 - 2, 348, (w + 700)//2 + 2, 752], radius=15, outline=(200, 200, 200), width=2)
-        except Exception as e:
-            logger.warning(f"Could not load asset image {asset.get('path')}: {e}")
+        draw.text(((w - cw) // 2, box_y + 15), popup_text.upper(), fill=(30, 30, 30), font=stat_font)
 
     # Draw host slot (if skip_avatar is False)
     host_file = os.path.join(os.getcwd(), "assets", "avatars", "host_closed.png")
