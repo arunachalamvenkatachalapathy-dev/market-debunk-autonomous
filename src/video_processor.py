@@ -537,16 +537,11 @@ def assemble_final_video(processed_scenes, subtitle_style=None, assembly_config=
     # 6. Generate subtitle ASS file with PE style config
     ass_path = generate_ass_file(processed_scenes, total_audio_dur, subtitle_style=subtitle_style)
     
-    # 7. Build complex filter for mascot overlay, logo, subtitles, and loudness
+    # 7. Build filter for logo, subtitles, loudness, and BGM
     final_output = os.path.join(OUTPUT_DIR, "distribution_ready.mp4")
-    logger.info("Applying Mascot Overlays, Logo, Subtitles, and Audio Loudness...")
+    logger.info("Applying Logo, Subtitles, BGM, and Audio Loudness...")
     
     inputs = ["-i", video_with_audio]
-    mascot_paths = {
-        "arrow_up": "assets/mascot/arrow_up.png",
-        "arrow_down": "assets/mascot/arrow_down.png"
-    }
-    
     input_count = 1  # 0 is video_with_audio
     
     # Add logo as input 1
@@ -565,57 +560,10 @@ def assemble_final_video(processed_scenes, subtitle_style=None, assembly_config=
     # Scale logo and place at top right with PE-configured size/padding
     filter_chains.append(f"[1:v]scale={logo_scale}:-1[logo];[0:v][logo]overlay=W-w-{logo_padding}:{logo_padding}[v1]")
     
-    current_time = 0.0
-    last_v = "v1"
-    input_idx = 2
-    
-    for i, scene in enumerate(processed_scenes):
-        dur = scene["audio_duration"]
-        start_t = current_time
-        end_t = current_time + dur
-        
-        # Use PE mascot timeline if available, otherwise fallback to scene arrow_state
-        if mascot_timeline:
-            segments = mascot_timeline.get("segments", [])
-            state = "arrow_up"
-            pos_x = LAYOUT_CONFIG["mascot_pos_x"]
-            pos_y = LAYOUT_CONFIG["mascot_pos_y"]
-            for seg in segments:
-                if seg.get("scene_number") == i + 1:
-                    state = seg.get("arrow_state", "arrow_up")
-                    pos_x = seg.get("position_x", LAYOUT_CONFIG["mascot_pos_x"])
-                    pos_y = seg.get("position_y", LAYOUT_CONFIG["mascot_pos_y"])
-                    break
-        else:
-            state = scene.get("arrow_state", "arrow_up")
-            pos_x = LAYOUT_CONFIG["mascot_pos_x"]
-            pos_y = LAYOUT_CONFIG["mascot_pos_y"]
-        
-        mascot_file = mascot_paths.get(state, mascot_paths["arrow_up"])
-        if not os.path.exists(mascot_file):
-            logger.warning(f"Mascot file not found: {mascot_file}. Using logo as fallback.")
-            mascot_file = "logo_transparent.png"
-            
-        inputs.extend(["-i", mascot_file])
-        input_idx = input_count
-        input_count += 1
-        
-        next_v = f"v{input_idx}"
-        # No bobbing animation, just straight cut per framework document
-        filter_chains.append(
-            f"[{input_idx}:v]format=rgba,scale=-1:400[m_{input_idx}];"
-            f"[{last_v}][m_{input_idx}]overlay={pos_x}:{pos_y}:"
-            f"enable='between(t,{start_t},{end_t})'[{next_v}]"
-        )
-        
-        last_v = next_v
-        input_idx += 1
-        current_time += dur
-        
-    # Burn subtitles on top of everything
+    # Burn subtitles on top
     # On Windows, FFmpeg filter strings break if there's an unescaped colon (like D:\)
     ass_path_escaped = ass_path.replace('\\', '/').replace(':', '\\:')
-    filter_chains.append(f"[{last_v}]subtitles='{ass_path_escaped}'[vout]")
+    filter_chains.append(f"[v1]subtitles='{ass_path_escaped}'[vout]")
     
     # Audio Loudness Normalization with PE-configured parameters and BGM mix
     a_in = "0:a"

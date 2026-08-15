@@ -26,3 +26,4 @@ requests-oauthlib>=2.0.0
 
 youtube-transcript-api>=0.6.2
 yt-dlp>=2024.1.0
+gradio_client>=2.0.0
