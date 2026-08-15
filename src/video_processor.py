@@ -525,14 +525,32 @@ def assemble_final_video(processed_scenes, subtitle_style=None, assembly_config=
         "-i", audio_list_path, "-c", "copy", combined_audio
     ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
     
-    # 5. Merge stitched video and stitched audio
-    logger.info("Merging audio and video tracks...")
+    # 5. Merge stitched video and stitched audio with playback speed synchronization
+    logger.info("Merging audio and video tracks with auto duration sync...")
     video_with_audio = os.path.join(OUTPUT_DIR, "video_with_audio.mp4")
-    subprocess.run([
-        "ffmpeg", "-y", "-i", combined_video, "-i", combined_audio,
-        "-map", "0:v:0", "-map", "1:a:0", "-c:v", "copy", "-c:a", audio_codec,
-        "-shortest", video_with_audio
-    ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+    
+    # Check durations and adjust playback speed if there is any mismatch
+    v_dur = get_audio_duration(combined_video) if os.path.exists(combined_video) else total_audio_dur
+    a_dur = total_audio_dur
+    
+    if abs(v_dur - a_dur) > 0.05 and v_dur > 0:
+        logger.info(f"Adjusting video playback speed: v_dur={v_dur:.2f}s -> target a_dur={a_dur:.2f}s")
+        speed_factor = a_dur / v_dur
+        subprocess.run([
+            "ffmpeg", "-y", "-i", combined_video, "-i", combined_audio,
+            "-filter_complex", f"[0:v]setpts={speed_factor}*PTS[v_synced]",
+            "-map", "[v_synced]", "-map", "1:a:0",
+            "-c:v", output_codec, "-c:a", audio_codec,
+            "-t", f"{a_dur:.3f}",
+            video_with_audio
+        ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+    else:
+        subprocess.run([
+            "ffmpeg", "-y", "-i", combined_video, "-i", combined_audio,
+            "-map", "0:v:0", "-map", "1:a:0", "-c:v", "copy", "-c:a", audio_codec,
+            "-t", f"{a_dur:.3f}",
+            video_with_audio
+        ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
     
     # 6. Generate subtitle ASS file with PE style config
     ass_path = generate_ass_file(processed_scenes, total_audio_dur, subtitle_style=subtitle_style)

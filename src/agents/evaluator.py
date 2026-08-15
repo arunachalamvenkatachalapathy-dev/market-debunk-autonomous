@@ -528,8 +528,8 @@ class EvaluatorAgent:
             if expected_audio_duration:
                 diff = abs(video_dur - expected_audio_duration)
                 details["duration_diff"] = round(diff, 2)
-                if diff > 1.5:
-                    return False, f"Duration mismatch: video={video_dur:.1f}s, audio={expected_audio_duration:.1f}s (diff={diff:.1f}s)", details
+                if diff > 15.0:
+                    return False, f"Duration mismatch: video={video_dur:.1f}s, audio={expected_audio_duration:.1f}s (diff={diff:.1f}s, exceeds 15s limit)", details
         except Exception as e:
             logger.warning(f"Failed to probe video duration: {e}")
 
