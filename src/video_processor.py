@@ -196,15 +196,21 @@ def render_single_host_frame(scene, scene_index, skip_avatar=False):
     Top: Dynamic Popups (text or generated assets)
     """
     w, h = 1080, 1920
-    frame = Image.new("RGB", (w, h), (240, 242, 245))  # Bright, clean, premium studio wall (light gray/white)
-    draw = ImageDraw.Draw(frame)
     
-    # Subtle studio lighting gradient (top to bottom)
-    for y in range(h):
-        r = int(240 - (y / h) * 30)
-        g = int(242 - (y / h) * 30)
-        b = int(245 - (y / h) * 20)
-        draw.line([(0, y), (w, y)], fill=(r, g, b))
+    # Grab the avatar to extract its background color
+    host_file = os.path.join(os.getcwd(), "assets", "avatars", "host_closed.png")
+    if not os.path.exists(host_file):
+        host_file = os.path.join(os.getcwd(), "assets", "avatars", "host_closed.jpg")
+        
+    bg_color = (240, 242, 245) # Default light studio wall
+    h_img = None
+    if os.path.exists(host_file):
+        h_img = Image.open(host_file).convert("RGBA")
+        # Extract the background color from the top-left pixel of the avatar
+        bg_color = h_img.getpixel((10, 10))[:3]
+        
+    frame = Image.new("RGB", (w, h), bg_color)
+    draw = ImageDraw.Draw(frame)
     
     # Popup Text
     popup_text = scene.get("popup_text", "")
@@ -252,11 +258,18 @@ def render_single_host_frame(scene, scene_index, skip_avatar=False):
     if not os.path.exists(host_file):
         host_file = os.path.join(os.getcwd(), "assets", "avatars", "host_closed.jpg")
 
-    if not skip_avatar and os.path.exists(host_file):
-        h_img = Image.open(host_file).convert("RGBA")
-        h_size = (900, 1200) # Big portrait
-        h_img = h_img.resize(h_size, Image.Resampling.LANCZOS)
-        frame.paste(h_img, ((w - h_size[0]) // 2, 700), h_img)
+    # Draw host slot seamlessly
+    if not skip_avatar and h_img:
+        # Scale width to fill the screen (or close to it)
+        target_w = 1080
+        scale_ratio = target_w / float(h_img.width)
+        target_h = int(h_img.height * scale_ratio)
+        
+        h_img = h_img.resize((target_w, target_h), Image.Resampling.LANCZOS)
+        
+        # Paste at the very bottom of the screen
+        y_pos = h - target_h
+        frame.paste(h_img, (0, y_pos), h_img)
 
     out_frame_path = os.path.join(OUTPUT_DIR, f"scene_{scene_index}_host_frame.png")
     frame.save(out_frame_path, format="PNG")
@@ -264,7 +277,9 @@ def render_single_host_frame(scene, scene_index, skip_avatar=False):
 
 
 _LIPSYNC_OVERLAY = {
-    "host": {"x": (1080 - 900) // 2, "y": 700, "w": 900, "h": 1200},
+    # Since we scaled the avatar to width=1080 and placed it at bottom
+    # we need the same coordinates for Wav2Lip scaling
+    "host": {"x": 0, "y": -1, "w": 1080, "h": -1}, # -1 signifies we will compute it dynamically
 }
 
 
@@ -321,6 +336,16 @@ def process_single_scene_media(scene, assembly_config=None):
     num_frames = max(10, int(fps * dur))
 
     if lipsync_video_path and os.path.exists(lipsync_video_path):
+        # We need the aspect ratio of the lipsync video to compute height
+        h_img = Image.open(speaker_src_img)
+        target_w = 1080
+        scale_ratio = target_w / float(h_img.width)
+        target_h = int(h_img.height * scale_ratio)
+        ov_x = 0
+        ov_y = 1920 - target_h
+        ov_w = target_w
+        ov_h = target_h
+        
         # Scale the lipsync clip to avatar slot size, then overlay onto background loop
         cmd = [
             "ffmpeg", "-y",
@@ -330,11 +355,8 @@ def process_single_scene_media(scene, assembly_config=None):
             (
                 # Scale lipsync face to match the avatar slot dimensions
                 f"[1:v]scale={ov_w}:{ov_h}[face];"
-                # Loop background for the exact audio duration, add subtle zoom
-                f"[0:v]zoompan="
-                f"z='min(max(zoom,pzoom)+0.0002,1.02)':"
-                f"x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':"
-                f"d={num_frames}:s=1080x1920,fps={fps}[bg];"
+                # Loop background for the exact audio duration
+                f"[0:v]trim=duration={dur}:start=0[bg];"
                 # Overlay the talking face onto the correct studio slot
                 f"[bg][face]overlay={ov_x}:{ov_y}[vout]"
             ),
