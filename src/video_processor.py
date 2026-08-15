@@ -11,9 +11,8 @@ from src.lip_sync import run_wav2lip_hf
 # ---------------------------------------------------------
 LAYOUT_CONFIG = {
     "subtitle_margin_v": 480,       # Vertical margin from bottom for subtitles
-    "mascot_pos_x": "(W-w)/2",      # Mascot X position
-    "mascot_pos_y": "300",          # Mascot Y position
-    "mascot_height": 400,           # Mascot overlay height (pixels)
+    "host_pos_x": "(W-w)/2",        # Center
+    "host_pos_y": 700,              # Lower center
 }
 # ---------------------------------------------------------
 
@@ -190,176 +189,77 @@ def generate_ass_file(processed_scenes, total_duration, subtitle_style=None, ass
     return ass_path
 
 
-def render_debate_studio_frame(scene, scene_index, skip_avatar=False):
+def render_single_host_frame(scene, scene_index, skip_avatar=False):
     """
-    Renders a high-definition 1080x1920 Split-Screen Debate Studio frame.
-    Top: The Skeptic (Red Team / Myth Speaker)
-    Bottom: The Analyst (Green Team / Truth Speaker)
-    Center: VS Divider & Dynamic Stat/Data Callout
-
-    Parameters
-    ----------
-    skip_avatar : bool
-        When True, avatars are NOT pasted into the frame.  The active speaker's
-        half is left as a plain coloured rectangle so that the Wav2Lip talking-
-        face video can be composited on top afterwards via FFmpeg overlay.
-        The listening speaker's avatar IS still painted (static, dimmed).
+    Renders a high-definition 1080x1920 Single Host frame.
+    Bottom/Center: The Host
+    Top: Dynamic Popups (text or generated assets)
     """
-    from scripts.generate_studio_avatars import ensure_studio_avatars
-    ensure_studio_avatars()
-    
     w, h = 1080, 1920
     frame = Image.new("RGB", (w, h), (13, 17, 23))  # Deep Studio Dark background
     draw = ImageDraw.Draw(frame)
     
-    # Determine who is active speaker
-    arrow_state = scene.get("arrow_state", "arrow_up")
-    speaker = scene.get("speaker")
-    if not speaker:
-        speaker = "skeptic" if arrow_state == "arrow_down" else "analyst"
-    speaker = speaker.lower()
+    # Simple neon grid/gradient effect
+    draw.rectangle([0, 0, w, 1000], fill=(20, 24, 32))
     
-    stat_callout = scene.get("stat_callout", "")
-    
-    # Paths for avatars
-    avatars_dir = os.path.join(os.getcwd(), "assets", "avatars")
-    skeptic_open   = os.path.join(avatars_dir, "skeptic_open.png")
-    skeptic_closed = os.path.join(avatars_dir, "skeptic_closed.png")
-    analyst_open   = os.path.join(avatars_dir, "analyst_open.png")
-    analyst_closed = os.path.join(avatars_dir, "analyst_closed.png")
-
-    # When skip_avatar=True the *speaking* half gets no avatar painted here;
-    # the Wav2Lip clip is overlaid by FFmpeg later.
-    # The *listening* half always gets its static dimmed avatar.
-    skeptic_file = skeptic_open   if speaker == "skeptic" else skeptic_closed
-    analyst_file = analyst_open   if speaker == "analyst" else analyst_closed
-    
-    # Top Panel Background (The Skeptic Studio)
-    top_bg_color = (25, 20, 28) if speaker == "skeptic" else (16, 18, 24)
-    draw.rectangle([0, 0, w, 955], fill=top_bg_color)
-    
-    # Bottom Panel Background (The Analyst Studio)
-    bot_bg_color = (15, 28, 22) if speaker == "analyst" else (16, 18, 24)
-    draw.rectangle([0, 965, w, h], fill=bot_bg_color)
-    
-    # ── Skeptic avatar ──────────────────────────────────────────────────────
-    # Paint the skeptic only if: (a) not skipping, OR (b) they are not the speaker
-    paint_skeptic = (not skip_avatar) or (speaker != "skeptic")
-    if paint_skeptic and os.path.exists(skeptic_file):
-        sk_img = Image.open(skeptic_file).convert("RGBA")
-        if speaker != "skeptic":
-            # Dim the listening character slightly
-            r, g, b, a = sk_img.split()
-            a = a.point(lambda p: int(p * 0.60))
-            sk_img = Image.merge("RGBA", (r, g, b, a))
-        sk_size = (620, 620)
-        sk_img = sk_img.resize(sk_size, Image.Resampling.LANCZOS)
-        frame.paste(sk_img, ((w - sk_size[0]) // 2, 140), sk_img)
-
-    # ── Analyst avatar ──────────────────────────────────────────────────────
-    # Paint the analyst only if: (a) not skipping, OR (b) they are not the speaker
-    paint_analyst = (not skip_avatar) or (speaker != "analyst")
-    if paint_analyst and os.path.exists(analyst_file):
-        an_img = Image.open(analyst_file).convert("RGBA")
-        if speaker != "analyst":
-            # Dim the listening character slightly
-            r, g, b, a = an_img.split()
-            a = a.point(lambda p: int(p * 0.60))
-            an_img = Image.merge("RGBA", (r, g, b, a))
-        an_size = (620, 620)
-        an_img = an_img.resize(an_size, Image.Resampling.LANCZOS)
-        frame.paste(an_img, ((w - an_size[0]) // 2, 1020), an_img)
-
-    # Top Banner Badge (Speaker Status)
-    sk_badge_color = (255, 46, 84) if speaker == "skeptic" else (80, 85, 100)
-    sk_text = "🔴 THE SKEPTIC  [SPEAKING]" if speaker == "skeptic" else "⚪ THE SKEPTIC"
-    draw.rounded_rectangle([40, 40, 360, 95], radius=12, fill=(20, 24, 33), outline=sk_badge_color, width=3)
-    
-    # Bottom Banner Badge (Speaker Status)
-    an_badge_color = (0, 255, 163) if speaker == "analyst" else (80, 85, 100)
-    an_text = "🟢 THE ANALYST  [SPEAKING]" if speaker == "analyst" else "⚪ THE ANALYST"
-    draw.rounded_rectangle([40, 990, 360, 1045], radius=12, fill=(20, 24, 33), outline=an_badge_color, width=3)
-
-    try:
-        badge_font = ImageFont.truetype("arial.ttf", 22)
-        vs_font = ImageFont.truetype("arial.ttf", 28)
-        stat_font = ImageFont.truetype("arial.ttf", 32)
-    except Exception:
-        badge_font = ImageFont.load_default()
-        vs_font = ImageFont.load_default()
-        stat_font = ImageFont.load_default()
-
-    draw.text((60, 55), sk_text, fill=(255, 255, 255), font=badge_font)
-    draw.text((60, 1005), an_text, fill=(255, 255, 255), font=badge_font)
-
-    # Active Speaker Border Glow around the respective half
-    if speaker == "skeptic":
-        draw.rectangle([4, 4, w - 4, 955], outline=(255, 46, 84), width=6)
-    else:
-        draw.rectangle([4, 965, w - 4, h - 4], outline=(0, 255, 163), width=6)
-
-    # Center Divider Bar (Y: 955 to 965)
-    divider_color = (255, 215, 0)
-    draw.rectangle([0, 955, w, 965], fill=divider_color)
-    
-    # Center VS Emblem
-    vs_box_w, vs_box_h = 120, 50
-    draw.rounded_rectangle(
-        [(w - vs_box_w) // 2, 960 - vs_box_h // 2, (w + vs_box_w) // 2, 960 + vs_box_h // 2],
-        radius=14,
-        fill=(15, 18, 25),
-        outline=divider_color,
-        width=3
-    )
-    vs_bbox = draw.textbbox((0, 0), "VS", font=vs_font)
-    vsw = vs_bbox[2] - vs_bbox[0]
-    draw.text(((w - vsw) // 2, 946), "VS", fill=(255, 215, 0), font=vs_font)
-
-    # Optional Center Floating Stat/Data Callout Box
-    if stat_callout and stat_callout.strip():
-        callout_text = f"📊 {stat_callout.strip().upper()}"
-        c_bbox = draw.textbbox((0, 0), callout_text, font=stat_font)
+    # Popup Text
+    popup_text = scene.get("popup_text", "")
+    if popup_text and popup_text.strip():
+        try:
+            stat_font = ImageFont.truetype("arial.ttf", 64)
+        except:
+            stat_font = ImageFont.load_default()
+        
+        c_bbox = draw.textbbox((0, 0), popup_text.upper(), font=stat_font)
         cw, ch = c_bbox[2] - c_bbox[0], c_bbox[3] - c_bbox[1]
-        callout_pad = 25
+        callout_pad = 40
         card_w = cw + callout_pad * 2
-        card_h = ch + 20
+        card_h = ch + 40
+        
+        # Draw popup box
         draw.rounded_rectangle(
-            [(w - card_w) // 2, 870, (w + card_w) // 2, 870 + card_h],
-            radius=16,
-            fill=(10, 14, 20),
-            outline=(0, 255, 163),
-            width=3
+            [(w - card_w) // 2, 200, (w + card_w) // 2, 200 + card_h],
+            radius=20, fill=(10, 14, 20), outline=(0, 255, 163), width=4
         )
-        draw.text(((w - cw) // 2, 878), callout_text, fill=(255, 255, 255), font=stat_font)
+        draw.text(((w - cw) // 2, 215), popup_text.upper(), fill=(255, 255, 255), font=stat_font)
+        
+    # Visual Asset (if provided in scene)
+    asset = scene.get("visual_asset")
+    if asset and asset.get("type") == "image" and asset.get("path") and os.path.exists(asset.get("path")):
+        try:
+            img = Image.open(asset.get("path")).convert("RGBA")
+            img = img.resize((700, 400), Image.Resampling.LANCZOS)
+            # Add rounded corners or simple paste
+            frame.paste(img, ((w - 700)//2, 350))
+            # border
+            draw.rectangle([(w - 700)//2, 350, (w + 700)//2, 750], outline=(0, 255, 163), width=5)
+        except Exception as e:
+            logger.warning(f"Could not load asset image {asset.get('path')}: {e}")
 
-    out_frame_path = os.path.join(OUTPUT_DIR, f"scene_{scene_index}_debate_frame.png")
+    # Draw host slot (if skip_avatar is False)
+    host_file = os.path.join(os.getcwd(), "assets", "avatars", "host_closed.png")
+    if not os.path.exists(host_file):
+        host_file = os.path.join(os.getcwd(), "assets", "avatars", "host_closed.jpg")
+
+    if not skip_avatar and os.path.exists(host_file):
+        h_img = Image.open(host_file).convert("RGBA")
+        h_size = (900, 1200) # Big portrait
+        h_img = h_img.resize(h_size, Image.Resampling.LANCZOS)
+        frame.paste(h_img, ((w - h_size[0]) // 2, 700), h_img)
+
+    out_frame_path = os.path.join(OUTPUT_DIR, f"scene_{scene_index}_host_frame.png")
     frame.save(out_frame_path, format="PNG")
-    logger.info(f"🎨 Rendered Debate Studio Frame for Scene {scene_index} (Speaker: {speaker}, skip_avatar={skip_avatar}) -> {os.path.basename(out_frame_path)}")
-    return out_frame_path, speaker
+    return out_frame_path
 
 
-# ---------------------------------------------------------------------------
-# Layout constants for lip-sync overlay positions
-# ---------------------------------------------------------------------------
-# The studio frame is 1080×1920.
-# Top half (skeptic):   y=140, height=620  → centre y ≈ 140 + 310 = 450
-# Bottom half (analyst): y=1020, height=620 → centre y ≈ 1020 + 310 = 1330
 _LIPSYNC_OVERLAY = {
-    "skeptic": {"x": (1080 - 620) // 2, "y": 140, "w": 620, "h": 620},
-    "analyst": {"x": (1080 - 620) // 2, "y": 1020, "w": 620, "h": 620},
+    "host": {"x": (1080 - 900) // 2, "y": 700, "w": 900, "h": 1200},
 }
 
 
 def process_single_scene_media(scene, assembly_config=None):
     """
-    Renders animated media for a single debate-studio scene.
-
-    Pipeline:
-      1. Render studio background PNG with the *listening* avatar painted
-         statically, but the *speaking* avatar slot left empty.
-      2. Generate a talking-face video for the speaker via Hugging Face
-         Wav2Lip (or audio-reactive fallback).
-      3. FFmpeg: loop background PNG + overlay talking-face video → scene MP4.
+    Renders animated media for a single host scene.
     """
     idx = scene["index"]
     dur = scene["audio_duration"]
@@ -370,17 +270,21 @@ def process_single_scene_media(scene, assembly_config=None):
     if assembly_config:
         fps = assembly_config.get("output_fps", 25)
 
-    logger.info(f"🎬 Processing AI Debate Studio Scene {idx} (duration: {dur}s, fps: {fps})")
+    logger.info(f"🎬 Processing Scene {idx} (duration: {dur}s, fps: {fps})")
 
-    # ── Step 1: Render background frame (speaking slot left blank) ───────────
-    studio_frame_path, speaker = render_debate_studio_frame(scene, idx, skip_avatar=True)
+    # ── Step 1: Render background frame ───────────
+    studio_frame_path = render_single_host_frame(scene, idx, skip_avatar=True)
 
     # ── Step 2: Generate talking-face lip-sync video ─────────────────────────
     avatars_dir = os.path.join(os.getcwd(), "assets", "avatars")
-    speaker_open_img   = os.path.join(avatars_dir, f"{speaker}_open.png")
-    speaker_closed_img = os.path.join(avatars_dir, f"{speaker}_closed.png")
-    # Use the closed/neutral face as the source for Wav2Lip (cleaner input)
-    speaker_src_img    = speaker_closed_img if os.path.exists(speaker_closed_img) else speaker_open_img
+    
+    speaker_src_img = os.path.join(avatars_dir, "host_closed.jpg")
+    if not os.path.exists(speaker_src_img):
+        speaker_src_img = os.path.join(avatars_dir, "host_closed.png")
+        
+    speaker_open_img = os.path.join(avatars_dir, "host_open.jpg")
+    if not os.path.exists(speaker_open_img):
+        speaker_open_img = os.path.join(avatars_dir, "host_open.png")
 
     hf_token = os.environ.get("HF_API_KEY", "")
     lipsync_video_path = os.path.join(OUTPUT_DIR, f"scene_{idx}_lipsync.mp4")
@@ -392,16 +296,15 @@ def process_single_scene_media(scene, assembly_config=None):
             output_path=lipsync_video_path,
             hf_token=hf_token,
             open_img_path=speaker_open_img,
-            closed_img_path=speaker_closed_img,
+            closed_img_path=speaker_src_img,
         )
         logger.info(f"✅ Lip-sync generated for scene {idx}")
     except Exception as exc:
         logger.error(f"❌ Lip-sync failed for scene {idx}: {exc}")
-        # Last-resort: paint a static open-mouth frame as a minimal fallback
         lipsync_video_path = None
 
     # ── Step 3: Composite background + talking-face → final scene MP4 ────────
-    overlay = _LIPSYNC_OVERLAY.get(speaker, _LIPSYNC_OVERLAY["analyst"])
+    overlay = _LIPSYNC_OVERLAY.get("host")
     ov_x, ov_y, ov_w, ov_h = overlay["x"], overlay["y"], overlay["w"], overlay["h"]
 
     num_frames = max(10, int(fps * dur))

@@ -184,17 +184,9 @@ class ManagerAgent:
             return False
 
         # ─────────────────────────────────────────
-        #  PHASE 6: MASCOT TIMELINE ENGINEERING
+        #  PHASE 6: MASCOT TIMELINE ENGINEERING (REMOVED)
         # ─────────────────────────────────────────
-        mascot_timeline, passed = self._run_phase(
-            phase_name="mascot",
-            generate_fn=lambda: self.prompt_engineer.engineer_mascot_timeline(script),
-            gate_fn=lambda mt: self.evaluator.gate_mascot(mt, script)
-        )
-        if not passed:
-            logger.warning("⚠️ Mascot engineering failed — using script arrow_states directly")
-            mascot_timeline = None
-            self.report.record_gate("mascot", True, "Falling back to script states", {"fallback": True})
+        mascot_timeline = None
 
         # ─────────────────────────────────────────
         #  PHASE 7: SUBTITLE + ASSEMBLY ENGINEERING
@@ -228,8 +220,7 @@ class ManagerAgent:
             final_video_path, total_audio_dur = assemble_final_video(
                 processed_scenes,
                 subtitle_style=subtitle_style,
-                assembly_config=assembly_config,
-                mascot_timeline=mascot_timeline
+                assembly_config=assembly_config
             )
         except Exception as e:
             logger.error(f"💥 Assembly crashed: {e}")

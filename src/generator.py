@@ -436,6 +436,19 @@ def run_synthesis_pipeline(script_data, voice_config=None, visual_config=None):
         logger.info(f"⚡ Triggering parallel asset generation for {len(scenes)} scenes...")
         processed_scenes = []
         
+        # Pre-download Kokoro models synchronously to avoid thread deadlocks
+        models_dir = os.path.join(os.getcwd(), "assets", "kokoro_models")
+        os.makedirs(models_dir, exist_ok=True)
+        model_file = os.path.join(models_dir, "kokoro-v1.0.onnx")
+        voices_file = os.path.join(models_dir, "voices-v1.0.bin")
+        if not os.path.exists(model_file) or not os.path.exists(voices_file):
+            import urllib.request
+            logger.info("Pre-downloading Kokoro-82M ONNX model weights and voices synchronously...")
+            if not os.path.exists(model_file):
+                urllib.request.urlretrieve("https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx", model_file)
+            if not os.path.exists(voices_file):
+                urllib.request.urlretrieve("https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin", voices_file)
+        
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(scenes)) as executor:
             futures = [
                 executor.submit(

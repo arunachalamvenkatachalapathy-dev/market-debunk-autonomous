@@ -24,28 +24,26 @@ logger = logging.getLogger(__name__)
 #  FRAMEWORK RULES (injected into every LLM call)
 # ──────────────────────────────────────────────
 FRAMEWORK_RULES = (
-    "You are the Lead Growth & Creative AI for 'Market Debunk' — a high-velocity, viral daily 30-50 second "
-    "finance mythbusting Short hosted by Market, an animated mascot shaped like an arrow.\n"
+    "You are the Lead Growth & Creative AI for a high-velocity, viral daily 30-50 second "
+    "tech/finance Edutainment Short hosted by a fast-paced energetic Tech Host.\n"
     "VIRAL RETENTION RULES you must ALWAYS enforce:\n"
     "- NO citations ever. Never say 'according to', 'sources say', 'experts claim'.\n"
     "- 35-50 second target runtime (maximum retention rate, minimal dropoff).\n"
     "- Cold open hook MUST BE 3 TO 5 PUNCHY WORDS MAXIMUM (must complete speech under 1.8 seconds).\n"
-    "- Hook style: Loss Aversion, Number Shock, or Contradiction (e.g. 'STOP Buying This Stock!', 'The ₹50,000 ATH Trap!').\n"
-    "- High-energy dialogue: Red Arrow (arrow_down) asks the skeptical/myth question; Green Arrow (arrow_up) debunks with evidence.\n"
+    "- Hook style: Loss Aversion, Number Shock, or Contradiction.\n"
+    "- High-energy dialogue: A single host speaking directly to the camera with extreme confidence and pace.\n"
     "- 1-2 punchy sentences per scene with CAPS on 1-2 stressed impact words.\n"
-    "- Visual categories: vaults/security, crowds/markets, paperwork/bureaucracy, "
-    "growth/decline, digital/data, hands/decisions. Rotate every scene.\n"
-    "- Asset Pool Tags: For 'animation_tag', pick EXACTLY one of: 'bullish', 'bearish', 'neutral', 'educational'.\n"
+    "- Visual categories for popups: ui, chart, meme, abstract, bold_text, none. Rotate every scene.\n"
     "- Color grade: light slate (#F4F6F9) base, dark accents.\n"
     "- Subtitle safe zone: 65-75% down the 1920px frame.\n"
     "- Audio loudness: -14 LUFS integrated.\n"
     "\nNARRATIVE THREADING RULES (CRITICAL FOR RETENTION):\n"
-    "- The ENTIRE video must explore ONE thesis — one debunkable myth or claim. Every scene must directly advance or debunk that thesis.\n"
+    "- The ENTIRE video must explore ONE thesis — one topic, tool, or myth. Every scene must directly advance it.\n"
     "- BANNED: Introducing new topics, tangents, or 'also...' transitions mid-video.\n"
     "- Scene 1 hook MUST state the thesis. Scene 5 MUST resolve it.\n"
-    "- If a sentence doesn't directly support or debunk the thesis → DELETE IT.\n"
-    "- The 'thesis' field must be filled with the ONE myth in max 15 words.\n"
-    "- Exactly 5 scenes following: HOOK → MYTH SETUP → EVIDENCE → REVEAL → CTA.\n"
+    "- If a sentence doesn't directly support the thesis → DELETE IT.\n"
+    "- The 'thesis' field must be filled with the core topic in max 15 words.\n"
+    "- Exactly 5 scenes following: HOOK → INTRO → POINT 1 → POINT 2 → OUTRO.\n"
 )
 
 
@@ -267,31 +265,26 @@ class PromptEngineerAgent:
     def fetch_fresh_topic(self):
         """Fetches the latest topic from any of the target channels in the multi-channel registry."""
         import os, random
+        from datetime import datetime, timezone
 
         TARGET_CHANNELS = [
-            {"name": "Money Pechu", "channel_id": "UC7fQFl37yAOaPaoxQm-TqSA"},
-            {"name": "Tiruppur Bulls", "channel_id": "UCqhL6vNCwYLC9_jePXOIvBg"},
-            {"name": "Makkal Pechu", "channel_id": "UCRySNNVhiuLWciU_20H84-Q"},
-            {"name": "Rupee Driver", "channel_id": "UCo5CAieenL0ExXzvjzs17QQ"},
-            {"name": "Trade Achievers", "channel_id": "UCsrnRWZSpE-q8s0SAOk8OOg"},
-            {"name": "Money Purse", "channel_id": "UChBT5TlUeG68PKvJSg6MkqQ"}
+            {"name": "MONEY PECHU", "channel_id": "UC7fQFl37yAOaPaoxQm-TqSA"}, # Monday
+            {"name": "PR SUNDAR", "channel_id": "UCS2NdYUmv_PUyyKeDAo5zYA"}, # Tuesday
+            {"name": "MONEY PURSE", "channel_id": "UChBT5TlUeG68PKvJSg6MkqQ"}, # Wednesday
+            {"name": "TRADE ACHIEVERS", "channel_id": "UCsrnRWZSpE-q8s0SAOk8OOg"}, # Thursday
+            {"name": "MARKET DRIVER", "channel_id": "UCo5CAieenL0ExXzvjzs17QQ"}, # Friday
+            {"name": "TAMIL NIFTY ANALYSIS", "channel_id": "UCft3VdKoq4HNBYd4MRnQF6Q"}, # Saturday
+            {"name": "ZERO1 BY ZERODHA", "channel_id": "UCUUlw3anBIkbW9W44Y-eURw"} # Sunday
         ]
         
         yt_api_key = os.getenv("YT_API_KEY")
 
-        last_idx = -1
-        if os.path.exists("used_topics.json"):
-            try:
-                with open("used_topics.json", "r") as f:
-                    u_data = json.load(f)
-                    if isinstance(u_data, dict):
-                        last_idx = u_data.get("last_channel_index", -1)
-            except Exception:
-                pass
+        # 0 = Monday, 6 = Sunday
+        start_idx = datetime.now(timezone.utc).weekday()
         
-        start_idx = (last_idx + 1) % len(TARGET_CHANNELS)
+        # We start with today's channel. If no fresh topics, we fallback to scanning the rest (Option B).
         channel_indices = [(start_idx + i) % len(TARGET_CHANNELS) for i in range(len(TARGET_CHANNELS))]
-        logger.info(f"🔄 PE Agent [ROUND-ROBIN]: Starting channel scan at Index {start_idx} ('{TARGET_CHANNELS[start_idx]['name']}')")
+        logger.info(f"📅 PE Agent [DAY-WISE ROTATION]: Today is weekday {start_idx}. Primary Channel: '{TARGET_CHANNELS[start_idx]['name']}'")
 
         for idx in channel_indices:
             ch = TARGET_CHANNELS[idx]
@@ -444,24 +437,21 @@ class PromptEngineerAgent:
 
         system_prompt = (
             FRAMEWORK_RULES +
-            "\nYour task: Generate a high-voltage 2-CHARACTER DEBATE STUDIO script (5 scenes) for the given financial topic.\n"
+            "\nYour task: Generate a high-voltage FAST-PACED SINGLE-HOST script (5 scenes) for the given topic.\n"
             "CHARACTERS:\n"
-            "  1. 'skeptic': The panicked/skeptical retail investor asking the burning question or spreading the myth (Red team).\n"
-            "  2. 'analyst': The sharp, authoritative market analyst debunking the myth with proof (Green team).\n\n"
-            "CRITICAL LANGUAGE MANDATE: The ENTIRE script narration and dialog MUST be written in 100% FLUENT, NATIVE ENGLISH. Never output non-English words.\n"
-            "CRITICAL: NEVER mention creator names or channel names. Act as an independent studio debate.\n"
-            "\nSINGLE-THESIS DEBATE STRUCTURE (EXACTLY 5 SCENES):\n"
-            "First, fill the 'thesis' field with THE ONE debunkable myth (max 15 words).\n"
-            "Then write exactly 5 scenes following this debate arc:\n"
-            "  Scene 1 — HOOK (speaker='skeptic', emotion='shocked'): 3-5 word ultra-punchy shock statement directly stating the thesis" + (f" (e.g. '{suggested_hook}')" if suggested_hook else "") + ". arrow_state='arrow_down'.\n"
-            "  Scene 2 — MYTH SETUP (speaker='skeptic', emotion='skeptical'): Skeptic asks/states why everyone is panicking about the myth. arrow_state='arrow_down'.\n"
-            "  Scene 3 — EVIDENCE (speaker='analyst', emotion='explaining'): Analyst drops the first concrete data point or historical fact. stat_callout='[Key Stat 1]'. arrow_state='arrow_up'.\n"
-            "  Scene 4 — REVEAL (speaker='analyst', emotion='confident'): Analyst delivers the definitive debunk proof. stat_callout='[DEBUNK DATA]'. arrow_state='arrow_up'.\n"
-            "  Scene 5 — CTA (speaker='analyst', emotion='triumphant'): Final takeaway + call to action ('Follow Market Debunk for daily truths'). arrow_state='arrow_up'.\n"
+            "  1. 'host': A highly energetic tech/finance creator speaking directly to the camera.\n\n"
+            "CRITICAL LANGUAGE MANDATE: The ENTIRE script narration MUST be written in 100% FLUENT, NATIVE ENGLISH.\n"
+            "\nSINGLE-THESIS STRUCTURE (EXACTLY 5 SCENES):\n"
+            "First, fill the 'thesis' field with THE core topic (max 15 words).\n"
+            "Then write exactly 5 scenes following this arc:\n"
+            "  Scene 1 — HOOK: 3-5 word ultra-punchy shock statement directly stating the thesis" + (f" (e.g. '{suggested_hook}')" if suggested_hook else "") + ".\n"
+            "  Scene 2 — INTRO: Setup the problem or the context. Keep it under 2 sentences.\n"
+            "  Scene 3 — POINT 1: The first major data point, tool feature, or insight. popup_text='[Key Stat 1]'.\n"
+            "  Scene 4 — POINT 2: The definitive reveal or second insight. popup_text='[REVEAL]'.\n"
+            "  Scene 5 — OUTRO: Final takeaway + call to action ('Follow for daily videos').\n"
             "\nANTI-DRIFT RULES:\n"
             "- EVERY scene's narration MUST reference the same thesis from Scene 1.\n"
             "- BANNED: introducing new topics, tangents, 'also...' transitions, or secondary arguments.\n"
-            "- If a sentence doesn't directly support or debunk the thesis → DELETE IT.\n"
             "- Total script reading time: 35-50 seconds.\n"
             "- Include a high-CTR YouTube title (with #Shorts) and description with hashtags.\n"
         )

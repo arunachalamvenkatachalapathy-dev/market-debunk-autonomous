@@ -12,46 +12,34 @@ from pydantic import BaseModel, Field
 
 class Scene(BaseModel):
     scene_number: int = Field(description="Chronological scene index starting at 1")
-    speaker: str = Field(
-        default="analyst",
-        description="The active speaker for this scene: 'skeptic' (The retail investor asking/doubting) "
-        "or 'analyst' (The expert debunking with data)."
-    )
-    speaker_emotion: str = Field(
-        default="confident",
-        description="Emotion of the speaker: 'shocked', 'skeptical', 'confident', 'explaining', or 'triumphant'."
-    )
-    stat_callout: str = Field(
+    narration: str = Field(description="The voiceover text for this scene (around 15-25 words), extremely punchy and high impact")
+    popup_text: str = Field(
         default="",
-        description="Optional punchy data badge or stat to display at center (e.g. '+100% RECOVERY', '₹0 TAX', 'REPEALED 1990'). Max 20 chars."
+        description="Optional punchy large text to pop up on screen (e.g. '₹50,000!', 'WARNING', '#01'). Max 15 chars."
     )
-    narration: str = Field(description="The voiceover text for this scene (around 15-25 words), punchy and high impact")
+    popup_asset_type: str = Field(
+        default="none",
+        description="Type of visual asset to pop up: 'screenshot', 'chart', 'meme', or 'none'."
+    )
     visual_prompt: str = Field(
-        description="Descriptive text-to-image prompt matching the narration scene. "
-        "MUST rotate between visual categories (vaults, crowds, paperwork, growth, digital, hands)."
+        description="Descriptive text-to-image prompt if an asset needs to be generated. MUST rotate between visual categories."
     )
     visual_category: str = Field(
-        description="The visual category tag for this scene. "
-        "One of: vaults, crowds, paperwork, growth, digital, hands."
-    )
-    arrow_state: str = Field(
-        description="The mascot state during this scene: 'arrow_up' (green/confident) "
-        "or 'arrow_down' (red/knowing). Usually flips down at the Reveal/Myth."
+        description="The visual category tag for this scene. One of: ui, chart, meme, abstract, bold_text, none."
     )
 
 
 class VideoScript(BaseModel):
     thesis: str = Field(
-        description="The ONE debunkable myth or claim this entire video is about. "
-        "Every scene must directly advance or debunk this thesis. Max 15 words."
+        description="The core topic or myth this video is about. Max 15 words."
     )
     title: str = Field(description="Catchy short-form video title anchored to the thesis")
     description: str = Field(description="YouTube/Instagram description with hashtags")
     scenes: list[Scene] = Field(
         description="Exactly 5 scenes following the narrative arc: "
-        "1=HOOK (3-5 word shock), 2=MYTH SETUP (Red Arrow presents the myth), "
-        "3=EVIDENCE (Green Arrow drops data), 4=REVEAL (definitive debunk), "
-        "5=CTA (what to do + follow). Every scene must reference the thesis."
+        "1=HOOK (fast, punchy), 2=INTRO (setup the problem), "
+        "3=POINT 1 (key data), 4=POINT 2 (reveal), "
+        "5=OUTRO (CTA). Every scene must be highly energetic."
     )
 
 
