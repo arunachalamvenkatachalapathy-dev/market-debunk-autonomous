@@ -39,6 +39,13 @@ FRAMEWORK_RULES = (
     "- Color grade: light slate (#F4F6F9) base, dark accents.\n"
     "- Subtitle safe zone: 65-75% down the 1920px frame.\n"
     "- Audio loudness: -14 LUFS integrated.\n"
+    "\nNARRATIVE THREADING RULES (CRITICAL FOR RETENTION):\n"
+    "- The ENTIRE video must explore ONE thesis — one debunkable myth or claim. Every scene must directly advance or debunk that thesis.\n"
+    "- BANNED: Introducing new topics, tangents, or 'also...' transitions mid-video.\n"
+    "- Scene 1 hook MUST state the thesis. Scene 5 MUST resolve it.\n"
+    "- If a sentence doesn't directly support or debunk the thesis → DELETE IT.\n"
+    "- The 'thesis' field must be filled with the ONE myth in max 15 words.\n"
+    "- Exactly 5 scenes following: HOOK → MYTH SETUP → EVIDENCE → REVEAL → CTA.\n"
 )
 
 
@@ -376,15 +383,20 @@ class PromptEngineerAgent:
                 system_prompt=(
                     "You are an expert financial market analyst and mythbuster. "
                     "CRITICAL LANGUAGE MANDATE: Regardless of the source language (Tamil, Telugu, etc.), "
-                    "you MUST translate all financial insights, market analysis, and summaries into 100% FLUENT, NATIVE ENGLISH."
+                    "you MUST translate all financial insights, market analysis, and summaries into 100% FLUENT, NATIVE ENGLISH.\n"
+                    "CRITICAL: You must identify THE SINGLE most controversial, debunkable claim or misconception from this video. "
+                    "Do NOT list multiple insights. Anchor everything to ONE myth."
                 ),
                 user_prompt=(
                     f"Channel Name: {channel_name}\n"
                     f"Video Link: {video_url}\n"
                     f"Video Title: {title}\n\n"
-                    f"What is the important, shocking summary of today's market and financial analysis from {channel_name}?\n"
-                    "Analyze the following actual video text/transcript, translate all core financial points into FLUENT ENGLISH, "
-                    "and extract the most important, shocking insights, core financial takeaways, market movements, or myth-busting points in 3-4 concise, energetic ENGLISH sentences.\n\n"
+                    "Analyze the following actual video text/transcript and identify THE SINGLE most controversial, "
+                    "myth-bustable claim or misconception discussed.\n"
+                    "State it as ONE clear thesis in this exact format:\n"
+                    "MYTH: [the specific claim in 1 sentence]\n"
+                    "TRUTH: [the debunk in 1 sentence]\n\n"
+                    "Do NOT list multiple points. Pick the ONE most shocking, debunkable claim only.\n\n"
                     f"Actual Video Text:\n{truncated}"
                 ),
                 response_schema=types.Schema(
@@ -400,7 +412,7 @@ class PromptEngineerAgent:
                 topic_str = (
                     f"{channel_name} analysis on {title} [Video ID: {video_id}]\n"
                     f"Link: {video_url}\n"
-                    f"Shocking Summary Today: {summary_text}"
+                    f"Single Thesis: {summary_text}"
                 )
                 return topic_str
         except Exception as e:
@@ -432,17 +444,23 @@ class PromptEngineerAgent:
 
         system_prompt = (
             FRAMEWORK_RULES +
-            "\nYour task: Generate a high-retention 5-10 scene video script for the given financial topic.\n"
+            "\nYour task: Generate a TIGHTLY FOCUSED 5-scene video script for the given financial topic.\n"
             "CRITICAL LANGUAGE MANDATE: The ENTIRE script narration, visual prompts, and dialog MUST be written in 100% FLUENT, NATIVE ENGLISH. If the topic or source channel is in Tamil, translate all financial concepts, claims, and debunks into high-impact ENGLISH narration. Never output Tamil characters or words.\n"
             "CRITICAL: You must use your internal knowledge to find the absolute latest real-world information, stock prices, or news related to this exact topic to build the script. Do NOT just invent generic advice.\n"
             "CRITICAL: NEVER mention any creator name, PR Sundar, or the source channel name in the script, title, or description. You must act as an independent analyst discussing the topic itself.\n"
-            "VIRAL SCRIPT CONSTRAINTS:\n"
-            "- Between 5 and 9 scenes (total script reading time 35-50 seconds).\n"
-            "- Scene 1 MUST start with a 3 TO 5-WORD ULTRA PUNCHY HOOK in English" + (f" (e.g. '{suggested_hook}')" if suggested_hook else "") + ".\n"
-            "- CRITICAL DIALOGUE DYNAMIC: The script is a fast-paced debate between two forces:\n"
-            "  * Red Arrow (arrow_down): The retail skeptic asking the burning question or stating the popular myth.\n"
-            "  * Green Arrow (arrow_up): The expert analyst busting the myth with concrete numbers and proof.\n"
-            "- Alternate between 'arrow_down' and 'arrow_up' across scenes.\n"
+            "\nSINGLE-THESIS SCRIPT STRUCTURE (EXACTLY 5 SCENES):\n"
+            "First, fill the 'thesis' field with THE ONE debunkable myth (max 15 words).\n"
+            "Then write exactly 5 scenes following this arc:\n"
+            "  Scene 1 — HOOK: 3-5 word ultra-punchy shock statement directly stating the thesis" + (f" (e.g. '{suggested_hook}')" if suggested_hook else "") + ". Arrow: arrow_down.\n"
+            "  Scene 2 — MYTH SETUP: Red Arrow (arrow_down) presents the popular myth/misconception that everyone believes. 1-2 sentences.\n"
+            "  Scene 3 — EVIDENCE: Green Arrow (arrow_up) drops the first concrete data point or fact that cracks the myth. 1-2 sentences.\n"
+            "  Scene 4 — REVEAL: Green Arrow (arrow_up) delivers the definitive debunk — the 'aha!' moment with proof. 1-2 sentences.\n"
+            "  Scene 5 — CTA: Clear takeaway + call to action ('Follow Market Debunk for daily myths busted'). Arrow: arrow_up.\n"
+            "\nANTI-DRIFT RULES:\n"
+            "- EVERY scene's narration MUST reference the same thesis from Scene 1.\n"
+            "- BANNED: introducing new topics, tangents, 'also...' transitions, or secondary arguments.\n"
+            "- If a sentence doesn't directly support or debunk the thesis → DELETE IT.\n"
+            "- Total script reading time: 35-50 seconds.\n"
             "- Visual categories must rotate (vaults, crowds, paperwork, growth, digital, hands) — never repeat same category in adjacent scenes.\n"
             "- Include a high-CTR YouTube title (with #Shorts) and description with hashtags.\n"
         )

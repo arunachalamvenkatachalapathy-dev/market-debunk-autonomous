@@ -155,13 +155,14 @@ class EvaluatorAgent:
         🔴 HARD GATE — blocks pipeline on failure.
         
         Checks:
-        - Exactly 5 scenes
-        - Hook ≤8 words
+        - Exactly 5 scenes (locked narrative arc)
+        - Hook ≤5 words (cold open)
+        - Thesis field present and threaded through ≥3 scenes
         - No citation language
         - Visual prompts all distinct
         - Visual categories rotate (no adjacent repeats)
         - ≥3 unique visual categories
-        - Estimated runtime 40-60s
+        - Estimated runtime 30-55s
         - Arrow states present and valid
         - Title and description present
         """
@@ -171,65 +172,82 @@ class EvaluatorAgent:
         scenes = script_data.get("scenes", [])
         details["scene_count"] = len(scenes)
 
-        # Check 1: Must have between 5 and 12 scenes
-        if len(scenes) < 5 or len(scenes) > 12:
-            return False, f"Must have between 5 and 12 scenes, got {len(scenes)}", details
+        # Check 1: Must have exactly 5 scenes (locked 5-act arc)
+        if len(scenes) != 5:
+            return False, f"Must have exactly 5 scenes (HOOK→MYTH→EVIDENCE→REVEAL→CTA), got {len(scenes)}", details
 
-        # Check 2: Hook ≤8 words
+        # Check 2: Hook ≤5 words (cold open must complete in <1.8s)
         first_narration = scenes[0].get("narration", "")
         hook = first_narration.replace("?", ".").replace("!", ".").split(".")[0]
         hook_words = hook.split()
         details["hook_word_count"] = len(hook_words)
-        if len(hook_words) > 8:
-            return False, f"Hook too long ({len(hook_words)} words, max 8)", details
+        if len(hook_words) > 5:
+            return False, f"Hook too long ({len(hook_words)} words, max 5 for cold open)", details
 
-        # Check 3: No citation language
+        # Check 3: Thesis Coherence Gate (NEW — the #1 retention check)
+        thesis = script_data.get("thesis", "")
+        details["thesis"] = thesis
+        if not thesis or len(thesis.split()) < 3:
+            return False, "Script missing a clear thesis (need ≥3 words)", details
+        
+        # Check that thesis keywords appear in at least 3 of 5 scenes
+        thesis_words = set(w.lower() for w in thesis.split() if len(w) > 3)
+        scene_hits = 0
+        for s in scenes:
+            narr_words = set(s.get("narration", "").lower().split())
+            if thesis_words & narr_words:
+                scene_hits += 1
+        details["thesis_scene_coverage"] = f"{scene_hits}/{len(scenes)}"
+        if scene_hits < 3:
+            return False, f"Thesis not threaded through enough scenes ({scene_hits}/{len(scenes)}, need ≥3)", details
+
+        # Check 4: No citation language
         full_text = " ".join([s.get("narration", "") for s in scenes]).lower()
         for phrase in CITATION_PHRASES:
             if phrase in full_text:
                 details["citation_found"] = phrase
                 return False, f"Citation language detected: '{phrase}'", details
 
-        # Check 4: Visual prompts all distinct
+        # Check 5: Visual prompts all distinct
         prompts = [s.get("visual_prompt", "") for s in scenes]
         if len(set(prompts)) != len(prompts):
             return False, "Duplicate visual prompts detected", details
 
-        # Check 5: Visual categories rotate
+        # Check 6: Visual categories rotate
         categories = [s.get("visual_category", "unknown") for s in scenes]
         details["categories"] = categories
         for i in range(1, len(categories)):
             if categories[i] == categories[i - 1]:
                 return False, f"Adjacent category repeat: scenes {i} and {i+1} both '{categories[i]}'", details
 
-        # Check 6: ≥3 unique categories
+        # Check 7: ≥3 unique categories
         unique_cats = set(categories)
         details["unique_categories"] = len(unique_cats)
         if len(unique_cats) < 3:
             return False, f"Only {len(unique_cats)} unique categories, need ≥3", details
 
-        # Check 7: Estimated runtime
+        # Check 8: Estimated runtime (5 scenes × ~7s = 35s target)
         word_count = len(full_text.split())
         est_runtime = word_count / 2.5
         details["word_count"] = word_count
         details["est_runtime"] = round(est_runtime, 1)
-        if est_runtime < 30 or est_runtime > 70:
+        if est_runtime < 25 or est_runtime > 55:
             return False, f"Runtime estimate out of bounds: {est_runtime:.1f}s", details
 
-        # Check 8: Arrow states valid
+        # Check 9: Arrow states valid
         for s in scenes:
             state = s.get("arrow_state")
             if state not in ["arrow_up", "arrow_down"]:
                 details["bad_arrow_state"] = state
                 return False, f"Invalid arrow state: '{state}'", details
 
-        # Check 9: Title and description
+        # Check 10: Title and description
         if not script_data.get("title"):
             return False, "Missing title", details
         if not script_data.get("description"):
             return False, "Missing description", details
 
-        return True, "Script passes all framework rules", details
+        return True, "Script passes all framework rules (thesis coherent, 5-act arc)", details
 
     # ──────────────────────────────────────────────
     #  GATE 3: VOICE

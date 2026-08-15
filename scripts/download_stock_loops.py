@@ -1,6 +1,14 @@
 """
-Fetch 10 high-retention, satisfying vertical stock video loops (Pexels / Curated HD Stock Video Loops)
+Fetch 15 high-retention finance-contextual vertical stock video loops (Pexels / Curated HD Stock Video Loops)
 for short-form video backgrounds (1080x1920 portrait).
+
+B-roll categories mapped to visual_category tags:
+  "vaults"      → gold vault, bank vault, cash counting
+  "crowds"      → trading floor, busy market, stock exchange
+  "growth"      → green candlestick charts, upward arrows, coins stacking
+  "digital"     → blockchain, trading app, screen numbers
+  "hands"       → calculator, documents, business meeting
+  "paperwork"   → financial headlines, documents, tax forms
 """
 import os
 import requests
@@ -13,42 +21,75 @@ logger = logging.getLogger(__name__)
 BACKGROUNDS_DIR = os.path.join(os.getcwd(), "assets", "backgrounds")
 os.makedirs(BACKGROUNDS_DIR, exist_ok=True)
 
-# Curated queries for high retention, satisfying process & finishing loops (15 stock videos)
+# ──────────────────────────────────────────────
+# FINANCE-CONTEXTUAL B-ROLL QUERIES (replaces "satisfying" videos)
+# Grouped by visual_category for scene-aware matching
+# ──────────────────────────────────────────────
+
+# Category: vaults (indices 0-1)
+# Category: crowds (indices 2-3)
+# Category: growth (indices 4-6)
+# Category: digital (indices 7-9)
+# Category: hands (indices 10-11)
+# Category: paperwork (indices 12-14)
+
 QUERIES = [
-    "satisfying kinetic sand cutting vertical",
-    "satisfying soap carving process vertical",
-    "satisfying hydraulic press crushing vertical",
-    "satisfying wood lathe turning process vertical",
-    "satisfying glass bottle drop crushing vertical",
-    "satisfying domino chain reaction finishing vertical",
-    "satisfying pottery wheel molding process vertical",
-    "satisfying ASMR slime slicing vertical",
-    "satisfying metal machining lathe cutting vertical",
-    "satisfying 3d destruction simulation vertical",
-    "satisfying epoxy resin fluid art finishing vertical",
-    "satisfying marble run race finishing vertical",
-    "satisfying 3d pendulum wave domino vertical",
-    "satisfying chocolate tempering pouring vertical",
-    "satisfying laser engraving metal process vertical"
+    # vaults (0-1)
+    "gold bars vault close up vertical",
+    "bank vault door opening security vertical",
+    # crowds (2-3)
+    "stock market trading floor aerial vertical",
+    "busy city financial district crowd vertical",
+    # growth (4-6)
+    "financial charts candlestick green red vertical",
+    "coins falling stacking slow motion vertical",
+    "stock exchange screen numbers scrolling vertical",
+    # digital (7-9)
+    "digital cryptocurrency blockchain animation vertical",
+    "smartphone trading app stock market vertical",
+    "world map financial data connections vertical",
+    # hands (10-11)
+    "business meeting boardroom discussion vertical",
+    "money cash counting machine vertical",
+    # paperwork (12-14)
+    "newspaper financial headlines close up vertical",
+    "calculator financial documents tax vertical",
+    "aerial city traffic financial district night vertical"
 ]
 
-# Direct HD vertical satisfying process / finishing loop URLs (15 Royalty-free open stock process loops)
+# Category-to-index mapping for scene-aware B-roll selection
+CATEGORY_INDICES = {
+    "vaults":     [0, 1],
+    "crowds":     [2, 3],
+    "growth":     [4, 5, 6],
+    "digital":    [7, 8, 9],
+    "hands":      [10, 11],
+    "paperwork":  [12, 13, 14],
+}
+
+# Direct HD vertical finance/business stock loop URLs (15 Royalty-free open stock loops)
 CURATED_DIRECT_LOOPS = [
-    "https://assets.mixkit.co/videos/preview/mixkit-hands-cutting-a-bar-of-soap-with-a-knife-41556-large.mp4",
-    "https://assets.mixkit.co/videos/preview/mixkit-potter-shaping-a-clay-vase-on-a-wheel-41477-large.mp4",
-    "https://assets.mixkit.co/videos/preview/mixkit-woodworker-using-a-chisel-on-a-spinning-wood-lathe-41480-large.mp4",
-    "https://assets.mixkit.co/videos/preview/mixkit-hands-slicing-kinetic-sand-41558-large.mp4",
-    "https://assets.mixkit.co/videos/preview/mixkit-close-up-of-epoxy-resin-mixing-and-pouring-41485-large.mp4",
-    "https://assets.mixkit.co/videos/preview/mixkit-dominoes-falling-in-a-chain-reaction-41490-large.mp4",
-    "https://assets.mixkit.co/videos/preview/mixkit-laser-cutting-a-pattern-into-metal-41492-large.mp4",
-    "https://assets.mixkit.co/videos/preview/mixkit-pouring-melted-chocolate-over-a-cake-41500-large.mp4",
-    "https://assets.mixkit.co/videos/preview/mixkit-glassblower-shaping-hot-molten-glass-41505-large.mp4",
-    "https://assets.mixkit.co/videos/preview/mixkit-colorful-marbles-rolling-down-a-track-41510-large.mp4",
-    "https://assets.mixkit.co/videos/preview/mixkit-hydraulic-press-crushing-an-object-41515-large.mp4",
-    "https://assets.mixkit.co/videos/preview/mixkit-painter-applying-thick-acrylic-paint-to-canvas-41520-large.mp4",
-    "https://assets.mixkit.co/videos/preview/mixkit-3d-spheres-falling-and-bouncing-41525-large.mp4",
-    "https://assets.mixkit.co/videos/preview/mixkit-hand-carving-a-wooden-sculpture-41530-large.mp4",
-    "https://assets.mixkit.co/videos/preview/mixkit-satisfying-sand-art-creation-41535-large.mp4"
+    # vaults (0-1)
+    "https://assets.mixkit.co/videos/preview/mixkit-golden-bars-in-a-safety-box-of-a-bank-6891-large.mp4",
+    "https://assets.mixkit.co/videos/preview/mixkit-bank-vault-door-3055-large.mp4",
+    # crowds (2-3)
+    "https://assets.mixkit.co/videos/preview/mixkit-busy-street-in-the-financial-district-4818-large.mp4",
+    "https://assets.mixkit.co/videos/preview/mixkit-aerial-view-of-city-traffic-at-night-11-large.mp4",
+    # growth (4-6)
+    "https://assets.mixkit.co/videos/preview/mixkit-digital-stock-market-chart-going-up-68486-large.mp4",
+    "https://assets.mixkit.co/videos/preview/mixkit-pile-of-gold-coins-2775-large.mp4",
+    "https://assets.mixkit.co/videos/preview/mixkit-stock-exchange-trading-screen-numbers-4621-large.mp4",
+    # digital (7-9)
+    "https://assets.mixkit.co/videos/preview/mixkit-abstract-digital-technology-background-12758-large.mp4",
+    "https://assets.mixkit.co/videos/preview/mixkit-hands-using-a-smartphone-in-the-dark-41555-large.mp4",
+    "https://assets.mixkit.co/videos/preview/mixkit-digital-world-map-hologram-4791-large.mp4",
+    # hands (10-11)
+    "https://assets.mixkit.co/videos/preview/mixkit-business-team-at-a-meeting-4832-large.mp4",
+    "https://assets.mixkit.co/videos/preview/mixkit-counting-dollar-bills-by-hand-4169-large.mp4",
+    # paperwork (12-14)
+    "https://assets.mixkit.co/videos/preview/mixkit-close-up-of-newspaper-headlines-4783-large.mp4",
+    "https://assets.mixkit.co/videos/preview/mixkit-typing-on-a-calculator-next-to-documents-4821-large.mp4",
+    "https://assets.mixkit.co/videos/preview/mixkit-city-skyline-timelapse-at-sunset-4174-large.mp4",
 ]
 
 def download_file(url, target_path):
@@ -98,7 +139,7 @@ def download_all_stock_loops():
             
         if not video_url:
             video_url = CURATED_DIRECT_LOOPS[idx % len(CURATED_DIRECT_LOOPS)]
-            logger.info(f"Using curated HD vertical stock loop for {filename}...")
+            logger.info(f"Using curated HD vertical finance stock loop for {filename}...")
             
         success = download_file(video_url, filepath)
         if not success and idx < len(CURATED_DIRECT_LOOPS):

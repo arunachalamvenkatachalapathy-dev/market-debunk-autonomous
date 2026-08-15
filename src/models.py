@@ -28,9 +28,18 @@ class Scene(BaseModel):
 
 
 class VideoScript(BaseModel):
-    title: str = Field(description="Catchy short-form video title")
+    thesis: str = Field(
+        description="The ONE debunkable myth or claim this entire video is about. "
+        "Every scene must directly advance or debunk this thesis. Max 15 words."
+    )
+    title: str = Field(description="Catchy short-form video title anchored to the thesis")
     description: str = Field(description="YouTube/Instagram description with hashtags")
-    scenes: list[Scene] = Field(description="Between 5 and 12 scenes describing the full flow of the short, ending with a satisfying conclusion")
+    scenes: list[Scene] = Field(
+        description="Exactly 5 scenes following the narrative arc: "
+        "1=HOOK (3-5 word shock), 2=MYTH SETUP (Red Arrow presents the myth), "
+        "3=EVIDENCE (Green Arrow drops data), 4=REVEAL (definitive debunk), "
+        "5=CTA (what to do + follow). Every scene must reference the thesis."
+    )
 
 
 # ──────────────────────────────────────────────

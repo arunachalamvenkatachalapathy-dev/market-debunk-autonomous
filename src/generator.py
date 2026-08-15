@@ -277,8 +277,9 @@ def generate_scene_voice(tts_client, text, scene_index, voice_config_scene=None,
 
 def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
     """
-    Selects one of the 15 curated hypnotic looping background MP4 videos.
-    Rotates background video loops per scene and per video run using used_bg.json memory.
+    Selects a finance-contextual background MP4 video matched to the scene's visual_category.
+    Maps visual_category tags to specific B-roll buckets for audio-visual coherence.
+    Falls back to round-robin if category matching fails.
     """
     import glob
     
@@ -288,7 +289,7 @@ def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
     # Ensure 15 background loop videos are available
     bg_files = sorted(glob.glob(os.path.join(bg_dir, "bg_*.mp4")))
     if len(bg_files) < 15:
-        logger.info("Initializing 15 hypnotic looping background videos...")
+        logger.info("Initializing 15 finance-contextual background videos...")
         try:
             from scripts.download_stock_loops import download_all_stock_loops
             download_all_stock_loops()
@@ -298,26 +299,53 @@ def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
             bg_files = sorted(glob.glob(os.path.join(bg_dir, "bg_*.mp4")))
 
     if bg_files:
-        # Persistent non-repeating background rotation per scene
-        bg_mem_file = os.path.join(os.getcwd(), "used_bg.json")
-        last_bg_idx = 0
-        if os.path.exists(bg_mem_file):
-            try:
-                with open(bg_mem_file, "r") as f:
-                    last_bg_idx = json.load(f).get("last_index", 0)
-            except Exception:
-                last_bg_idx = 0
+        # ── SCENE-AWARE B-ROLL MATCHING ──
+        # Map visual_category → specific B-roll file indices (0-indexed into bg_01..bg_15)
+        CATEGORY_BG_MAP = {
+            "vaults":     [0, 1],       # bg_01, bg_02: gold vault, bank vault
+            "crowds":     [2, 3],       # bg_03, bg_04: trading floor, financial district
+            "growth":     [4, 5, 6],    # bg_05-07: candlestick charts, coins, exchange screen
+            "digital":    [7, 8, 9],    # bg_08-10: blockchain, trading app, world map
+            "hands":      [10, 11],     # bg_11-12: business meeting, cash counting
+            "paperwork":  [12, 13, 14], # bg_13-15: headlines, calculator, city skyline
+        }
         
-        # Advance index per scene so every scene within the video gets a distinct background video
-        bg_index = (last_bg_idx + scene_index) % len(bg_files)
-        try:
-            with open(bg_mem_file, "w") as f:
-                json.dump({"last_index": bg_index + 1, "bg_file": os.path.basename(bg_files[bg_index])}, f)
-        except Exception:
-            pass
-                
-        selected_bg = bg_files[bg_index]
-        logger.info(f"🎬 HYPNOTIC BACKGROUND [SCENE {scene_index + 1}]: Selected {os.path.basename(selected_bg)} (Index {bg_index + 1}/{len(bg_files)})")
+        # Get visual category from the scene's visual config or prompt
+        category = None
+        if visual_config_scene:
+            category = visual_config_scene.get("category_tag", "").lower()
+        
+        selected_bg = None
+        if category and category in CATEGORY_BG_MAP:
+            # Pick from the matched category bucket
+            candidate_indices = CATEGORY_BG_MAP[category]
+            # Use scene_index to avoid repeating within same category across scenes
+            pick_idx = candidate_indices[scene_index % len(candidate_indices)]
+            if pick_idx < len(bg_files):
+                selected_bg = bg_files[pick_idx]
+                logger.info(f"🎬 CATEGORY-MATCHED B-ROLL [SCENE {scene_index + 1}]: '{category}' → {os.path.basename(selected_bg)}")
+        
+        if not selected_bg:
+            # Fallback: persistent non-repeating round-robin
+            bg_mem_file = os.path.join(os.getcwd(), "used_bg.json")
+            last_bg_idx = 0
+            if os.path.exists(bg_mem_file):
+                try:
+                    with open(bg_mem_file, "r") as f:
+                        last_bg_idx = json.load(f).get("last_index", 0)
+                except Exception:
+                    last_bg_idx = 0
+            
+            bg_index = (last_bg_idx + scene_index) % len(bg_files)
+            try:
+                with open(bg_mem_file, "w") as f:
+                    json.dump({"last_index": bg_index + 1, "bg_file": os.path.basename(bg_files[bg_index])}, f)
+            except Exception:
+                pass
+                    
+            selected_bg = bg_files[bg_index]
+            logger.info(f"🎬 ROUND-ROBIN B-ROLL [SCENE {scene_index + 1}]: {os.path.basename(selected_bg)} (Index {bg_index + 1}/{len(bg_files)})")
+        
         return {"type": "video", "path": selected_bg}
     else:
         logger.warning(f"⚠️ Falling back to default background asset for Scene {scene_index}")
