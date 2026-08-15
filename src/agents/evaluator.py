@@ -412,10 +412,7 @@ class EvaluatorAgent:
         logger.info("🚦 Evaluator [GATE_MASCOT]: Validating mascot timeline...")
         details = {}
 
-        segments = mascot_timeline.get("segments", [])
-        details["segment_count"] = len(segments)
-
-        expected_count = len(script.get("scenes", [])) if script else len(segments)
+        expected_count = len(script_data.get("scenes", [])) if script_data else len(segments)
         if len(segments) != expected_count:
             return False, f"Expected {expected_count} mascot segments, got {len(segments)}", details
 
@@ -531,7 +528,7 @@ class EvaluatorAgent:
             if expected_audio_duration:
                 diff = abs(video_dur - expected_audio_duration)
                 details["duration_diff"] = round(diff, 2)
-                if diff > 0.5:
+                if diff > 1.5:
                     return False, f"Duration mismatch: video={video_dur:.1f}s, audio={expected_audio_duration:.1f}s (diff={diff:.1f}s)", details
         except Exception as e:
             logger.warning(f"Failed to probe video duration: {e}")

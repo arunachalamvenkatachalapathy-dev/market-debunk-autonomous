@@ -410,8 +410,8 @@ def process_single_scene_media(scene, assembly_config=None):
         # Scale the lipsync clip to avatar slot size, then overlay onto background loop
         cmd = [
             "ffmpeg", "-y",
-            "-loop", "1",  "-i", studio_frame_path,           # input 0: bg image (looped)
-            "-i", lipsync_video_path,                         # input 1: lipsync video
+            "-loop", "1", "-i", studio_frame_path,           # input 0: bg image (looped)
+            "-stream_loop", "-1", "-i", lipsync_video_path,   # input 1: lipsync video (looped)
             "-filter_complex",
             (
                 # Scale lipsync face to match the avatar slot dimensions
@@ -422,7 +422,7 @@ def process_single_scene_media(scene, assembly_config=None):
                 f"x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':"
                 f"d={num_frames}:s=1080x1920,fps={fps}[bg];"
                 # Overlay the talking face onto the correct studio slot
-                f"[bg][face]overlay={ov_x}:{ov_y}:shortest=1[vout]"
+                f"[bg][face]overlay={ov_x}:{ov_y}[vout]"
             ),
             "-map", "[vout]",
             "-t", f"{dur:.3f}",
