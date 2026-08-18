@@ -41,6 +41,8 @@ jobs:
         env:
           NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
           LLM_API_KEYS: ${{ secrets.LLM_API_KEYS }}
+          FACECLONE_API_URL: ${{ secrets.FACECLONE_API_URL }}
+          FACECLONE_API_KEY: ${{ secrets.FACECLONE_API_KEY }}
           HF_API_KEY: ${{ secrets.HF_API_KEY }}
           YT_API_KEY: ${{ secrets.YT_API_KEY }}
           YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}

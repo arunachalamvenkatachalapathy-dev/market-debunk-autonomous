@@ -4,7 +4,6 @@ import logging
 import subprocess
 from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageEnhance
 from src.config import OUTPUT_DIR
-from src.lip_sync import run_wav2lip_hf
 
 # ---------------------------------------------------------
 # CENTRALIZED LAYOUT CONFIGURATION
@@ -325,19 +324,8 @@ def process_single_scene_media(scene, assembly_config=None):
     hf_token = os.environ.get("HF_API_KEY", "")
     lipsync_video_path = os.path.join(OUTPUT_DIR, f"scene_{idx}_lipsync.mp4")
 
-    try:
-        run_wav2lip_hf(
-            image_path=speaker_src_img,
-            audio_path=audio_path,
-            output_path=lipsync_video_path,
-            hf_token=hf_token,
-            open_img_path=speaker_open_img,
-            closed_img_path=speaker_src_img,
-        )
-        logger.info(f"✅ Lip-sync generated for scene {idx}")
-    except Exception as exc:
-        logger.error(f"❌ Lip-sync failed for scene {idx}: {exc}")
-        lipsync_video_path = None
+    # Legacy lip-sync generation was here. Now bypassed by FaceClone API which generates the entire custom_avatar.mp4 directly.
+    lipsync_video_path = None
 
     # ── Step 3: Composite background + talking-face → final scene MP4 ────────
     overlay = _LIPSYNC_OVERLAY.get("host")
