@@ -427,7 +427,10 @@ def assemble_final_video(processed_scenes, subtitle_style=None, assembly_config=
         audio_codec = assembly_config.get("audio_codec", "aac")
         logger.info(f"🎬 Using PE assembly config: loudness={loudness_i}LUFS, logo={logo_scale}px, fps={assembly_config.get('output_fps', 25)}")
     
-    # 1. Process individual scene media clips matching audio lengths
+    # Check for Custom Avatar
+    custom_avatar = os.path.join(os.getcwd(), "custom_avatar.mp4")
+    using_custom_avatar = os.path.exists(custom_avatar)
+    
     video_clips = []
     total_audio_dur = 0.0
     current_timeline_pos = 0.0
@@ -438,65 +441,128 @@ def assemble_final_video(processed_scenes, subtitle_style=None, assembly_config=
         current_timeline_pos += audio_dur
         total_audio_dur += audio_dur
         
-        out_v = process_single_scene_media(scene, assembly_config=assembly_config)
-        video_clips.append(out_v)
-        
+        if not using_custom_avatar:
+            out_v = process_single_scene_media(scene, assembly_config=assembly_config)
+            video_clips.append(out_v)
+            
     logger.info(f"Total pipeline duration: {total_audio_dur}s")
     
-    # 2. Write file lists for FFmpeg concatenation
-    video_list_path = os.path.join(OUTPUT_DIR, "video_list.txt")
-    audio_list_path = os.path.join(OUTPUT_DIR, "audio_list.txt")
-    
-    with open(video_list_path, "w") as f:
-        for clip in video_clips:
-            f.write(f"file '{clip}'\n")
+    if using_custom_avatar:
+        logger.info("🎭 Custom Avatar detected! Bypassing scene stitching and applying B-Roll overlays directly.")
+        combined_video = os.path.join(OUTPUT_DIR, "combined_video.mp4")
+        
+        # Build complex filter to overlay B-rolls on custom_avatar
+        inputs = ["-i", custom_avatar]
+        filter_chains = []
+        for i, scene in enumerate(processed_scenes):
+            b_roll = scene["visual_asset"]["path"]
+            start_t = scene["start_time"]
+            end_t = start_t + scene["audio_duration"]
+            inputs.extend(["-stream_loop", "-1", "-i", b_roll])
             
-    with open(audio_list_path, "w") as f:
-        for scene in processed_scenes:
-            f.write(f"file '{scene['audio_path']}'\n")
+            # Scale and crop B-roll
+            filter_chains.append(f"[{i+1}:v]scale=1080:840:force_original_aspect_ratio=increase,crop=1080:840,setpts=PTS-STARTPTS[b{i}]")
             
-    # 3. Concatenate video segments
-    logger.info("Stitching video segments...")
-    combined_video = os.path.join(OUTPUT_DIR, "combined_video.mp4")
-    subprocess.run([
-        "ffmpeg", "-y", "-f", "concat", "-safe", "0",
-        "-i", video_list_path, "-c", "copy", combined_video
-    ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
-    
-    # 4. Concatenate audio segments
-    logger.info("Stitching audio segments...")
-    combined_audio = os.path.join(OUTPUT_DIR, "combined_audio.mp3")
-    subprocess.run([
-        "ffmpeg", "-y", "-f", "concat", "-safe", "0",
-        "-i", audio_list_path, "-c", "copy", combined_audio
-    ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
-    
-    # 5. Merge stitched video and stitched audio with playback speed synchronization
-    logger.info("Merging audio and video tracks with auto duration sync...")
-    video_with_audio = os.path.join(OUTPUT_DIR, "video_with_audio.mp4")
-    
-    # Check durations and adjust playback speed if there is any mismatch
-    v_dur = get_audio_duration(combined_video) if os.path.exists(combined_video) else total_audio_dur
-    a_dur = total_audio_dur
-    
-    if abs(v_dur - a_dur) > 0.05 and v_dur > 0:
-        logger.info(f"Adjusting video playback speed: v_dur={v_dur:.2f}s -> target a_dur={a_dur:.2f}s")
-        speed_factor = a_dur / v_dur
+        # Chain the overlays
+        last_out = "0:v"
+        for i, scene in enumerate(processed_scenes):
+            start_t = scene["start_time"]
+            end_t = start_t + scene["audio_duration"]
+            out_node = f"v{i}"
+            
+            # 1. Overlay the B-Roll
+            overlay_expr = f"[{last_out}][b{i}]overlay=0:0:enable='between(t,{start_t},{end_t})'"
+            
+            # 2. Add Dividing Line (white and gray)
+            overlay_expr += f",drawbox=x=0:y=840:w=1080:h=8:color=white:t=fill:enable='between(t,{start_t},{end_t})'"
+            overlay_expr += f",drawbox=x=0:y=844:w=1080:h=2:color=gray:t=fill:enable='between(t,{start_t},{end_t})'"
+            
+            # 3. Add Popup Text (if present)
+            popup = scene.get("popup_text", "").strip().upper()
+            if popup:
+                # Basic text rendering in the center of the top half
+                font_path = "assets/fonts/Montserrat-Bold.ttf"
+                if not os.path.exists(font_path):
+                    font_path = "/Windows/Fonts/arial.ttf" # Fallback
+                # Escape text for ffmpeg
+                popup_escaped = popup.replace("'", "\\'").replace(":", "\\:")
+                # Draw rounded rectangle behind text (using drawbox with transparency as a simple alternative)
+                # Then draw text
+                overlay_expr += f",drawbox=x=(1080-tw-80)/2:y=(840-th-40)/2:w=tw+80:h=th+40:color=white@0.9:t=fill:enable='between(t,{start_t},{end_t})'"
+                overlay_expr += f",drawtext=fontfile='{font_path}':text='{popup_escaped}':fontsize=65:fontcolor=black:x=(1080-tw)/2:y=(840-th)/2:enable='between(t,{start_t},{end_t})'"
+            
+            filter_chains.append(f"{overlay_expr}[{out_node}]")
+            last_out = out_node
+            
+        complex_filter = ";".join(filter_chains)
+        
         subprocess.run([
-            "ffmpeg", "-y", "-i", combined_video, "-i", combined_audio,
-            "-filter_complex", f"[0:v]setpts={speed_factor}*PTS[v_synced]",
-            "-map", "[v_synced]", "-map", "1:a:0",
-            "-c:v", output_codec, "-c:a", audio_codec,
-            "-t", f"{a_dur:.3f}",
-            video_with_audio
+            "ffmpeg", "-y", *inputs,
+            "-filter_complex", complex_filter,
+            "-map", f"[{last_out}]", "-map", "0:a",
+            "-c:v", output_codec, "-c:a", "copy", "-t", f"{total_audio_dur:.3f}",
+            combined_video
         ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+        
+        combined_audio = combined_video # Audio is already in the combined video
+        video_with_audio = combined_video
+        
     else:
+        # 2. Write file lists for FFmpeg concatenation
+        video_list_path = os.path.join(OUTPUT_DIR, "video_list.txt")
+        audio_list_path = os.path.join(OUTPUT_DIR, "audio_list.txt")
+        
+        with open(video_list_path, "w") as f:
+            for clip in video_clips:
+                f.write(f"file '{clip}'\n")
+                
+        with open(audio_list_path, "w") as f:
+            for scene in processed_scenes:
+                f.write(f"file '{scene['audio_path']}'\n")
+                
+        # 3. Concatenate video segments
+        logger.info("Stitching video segments...")
+        combined_video = os.path.join(OUTPUT_DIR, "combined_video.mp4")
         subprocess.run([
-            "ffmpeg", "-y", "-i", combined_video, "-i", combined_audio,
-            "-map", "0:v:0", "-map", "1:a:0", "-c:v", "copy", "-c:a", audio_codec,
-            "-t", f"{a_dur:.3f}",
-            video_with_audio
+            "ffmpeg", "-y", "-f", "concat", "-safe", "0",
+            "-i", video_list_path, "-c", "copy", combined_video
         ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+        
+        # 4. Concatenate audio segments
+        logger.info("Stitching audio segments...")
+        combined_audio = os.path.join(OUTPUT_DIR, "combined_audio.mp3")
+        subprocess.run([
+            "ffmpeg", "-y", "-f", "concat", "-safe", "0",
+            "-i", audio_list_path, "-c", "copy", combined_audio
+        ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+    
+    if not using_custom_avatar:
+        # 5. Merge stitched video and stitched audio with playback speed synchronization
+        logger.info("Merging audio and video tracks with auto duration sync...")
+        video_with_audio = os.path.join(OUTPUT_DIR, "video_with_audio.mp4")
+        
+        # Check durations and adjust playback speed if there is any mismatch
+        v_dur = get_audio_duration(combined_video) if os.path.exists(combined_video) else total_audio_dur
+        a_dur = total_audio_dur
+        
+        if abs(v_dur - a_dur) > 0.05 and v_dur > 0:
+            logger.info(f"Adjusting video playback speed: v_dur={v_dur:.2f}s -> target a_dur={a_dur:.2f}s")
+            speed_factor = a_dur / v_dur
+            subprocess.run([
+                "ffmpeg", "-y", "-i", combined_video, "-i", combined_audio,
+                "-filter_complex", f"[0:v]setpts={speed_factor}*PTS[v_synced]",
+                "-map", "[v_synced]", "-map", "1:a:0",
+                "-c:v", output_codec, "-c:a", audio_codec,
+                "-t", f"{a_dur:.3f}",
+                video_with_audio
+            ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+        else:
+            subprocess.run([
+                "ffmpeg", "-y", "-i", combined_video, "-i", combined_audio,
+                "-map", "0:v:0", "-map", "1:a:0", "-c:v", "copy", "-c:a", audio_codec,
+                "-t", f"{a_dur:.3f}",
+                video_with_audio
+            ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
     
     # 6. Generate subtitle ASS file with PE style config
     ass_path = generate_ass_file(processed_scenes, total_audio_dur, subtitle_style=subtitle_style)

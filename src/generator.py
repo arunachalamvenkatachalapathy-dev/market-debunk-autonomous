@@ -290,19 +290,58 @@ def generate_scene_voice(tts_client, text, scene_index, voice_config_scene=None,
 
 def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
     """
-    Selects a finance-contextual background MP4 video matched to the scene's visual_category.
-    Maps visual_category tags to specific B-roll buckets for audio-visual coherence.
-    Falls back to round-robin if category matching fails.
+    Dynamically fetches a high-quality vertical stock video from Pexels API using the scene's visual prompt.
+    Falls back to pre-downloaded stock loops if API key is missing or search fails.
     """
     import glob
+    import requests
+    import urllib.request
+    import hashlib
     
     bg_dir = os.path.join(os.getcwd(), "assets", "backgrounds")
     os.makedirs(bg_dir, exist_ok=True)
     
-    # Ensure 15 background loop videos are available
+    category = visual_config_scene.get("category_tag", "").lower() if visual_config_scene else "finance"
+    search_query = f"{category} {visual_prompt}".strip()[:50]  # Pexels prefers shorter, targeted queries
+    
+    pexels_key = get_secret("PEXELS_API_KEY")
+    if pexels_key:
+        logger.info(f"🔎 PEXELS API: Searching for '{search_query}'...")
+        try:
+            url = f"https://api.pexels.com/videos/search?query={category}&orientation=portrait&per_page=15"
+            headers = {"Authorization": pexels_key}
+            res = requests.get(url, headers=headers, timeout=10)
+            if res.status_code == 200:
+                videos = res.json().get("videos", [])
+                if videos:
+                    # Pick a deterministic video based on scene index to avoid repeats
+                    vid = videos[scene_index % len(videos)]
+                    video_files = vid.get("video_files", [])
+                    # Prefer HD portrait (width ~1080)
+                    hd_files = [f for f in video_files if f.get("quality") == "hd" and f.get("width", 0) >= 1080]
+                    if not hd_files:
+                        hd_files = sorted(video_files, key=lambda x: x.get("width", 0), reverse=True)
+                    
+                    if hd_files:
+                        download_url = hd_files[0].get("link")
+                        vid_id = vid.get("id")
+                        target_path = os.path.join(bg_dir, f"pexels_{vid_id}.mp4")
+                        if not os.path.exists(target_path):
+                            logger.info(f"⬇️ Downloading Pexels B-Roll: {vid_id}...")
+                            urllib.request.urlretrieve(download_url, target_path)
+                        
+                        logger.info(f"🎬 PEXELS B-ROLL [SCENE {scene_index + 1}]: {os.path.basename(target_path)}")
+                        return {"type": "video", "path": target_path}
+            else:
+                logger.warning(f"Pexels API failed ({res.status_code}): {res.text}")
+        except Exception as e:
+            logger.warning(f"Pexels search/download failed: {e}")
+            
+    # --- FALLBACK: STATIC STOCK LOOPS ---
+    logger.info(f"⚠️ Falling back to local static loops for Scene {scene_index + 1}")
+    
     bg_files = sorted(glob.glob(os.path.join(bg_dir, "bg_*.mp4")))
     if len(bg_files) < 15:
-        logger.info("Initializing 15 finance-contextual background videos...")
         try:
             from scripts.download_stock_loops import download_all_stock_loops
             download_all_stock_loops()
@@ -312,34 +351,24 @@ def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
             bg_files = sorted(glob.glob(os.path.join(bg_dir, "bg_*.mp4")))
 
     if bg_files:
-        # ── SCENE-AWARE B-ROLL MATCHING ──
-        # Map visual_category → specific B-roll file indices (0-indexed into bg_01..bg_15)
         CATEGORY_BG_MAP = {
-            "vaults":     [0, 1],       # bg_01, bg_02: gold vault, bank vault
-            "crowds":     [2, 3],       # bg_03, bg_04: trading floor, financial district
-            "growth":     [4, 5, 6],    # bg_05-07: candlestick charts, coins, exchange screen
-            "digital":    [7, 8, 9],    # bg_08-10: blockchain, trading app, world map
-            "hands":      [10, 11],     # bg_11-12: business meeting, cash counting
-            "paperwork":  [12, 13, 14], # bg_13-15: headlines, calculator, city skyline
+            "vaults":     [0, 1],
+            "crowds":     [2, 3],
+            "growth":     [4, 5, 6],
+            "digital":    [7, 8, 9],
+            "hands":      [10, 11],
+            "paperwork":  [12, 13, 14],
         }
-        
-        # Get visual category from the scene's visual config or prompt
-        category = None
-        if visual_config_scene:
-            category = visual_config_scene.get("category_tag", "").lower()
         
         selected_bg = None
         if category and category in CATEGORY_BG_MAP:
-            # Pick from the matched category bucket
             candidate_indices = CATEGORY_BG_MAP[category]
-            # Use scene_index to avoid repeating within same category across scenes
             pick_idx = candidate_indices[scene_index % len(candidate_indices)]
             if pick_idx < len(bg_files):
                 selected_bg = bg_files[pick_idx]
-                logger.info(f"🎬 CATEGORY-MATCHED B-ROLL [SCENE {scene_index + 1}]: '{category}' → {os.path.basename(selected_bg)}")
+                logger.info(f"🎬 CATEGORY-MATCHED LOCAL B-ROLL: '{category}' → {os.path.basename(selected_bg)}")
         
         if not selected_bg:
-            # Fallback: persistent non-repeating round-robin
             bg_mem_file = os.path.join(os.getcwd(), "used_bg.json")
             last_bg_idx = 0
             if os.path.exists(bg_mem_file):
@@ -347,17 +376,15 @@ def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
                     with open(bg_mem_file, "r") as f:
                         last_bg_idx = json.load(f).get("last_index", 0)
                 except Exception:
-                    last_bg_idx = 0
-            
+                    pass
             bg_index = (last_bg_idx + scene_index) % len(bg_files)
             try:
                 with open(bg_mem_file, "w") as f:
                     json.dump({"last_index": bg_index + 1, "bg_file": os.path.basename(bg_files[bg_index])}, f)
             except Exception:
                 pass
-                    
             selected_bg = bg_files[bg_index]
-            logger.info(f"🎬 ROUND-ROBIN B-ROLL [SCENE {scene_index + 1}]: {os.path.basename(selected_bg)} (Index {bg_index + 1}/{len(bg_files)})")
+            logger.info(f"🎬 ROUND-ROBIN LOCAL B-ROLL: {os.path.basename(selected_bg)}")
         
         return {"type": "video", "path": selected_bg}
     else:
