@@ -1,7 +1,0 @@
-file 'D:\downloads  (3)\beggy\market debunk\output\scene_0_processed.mp4'
-file 'D:\downloads  (3)\beggy\market debunk\output\scene_1_processed.mp4'
-file 'D:\downloads  (3)\beggy\market debunk\output\scene_2_processed.mp4'
-file 'D:\downloads  (3)\beggy\market debunk\output\scene_3_processed.mp4'
-file 'D:\downloads  (3)\beggy\market debunk\output\scene_4_processed.mp4'
-file 'D:\downloads  (3)\beggy\market debunk\output\scene_5_processed.mp4'
-file 'D:\downloads  (3)\beggy\market debunk\output\scene_6_processed.mp4'

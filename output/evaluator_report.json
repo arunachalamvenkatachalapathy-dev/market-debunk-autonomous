@@ -1,15 +1,27 @@
 {
+<<<<<<< Updated upstream
   "timestamp": "2026-08-23T03:19:05.770869+00:00",
   "topic": "ZERO1 BY ZERODHA analysis on 90% of Indians don't know this about Mutual funds [Video ID: PsOdPvQX6v0]\nLink: https://www.youtube.com/watch?v=PsOdPvQX6v0\nSingle Thesis: MYTH: The most important factor to consider when choosing a mutual fund is its past returns. TRUTH: Past returns are secondary to risk-adjusted metrics like standard deviation and beta, which reveal the volatility and risk-taking behavior required to achieve those returns.",
+=======
+  "timestamp": "2026-08-18T02:32:34.912528+00:00",
+  "topic": "PR SUNDAR analysis on Pre Market Report 18-Aug-2026 [Video ID: 8vHOS2i4vpc]\nLink: https://www.youtube.com/watch?v=8vHOS2i4vpc\nSingle Thesis: MYTH: The Gift Nifty index is a reliable predictor of the Indian market's opening direction based on the previous day's US market performance. TRUTH: Market correlation is inconsistent and non-causal; relying on a single indicator ignores complex domestic factors, liquidity shifts, and institutional flow that dictate actual daily price action.",
+>>>>>>> Stashed changes
   "gates": {
     "topic": {
       "passed": true,
       "reason": "Topic is fresh and valid",
       "details": {
+<<<<<<< Updated upstream
         "word_count": 62,
         "status": "fresh"
       },
       "timestamp": "2026-08-23T03:19:17.730497+00:00"
+=======
+        "word_count": 65,
+        "status": "fresh"
+      },
+      "timestamp": "2026-08-18T02:32:45.070125+00:00"
+>>>>>>> Stashed changes
     },
     "script": {
       "passed": true,
@@ -17,6 +29,7 @@
       "details": {
         "scene_count": 5,
         "hook_word_count": 4,
+<<<<<<< Updated upstream
         "thesis": "Past returns are a trap; risk-adjusted metrics define true mutual fund success.",
         "thesis_scene_coverage": "4/5",
         "categories": [
@@ -31,6 +44,22 @@
         "est_runtime": 33.2
       },
       "timestamp": "2026-08-23T03:19:26.368865+00:00"
+=======
+        "thesis": "Gift Nifty is not a reliable predictor for daily Indian market opening trends.",
+        "thesis_scene_coverage": "3/5",
+        "categories": [
+          "none",
+          "abstract",
+          "chart",
+          "ui",
+          "bold_text"
+        ],
+        "unique_categories": 5,
+        "word_count": 67,
+        "est_runtime": 26.8
+      },
+      "timestamp": "2026-08-18T02:32:52.188274+00:00"
+>>>>>>> Stashed changes
     },
     "voice_engineering": {
       "passed": true,
@@ -38,13 +67,18 @@
       "details": {
         "scene_count": 5
       },
+<<<<<<< Updated upstream
       "timestamp": "2026-08-23T03:19:34.556062+00:00"
+=======
+      "timestamp": "2026-08-18T02:32:54.158799+00:00"
+>>>>>>> Stashed changes
     },
     "visual_engineering": {
       "passed": true,
       "reason": "Visual config valid",
       "details": {
         "categories": [
+<<<<<<< Updated upstream
           "paperwork",
           "digital",
           "vaults",
@@ -53,12 +87,26 @@
         ]
       },
       "timestamp": "2026-08-23T03:19:43.538126+00:00"
+=======
+          "digital",
+          "crowds",
+          "paperwork",
+          "hands",
+          "vaults"
+        ]
+      },
+      "timestamp": "2026-08-18T02:32:57.541730+00:00"
+>>>>>>> Stashed changes
     },
     "synthesis": {
       "passed": false,
       "reason": "Crashed: Secret 'PEXELS_API_KEY' not found in secret files, environment, or Secret Manager API.",
       "details": {},
+<<<<<<< Updated upstream
       "timestamp": "2026-08-23T03:24:30.733115+00:00"
+=======
+      "timestamp": "2026-08-18T02:35:48.480772+00:00"
+>>>>>>> Stashed changes
     }
   },
   "recommendation": "PUBLISH_WITH_WARNINGS",
