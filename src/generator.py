@@ -304,7 +304,11 @@ def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
     category = visual_config_scene.get("category_tag", "").lower() if visual_config_scene else "finance"
     search_query = f"{category} {visual_prompt}".strip()[:50]  # Pexels prefers shorter, targeted queries
     
-    pexels_key = get_secret("PEXELS_API_KEY")
+    try:
+        pexels_key = get_secret("PEXELS_API_KEY")
+    except ValueError:
+        pexels_key = None
+        
     if pexels_key:
         logger.info(f"🔎 PEXELS API: Searching for '{search_query}'...")
         try:
