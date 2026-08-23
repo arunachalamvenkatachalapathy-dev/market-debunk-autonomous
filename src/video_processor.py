@@ -215,7 +215,17 @@ def render_single_host_frame(scene, scene_index, skip_avatar=False):
     asset = scene.get("visual_asset")
     if asset and asset.get("path") and os.path.exists(asset.get("path")):
         try:
-            img = Image.open(asset.get("path")).convert("RGBA")
+            asset_path = asset.get("path")
+            if asset_path.lower().endswith(('.mp4', '.mov', '.webm', '.avi')):
+                import tempfile
+                import subprocess
+                temp_frame = os.path.join(tempfile.gettempdir(), f"frame_extract_{scene_index}.jpg")
+                subprocess.run([
+                    "ffmpeg", "-y", "-i", asset_path, "-vframes", "1", "-q:v", "2", temp_frame
+                ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
+                img = Image.open(temp_frame).convert("RGBA")
+            else:
+                img = Image.open(asset_path).convert("RGBA")
             # The top half is Y=0 to Y=840, width=1080.
             target_bw, target_bh = 1080, 840
             # Use ImageOps.fit to perfectly crop/resize the asset to fill the top half

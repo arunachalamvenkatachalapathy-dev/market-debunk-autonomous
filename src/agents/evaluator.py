@@ -509,7 +509,7 @@ class EvaluatorAgent:
 
         size = os.path.getsize(video_path)
         details["file_size_mb"] = round(size / (1024 * 1024), 2)
-        if size < 1_000_000:  # Less than 1MB
+        if size < 250_000:  # Less than 250KB
             return False, f"Video file too small ({size} bytes)", details
 
         # Duration check

@@ -1,15 +1,15 @@
 {
-  "timestamp": "2026-08-15T12:26:52.369674+00:00",
-  "topic": "The hidden dangers of algorithmic trading in 2024",
+  "timestamp": "2026-08-23T03:19:05.770869+00:00",
+  "topic": "ZERO1 BY ZERODHA analysis on 90% of Indians don't know this about Mutual funds [Video ID: PsOdPvQX6v0]\nLink: https://www.youtube.com/watch?v=PsOdPvQX6v0\nSingle Thesis: MYTH: The most important factor to consider when choosing a mutual fund is its past returns. TRUTH: Past returns are secondary to risk-adjusted metrics like standard deviation and beta, which reveal the volatility and risk-taking behavior required to achieve those returns.",
   "gates": {
     "topic": {
       "passed": true,
       "reason": "Topic is fresh and valid",
       "details": {
-        "word_count": 8,
+        "word_count": 62,
         "status": "fresh"
       },
-      "timestamp": "2026-08-15T12:26:52.379275+00:00"
+      "timestamp": "2026-08-23T03:19:17.730497+00:00"
     },
     "script": {
       "passed": true,
@@ -17,20 +17,20 @@
       "details": {
         "scene_count": 5,
         "hook_word_count": 4,
-        "thesis": "Algorithmic trading platforms are secretly draining your portfolio through hidden execution slippage.",
+        "thesis": "Past returns are a trap; risk-adjusted metrics define true mutual fund success.",
         "thesis_scene_coverage": "4/5",
         "categories": [
-          "none",
+          "bold_text",
           "ui",
           "chart",
           "meme",
-          "bold_text"
+          "abstract"
         ],
         "unique_categories": 5,
-        "word_count": 72,
-        "est_runtime": 28.8
+        "word_count": 83,
+        "est_runtime": 33.2
       },
-      "timestamp": "2026-08-15T12:27:00.309878+00:00"
+      "timestamp": "2026-08-23T03:19:26.368865+00:00"
     },
     "voice_engineering": {
       "passed": true,
@@ -38,81 +38,31 @@
       "details": {
         "scene_count": 5
       },
-      "timestamp": "2026-08-15T12:27:02.344109+00:00"
+      "timestamp": "2026-08-23T03:19:34.556062+00:00"
     },
     "visual_engineering": {
       "passed": true,
       "reason": "Visual config valid",
       "details": {
         "categories": [
-          "hands",
+          "paperwork",
           "digital",
-          "growth",
           "vaults",
-          "paperwork"
+          "crowds",
+          "growth"
         ]
       },
-      "timestamp": "2026-08-15T12:27:05.989640+00:00"
+      "timestamp": "2026-08-23T03:19:43.538126+00:00"
     },
-    "voice": {
-      "passed": true,
-      "reason": "Voice output valid — total 35.0s",
-      "details": {
-        "scene_durations": [
-          7.0,
-          7.0,
-          7.0,
-          7.0,
-          7.0
-        ],
-        "total_duration": 35.0
-      },
-      "timestamp": "2026-08-15T12:31:24.077163+00:00"
-    },
-    "visuals": {
-      "passed": true,
-      "reason": "All visual assets valid and unique",
-      "details": {
-        "file_sizes": [
-          806842,
-          806842,
-          806842,
-          806842,
-          806842
-        ],
-        "perceptual_check": "skipped"
-      },
-      "timestamp": "2026-08-15T12:31:24.104023+00:00"
-    },
-    "subtitle_style": {
-      "passed": true,
-      "reason": "Subtitle style valid",
-      "details": {
-        "margin_v": 480,
-        "font_size": 85
-      },
-      "timestamp": "2026-08-15T12:31:25.685743+00:00"
-    },
-    "assembly_config": {
-      "passed": true,
-      "reason": "Assembly config valid",
-      "details": {
-        "lufs": -14.0,
-        "zoom": 0.0005,
-        "fps": 30,
-        "logo_width": 150
-      },
-      "timestamp": "2026-08-15T12:31:26.766710+00:00"
-    },
-    "assembly": {
+    "synthesis": {
       "passed": false,
-      "reason": "Crashed: [WinError 2] The system cannot find the file specified",
+      "reason": "Crashed: Secret 'PEXELS_API_KEY' not found in secret files, environment, or Secret Manager API.",
       "details": {},
-      "timestamp": "2026-08-15T12:31:26.883929+00:00"
+      "timestamp": "2026-08-23T03:24:30.733115+00:00"
     }
   },
-  "recommendation": "BLOCK",
-  "total_gates": 9,
-  "passed_gates": 8,
+  "recommendation": "PUBLISH_WITH_WARNINGS",
+  "total_gates": 5,
+  "passed_gates": 4,
   "failed_gates": 1
 }
