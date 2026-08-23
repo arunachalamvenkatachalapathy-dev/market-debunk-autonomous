@@ -1,15 +1,15 @@
 {
-  "timestamp": "2026-08-23T15:25:51.422899+00:00",
-  "topic": "The hidden dangers of algorithmic trading in 2024",
+  "timestamp": "2026-08-23T15:35:20.979409+00:00",
+  "topic": "The true cost of high-frequency trading in modern markets",
   "gates": {
     "topic": {
       "passed": true,
       "reason": "Topic is fresh and valid",
       "details": {
-        "word_count": 8,
+        "word_count": 9,
         "status": "fresh"
       },
-      "timestamp": "2026-08-23T15:25:51.626787+00:00"
+      "timestamp": "2026-08-23T15:35:21.021431+00:00"
     },
     "script": {
       "passed": true,
@@ -17,7 +17,7 @@
       "details": {
         "scene_count": 5,
         "hook_word_count": 4,
-        "thesis": "Algorithmic trading is a dangerous, automated wealth-destroying machine for retail investors.",
+        "thesis": "High-frequency trading algorithms drain retail investor profits through micro-latency exploitation.",
         "thesis_scene_coverage": "2/5",
         "categories": [
           "bold_text",
@@ -27,10 +27,10 @@
           "abstract"
         ],
         "unique_categories": 5,
-        "word_count": 82,
-        "est_runtime": 32.8
+        "word_count": 75,
+        "est_runtime": 30.0
       },
-      "timestamp": "2026-08-23T15:26:00.584037+00:00"
+      "timestamp": "2026-08-23T15:35:29.980137+00:00"
     },
     "voice_engineering": {
       "passed": true,
@@ -38,7 +38,7 @@
       "details": {
         "scene_count": 5
       },
-      "timestamp": "2026-08-23T15:26:04.259203+00:00"
+      "timestamp": "2026-08-23T15:35:32.361648+00:00"
     },
     "visual_engineering": {
       "passed": true,
@@ -48,21 +48,70 @@
           "industrial",
           "pov",
           "macro",
-          "crowds",
-          "industrial"
+          "archival",
+          "crowds"
         ]
       },
-      "timestamp": "2026-08-23T15:26:07.896320+00:00"
+      "timestamp": "2026-08-23T15:35:35.389175+00:00"
     },
-    "synthesis": {
+    "voice": {
+      "passed": true,
+      "reason": "Voice output valid — total 35.0s",
+      "details": {
+        "scene_durations": [
+          7.0,
+          7.0,
+          7.0,
+          7.0,
+          7.0
+        ],
+        "total_duration": 35.0
+      },
+      "timestamp": "2026-08-23T15:39:41.395021+00:00"
+    },
+    "visuals": {
+      "passed": true,
+      "reason": "All visual assets valid and unique",
+      "details": {
+        "file_sizes": [
+          806842,
+          806842,
+          806842,
+          806842,
+          806842
+        ],
+        "perceptual_check": "skipped"
+      },
+      "timestamp": "2026-08-23T15:39:41.462656+00:00"
+    },
+    "subtitle_style": {
       "passed": false,
-      "reason": "Crashed: Secret 'PEXELS_API_KEY' not found in secret files, environment, or Secret Manager API.",
+      "reason": "MarginV 960 outside split-screen safe zone (1000-1200)",
+      "details": {
+        "margin_v": 960
+      },
+      "timestamp": "2026-08-23T15:39:44.170020+00:00"
+    },
+    "assembly_config": {
+      "passed": true,
+      "reason": "Assembly config valid",
+      "details": {
+        "lufs": -14.0,
+        "zoom": 0.0005,
+        "fps": 30,
+        "logo_width": 150
+      },
+      "timestamp": "2026-08-23T15:39:45.503937+00:00"
+    },
+    "assembly": {
+      "passed": false,
+      "reason": "Crashed: name 'video_clips' is not defined",
       "details": {},
-      "timestamp": "2026-08-23T15:28:36.821053+00:00"
+      "timestamp": "2026-08-23T15:39:45.579709+00:00"
     }
   },
-  "recommendation": "PUBLISH_WITH_WARNINGS",
-  "total_gates": 5,
-  "passed_gates": 4,
-  "failed_gates": 1
+  "recommendation": "BLOCK",
+  "total_gates": 9,
+  "passed_gates": 7,
+  "failed_gates": 2
 }

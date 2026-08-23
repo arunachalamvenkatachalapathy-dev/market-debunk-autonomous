@@ -255,6 +255,19 @@ def assemble_final_video(processed_scenes, subtitle_style=None, assembly_config=
         audio_codec = assembly_config.get("audio_codec", "aac")
         logger.info(f"🎬 Using PE assembly config: loudness={loudness_i}LUFS, logo={logo_scale}px, fps={assembly_config.get('output_fps', 25)}")
     
+    # 1. Process individual scene media clips matching audio lengths
+    video_clips = []
+    total_audio_dur = 0.0
+    for scene in processed_scenes:
+        audio_dur = get_audio_duration(scene["audio_path"])
+        scene["audio_duration"] = audio_dur
+        total_audio_dur += audio_dur
+        
+        out_v = process_single_scene_media(scene, assembly_config=assembly_config)
+        video_clips.append(out_v)
+        
+    logger.info(f"Total pipeline duration: {total_audio_dur}s")
+
     # 2. Write file lists for FFmpeg concatenation
     video_list_path = os.path.join(OUTPUT_DIR, "video_list.txt")
     audio_list_path = os.path.join(OUTPUT_DIR, "audio_list.txt")
