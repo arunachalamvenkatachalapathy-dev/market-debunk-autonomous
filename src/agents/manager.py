@@ -184,48 +184,8 @@ class ManagerAgent:
             return False
 
         # ─────────────────────────────────────────
-        #  PHASE 5.5: FACECLONE API (High-Res Neural Rendering)
+        #  PHASE 5.5: REMOVED (Full-Bleed style has no host)
         # ─────────────────────────────────────────
-        logger.info("=" * 60)
-        logger.info("  PHASE 5.5: FACECLONE API (High-Res Neural Rendering)")
-        logger.info("=" * 60)
-        try:
-            # 1. Merge audio for the full script
-            audio_list_path = os.path.join(OUTPUT_DIR, "audio_list_tmp.txt")
-            with open(audio_list_path, "w") as f:
-                for s in processed_scenes:
-                    f.write(f"file '{s['audio_path']}'\n")
-            
-            combined_audio_tmp = os.path.join(OUTPUT_DIR, "combined_audio_tmp.wav")
-            import subprocess
-            subprocess.run([
-                "ffmpeg", "-y", "-f", "concat", "-safe", "0",
-                "-i", audio_list_path, "-c", "copy", combined_audio_tmp
-            ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
-            
-            # 2. Extract full script text
-            full_script = " ".join([s.get("narration_text", "") for s in script.get("scenes", [])])
-            if not full_script.strip():
-                # Fallback to SSML if narration_text is missing
-                full_script = " ".join([s.get("ssml_text", "") for s in script.get("scenes", [])])
-            
-            # 3. Call FaceClone API
-            from src.lip_sync import generate_lip_sync_video
-            output_avatar = os.path.join(os.getcwd(), "custom_avatar.mp4")
-            
-            logger.info("Triggering custom FaceClone API with 1080p Wav2Lip HD + GFPGAN settings...")
-            generate_lip_sync_video(
-                script_text=full_script,
-                audio_path=combined_audio_tmp,
-                output_path=output_avatar,
-                model="wav2lip-hd",
-                enhancer="gfpgan-v1.4",
-                resolution="1080p"
-            )
-            logger.info("✅ FaceClone API successfully generated custom_avatar.mp4")
-            
-        except Exception as e:
-            logger.error(f"❌ FaceClone API bypassed or failed: {e}. Will fallback to old assembly logic if needed.")
 
         # ─────────────────────────────────────────
         #  PHASE 6: MASCOT TIMELINE ENGINEERING (REMOVED)

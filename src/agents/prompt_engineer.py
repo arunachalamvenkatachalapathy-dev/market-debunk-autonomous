@@ -374,11 +374,14 @@ class PromptEngineerAgent:
         try:
             summary_data = self._call_gemini(
                 system_prompt=(
-                    "You are an expert financial market analyst and mythbuster. "
-                    "CRITICAL LANGUAGE MANDATE: Regardless of the source language (Tamil, Telugu, etc.), "
-                    "you MUST translate all financial insights, market analysis, and summaries into 100% FLUENT, NATIVE ENGLISH.\n"
-                    "CRITICAL: You must identify THE SINGLE most controversial, debunkable claim or misconception from this video. "
-                    "Do NOT list multiple insights. Anchor everything to ONE myth."
+                    "You are an elite YouTube Shorts scriptwriter.\n"
+                    "STYLE: Full-bleed vertical B-roll explainer, no host.\n"
+                    "CUTS: new shot every 1-2s, hard cuts only, no transitions.\n"
+                    "SCRIPT: short declarative fragments (5-10 words per beat max), one beat = one caption = one cut.\n"
+                    "ARC: hook (striking ambiguous claim) -> mechanism (institutional/legal context) -> proof (literal process footage) -> payoff (present-day stakes).\n"
+                    "Write extremely punchy, aggressive scripts meant to be spoken fast.\n"
+                    "Do NOT write long flowing sentences. Chop them into short clauses.\n"
+                    "Return JSON according to the schema."
                 ),
                 user_prompt=(
                     f"Channel Name: {channel_name}\n"
@@ -427,7 +430,7 @@ class PromptEngineerAgent:
             try:
                 hook_res = self.nvidia.generate_json(
                     prompt=f"Topic: {topic}\nBrainstorm ONE ultra-punchy 3-5 word viral hook in English for a YouTube Short (e.g. 'STOP Buying This Stock!', 'The ₹50,000 ATH Trap!').",
-                    system_prompt="You are a YouTube Shorts hook engineer. Output JSON with key 'hook'."
+                    system_prompt="You are an elite YouTube Shorts hook engineer. Output JSON with key 'hook'.\nWrite a 5-10 word hook using short declarative fragments."
                 )
                 suggested_hook = hook_res.get("hook", "")
                 if suggested_hook:
@@ -437,21 +440,16 @@ class PromptEngineerAgent:
 
         system_prompt = (
             FRAMEWORK_RULES +
-            "\nYour task: Generate a high-voltage FAST-PACED SINGLE-HOST script (5 scenes) for the given topic.\n"
-            "CHARACTERS:\n"
-            "  1. 'host': A highly energetic tech/finance creator speaking directly to the camera.\n\n"
-            "CRITICAL LANGUAGE MANDATE: The ENTIRE script narration MUST be written in 100% FLUENT, NATIVE ENGLISH.\n"
-            "\nSINGLE-THESIS STRUCTURE (EXACTLY 5 SCENES):\n"
-            "First, fill the 'thesis' field with THE core topic (max 15 words).\n"
-            "Then write exactly 5 scenes following this arc:\n"
-            "  Scene 1 — HOOK: 3-5 word ultra-punchy shock statement directly stating the thesis" + (f" (e.g. '{suggested_hook}')" if suggested_hook else "") + ".\n"
-            "  Scene 2 — INTRO: Setup the problem or the context. Keep it under 2 sentences.\n"
-            "  Scene 3 — POINT 1: The first major data point, tool feature, or insight. popup_text='[Key Stat 1]'.\n"
-            "  Scene 4 — POINT 2: The definitive reveal or second insight. popup_text='[REVEAL]'.\n"
-            "  Scene 5 — OUTRO: Final takeaway + call to action ('Follow for daily videos').\n"
+            "\nYour task: Generate a high-voltage FAST-PACED full-bleed B-roll script for the given topic.\n"
+            "STYLE: Full-bleed vertical B-roll explainer, no host.\n"
+            "CUTS: new shot every 1-2s, hard cuts only, no transitions.\n"
+            "SCRIPT: short declarative fragments (5-10 words per beat max), one beat = one caption = one cut.\n"
+            "ARC: hook (striking ambiguous claim) -> mechanism (institutional/legal context) -> proof (literal process footage) -> payoff (present-day stakes).\n"
+            "Write extremely punchy, aggressive scripts meant to be spoken fast.\n"
+            "Do NOT write long flowing sentences. Chop them into short clauses.\n"
+            "Return JSON according to the schema."
             "\nANTI-DRIFT RULES:\n"
             "- EVERY scene's narration MUST reference the same thesis from Scene 1.\n"
-            "- BANNED: introducing new topics, tangents, 'also...' transitions, or secondary arguments.\n"
             "- Total script reading time: 35-50 seconds.\n"
             "- Include a high-CTR YouTube title (with #Shorts) and description with hashtags.\n"
         )
@@ -501,18 +499,20 @@ class PromptEngineerAgent:
         system_prompt = (
             FRAMEWORK_RULES +
             "\nYour task: Generate the visual configuration for this script.\n"
-            "This video uses a SPLIT-SCREEN layout. The top half displays your generated B-Roll, and the bottom half is the host.\n\n"
-            "1. For each scene, write an `enhanced_prompt` for the top-half B-Roll.\n"
+            "This video uses a FULL-BLEED layout. The entire screen is filled with B-Roll. There is NO host.\n\n"
+            "1. For each scene, write an `enhanced_prompt` for the B-Roll.\n"
             "CRITICAL: The prompt MUST generate ABSOLUTELY REALISTIC, PHOTOREALISTIC, HIGH-DEFINITION cinematic photography or stock footage.\n"
-            "BAN: DO NOT use words like 'illustration', 'cartoon', 'minimalist', 'vector', 'flat design'. \n"
-            "MANDATORY STYLE KEYWORDS: 'photorealistic', 'cinematic lighting', 'high definition', 'real world photography', '8k resolution'.\n"
-            "Example: 'A photorealistic wide shot of a bustling Wall Street trading floor, cinematic lighting, high contrast, 8k resolution.'\n\n"
-            "2. (Optional) Provide a `popup_text` (1-3 words max, e.g., 'CRASH!', '90% LOSS') to display cleanly over the B-Roll.\n"
+            "STYLE: Full-bleed vertical B-roll explainer, no host.\n"
+            "CUTS: one cut per 1-2s. You MUST generate enough scenes to support this.\n"
+            "FOOTAGE: mix industrial/manufacturing process shots, macro/close-up texture shots, archival/institutional shots, and handheld/POV shots.\n"
+            "The footage MUST visually literalize the word or claim being spoken at that moment.\n"
+            "The variety itself is the visual hook.\n"
+            "Output JSON with exact Pexels search keywords that will find these aesthetic shots.\n"
+            "2. Provide a `popup_text` (1-3 words max) to display cleanly over the B-Roll, but keep it minimal.\n"
             "- A negative_prompt to avoid bad generations\n"
-            "- A category_tag from: vaults, crowds, paperwork, growth, digital, hands\n"
+            "- A category_tag from: industrial, macro, archival, pov, crowds\n"
             "- A composition_directive: center, left-third, right-third, top-heavy, bottom-heavy\n"
             "Rules:\n"
-            "- EVERY prompt MUST end with 'bright white and light gray studio background, cinematic lighting, 8k resolution'\n"
             "- Category tags MUST NOT repeat in adjacent scenes\n"
             "- Use at least 3 different categories across scenes\n"
             "- Each prompt must be COMPLETELY unique — no two should describe similar imagery\n"
@@ -534,9 +534,10 @@ class PromptEngineerAgent:
         system_prompt = (
             FRAMEWORK_RULES +
             "\nYour task: Define the subtitle configuration style including font, size, primary color, outline, and vertical positioning.\n"
-            "CRITICAL: We are using a SPLIT-SCREEN layout. The B-Roll is on top (0 to 840), and the host is on the bottom (840 to 1920).\n"
-            "You MUST set `margin_v` (distance from the bottom of the screen) to exactly 1050 to 1100. This places the subtitles right at the dividing line (Y=820 to 870), ensuring they never block the host's face!\n"
-            "You MUST set `font_size` to 80 or 90 to be clearly readable."
+            "CRITICAL: We are using a FULL-BLEED layout. No host.\n"
+            "You MUST set `margin_v` (distance from the bottom of the screen) to exactly 960 to place them perfectly in the middle vertically.\n"
+            "You MUST set `font_size` to 80 or 90 to be clearly readable.\n"
+            "Use minimal word-stack logic. Set primary color to white and shadow to black. No colored bars."
         )
         user_prompt = "Generate optimal subtitle styling config."
         return self._call_gemini(system_prompt, user_prompt, SubtitleStyle, temperature=0.3)
