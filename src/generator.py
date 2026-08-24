@@ -155,100 +155,77 @@ def generate_kokoro_voice(text, scene_index, arrow_state="arrow_up"):
 
 
 def generate_scene_voice(tts_client, text, scene_index, voice_config_scene=None, arrow_state="arrow_up"):
-    """Generate audio and word-level timing offsets using Kokoro-82M as primary 100% free engine,
-    with automatic fallback to edge-tts if Kokoro is unavailable or times out (>25s).
-    """
-    # ─── PRIMARY ENGINE: KOKORO-82M (25s max timeout) ───────────────────
-    try:
-        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as kokoro_exec:
-            future = kokoro_exec.submit(generate_kokoro_voice, text, scene_index, arrow_state)
-            return future.result(timeout=25.0)
-    except Exception as kokoro_err:
-        logger.warning(f"⚠️ Kokoro-82M synthesis bypassed/failed ({kokoro_err}). Falling back to edge-tts engine...")
-
-    # ─── FALLBACK ENGINE: EDGE-TTS ───────────────────────────────────────
+    """Generate audio using Fish Audio API (energetic, Indian-understandable voice)."""
+    import requests
     import subprocess
     import re
-    import time
     
     audio_path = os.path.join(OUTPUT_DIR, f"scene_{scene_index}.mp3")
-    vtt_path = os.path.join(OUTPUT_DIR, f"scene_{scene_index}.vtt")
     
     # Clean any inline SSML/XML tags from narration to prevent TTS voice glitches
-    text = re.sub(r'<[^>]+>', '', text).strip()
-    # Escape any problematic characters
-    text = text.replace('"', "'")
+    clean_text = re.sub(r'<[^>]+>', '', text).strip()
     
-    voice_name = "en-US-ChristopherNeural"
-    rate = "+5%"
-    pitch = "+0Hz"
-    
+    fish_api_key = None
     try:
-        logger.info(f"Synthesizing voice for Scene {scene_index} (Speaker: {arrow_state}) using {voice_name} at rate ({rate})...")
-        max_retries = 3
-        for attempt in range(1, max_retries + 1):
-            try:
-                subprocess.run(
-                    [
-                        "python", "-m", "edge_tts",
-                        "--voice", voice_name,
-                        "--rate", rate,
-                        "--pitch", pitch,
-                        "--text", text,
-                        "--write-media", audio_path,
-                        "--write-subtitles", vtt_path
-                    ],
-                    capture_output=True, text=True, check=True, timeout=60
-                )
-                break
-            except subprocess.CalledProcessError as e:
-                logger.warning(f"edge-tts attempt {attempt} failed: {e.stderr[:200]}")
-                if attempt == max_retries:
-                    raise RuntimeError(f"Text-to-Speech synthesis failed: {e.stderr[:500]}")
-                time.sleep(2 * attempt)
-
-        # Probe exact audio duration using ffprobe
-        audio_duration = 5.0
+        fish_api_key = get_secret("FISH_AUDIO_API_KEY")
+    except ValueError:
+        pass
+        
+    if not fish_api_key:
+        logger.warning("FISH_AUDIO_API_KEY is missing. You MUST add this secret for voice generation.")
+        # We will attempt without auth in case there is a free tier, but it will likely fail.
+        
+    url = "https://api.fish.audio/v1/tts"
+    headers = {
+        "Content-Type": "application/json"
+    }
+    if fish_api_key:
+        headers["Authorization"] = f"Bearer {fish_api_key}"
+        
+    payload = {
+        "text": clean_text,
+        "format": "mp3",
+        # Default reference_id for an energetic clear English voice
+        "reference_id": "c1f73740e53a47948a27d2c31cc91781" 
+    }
+    
+    logger.info(f"🎙️ Generating voice for Scene {scene_index} via Fish Audio API...")
+    max_retries = 3
+    for attempt in range(1, max_retries + 1):
         try:
-            probe_cmd = [
-                "ffprobe", "-v", "error", "-show_entries", "format=duration",
-                "-of", "default=noprint_wrappers=1:nokey=1", audio_path
-            ]
-            dur_res = subprocess.run(probe_cmd, capture_output=True, text=True, check=True, timeout=15)
-            audio_duration = float(dur_res.stdout.strip())
-        except Exception as pe:
-            logger.warning(f"Failed to probe audio duration for Scene {scene_index}: {pe}")
+            response = requests.post(url, headers=headers, json=payload, timeout=60)
+            if response.status_code == 200:
+                with open(audio_path, "wb") as f:
+                    f.write(response.content)
+                logger.info(f"✅ [Fish Audio] Scene {scene_index} voice saved.")
+                break
+            else:
+                logger.error(f"Fish Audio error: {response.text}")
+                if attempt == max_retries:
+                    raise RuntimeError(f"Fish Audio failed: {response.text}")
+        except Exception as e:
+            logger.warning(f"⚠️ Fish Audio attempt {attempt} failed: {e}")
+            if attempt == max_retries:
+                raise RuntimeError(f"Voice generation completely failed: {e}")
+            time.sleep(3 * attempt)
+            
+    # Probe exact audio duration using ffprobe
+    audio_duration = 5.0
+    try:
+        probe_cmd = [
+            "ffprobe", "-v", "error", "-show_entries", "format=duration",
+            "-of", "default=noprint_wrappers=1:nokey=1", audio_path
+        ]
+        dur_res = subprocess.run(probe_cmd, capture_output=True, text=True, check=True, timeout=15)
+        audio_duration = float(dur_res.stdout.strip())
+    except Exception as pe:
+        logger.warning(f"Failed to probe audio duration for Scene {scene_index}: {pe}")
         
-        # Parse word boundary timing from WebVTT subtitle file (most reliable method)
-        word_timings = []
-        words = text.split()
-        
-        if os.path.exists(vtt_path):
-            try:
-                with open(vtt_path, "r", encoding="utf-8") as vf:
-                    vtt_content = vf.read()
-                cue_pattern = re.compile(
-                    r'(\d+:\d+:\d+\.\d+)\s+-->\s+(\d+:\d+:\d+\.\d+)\s*\n(.+?)(?:\n\n|\Z)',
-                    re.DOTALL
-                )
-                for match in cue_pattern.finditer(vtt_content):
-                    start_str, end_str, cue_text = match.group(1), match.group(2), match.group(3).strip()
-                    def vtt_to_sec(ts):
-                        parts = ts.split(":")
-                        h, m, s = int(parts[0]), int(parts[1]), float(parts[2])
-                        return h * 3600 + m * 60 + s
-                    start_sec = vtt_to_sec(start_str)
-                    cue_dur = vtt_to_sec(end_str) - start_sec
-                    cue_words = cue_text.split()
-                    per_word = cue_dur / max(1, len(cue_words))
-                    for wi, w in enumerate(cue_words):
-                        clean_word = re.sub(r'<[^>]*>', '', w).strip()
-                        if clean_word:
-                            word_timings.append({
-                                "word": clean_word,
-                                "time_seconds": round(start_sec + wi * per_word, 3)
-                            })
-                logger.info(f"Parsed {len(word_timings)} word timings from VTT for Scene {scene_index}")
+    words = clean_text.split()
+    step = (audio_duration * 0.9) / max(1, len(words))
+    word_timings = [{"word": w, "time_seconds": round(0.1 + i * step, 3)} for i, w in enumerate(words)]
+    
+    return audio_path, word_timings, audio_duration                logger.info(f"Parsed {len(word_timings)} word timings from VTT for Scene {scene_index}")
             except Exception as vtt_err:
                 logger.warning(f"VTT parse failed for Scene {scene_index}: {vtt_err}")
                 word_timings = []
@@ -320,33 +297,21 @@ def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
     
     # FIX #1: Cache key includes scene_index to guarantee a unique file per scene.
     # Previously only prompt hash was used — two similar prompts shared the same file.
-    prompt_hash = hashlib.md5(search_query.encode()).hexdigest()[:8]
-    target_path = os.path.join(bg_dir, f"ai_scene_{scene_index}_{prompt_hash}.jpg")
-    
-    if os.path.exists(target_path):
-        logger.info(f"✅ [Gemini] Using cached image for Scene {scene_index + 1}: {target_path}")
-        return {"type": "image", "path": target_path}
+        logger.warning(f"⚠️ NVIDIA API failed for Scene {scene_index + 1}: {e}")
 
-    logger.info(f"🎬 [Gemini] Generating AI Image for Scene {scene_index + 1}...")
-    
+    # ── FALLBACK: GEMINI IMAGEN ──
+    logger.warning(f"⚠️ NVIDIA failed. Trying Gemini Imagen fallback for Scene {scene_index + 1}...")
     api_key = None
     try:
         api_key = get_secret("LLM_API_KEY")
     except ValueError:
-        try:
-            keys_str = get_secret("LLM_API_KEYS")
-            if keys_str:
-                api_key = keys_str.split(",")[0].strip()
-        except ValueError:
-            pass
+        pass
             
     if not api_key:
-        logger.error("LLM_API_KEY / LLM_API_KEYS missing for image generation!")
-        return {"type": "image", "path": os.path.join(os.getcwd(), "assets", "fallback.png")}
+        raise RuntimeError("LLM_API_KEY missing, image generation completely failed.")
 
     client = genai.Client(api_key=api_key)
     
-    # FIX #6: Per-scene retry — 3 attempts before giving up
     max_attempts = 3
     for attempt in range(1, max_attempts + 1):
         try:
@@ -368,51 +333,9 @@ def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
         except Exception as e:
             logger.warning(f"⚠️ Gemini Imagen attempt {attempt}/{max_attempts} failed for Scene {scene_index + 1}: {e}")
             if attempt < max_attempts:
-                time.sleep(3 * attempt)  # exponential backoff
-    
-    # ── Removed free alternative API per user request ──
-    logger.warning(f"⚠️ Imagen API exhausted for Scene {scene_index + 1}. No fallback APIs available.")
-
-    # ── Last resort: generate a unique branded placeholder per scene ──
-    # CRITICAL: DO NOT reuse fallback.png — identical file = hash distance 0 = evaluator blocks
-    logger.error(f"❌ All image generation methods exhausted for Scene {scene_index + 1}. Creating unique placeholder.")
-    try:
-        from PIL import ImageDraw, ImageFont
-        
-        # Radically different background colors to ensure perceptual hash difference
-        bg_colors = [
-            (10, 25, 60),    # Navy
-            (60, 15, 15),    # Dark Red
-            (15, 60, 15),    # Dark Green
-            (60, 60, 15),    # Dark Yellow
-            (40, 15, 60)     # Dark Purple
-        ]
-        bg_color = bg_colors[scene_index % len(bg_colors)]
-        placeholder = Image.new("RGB", (1080, 1920), color=bg_color)
-        draw = ImageDraw.Draw(placeholder)
-        
-        # Draw a huge contrasting shape in a different quadrant to guarantee hash distance > 2
-        shape_coords = [
-            [0, 0, 540, 960],          # Top Left
-            [540, 0, 1080, 960],       # Top Right
-            [0, 960, 540, 1920],       # Bottom Left
-            [540, 960, 1080, 1920],    # Bottom Right
-            [270, 480, 810, 1440]      # Center
-        ]
-        sc = shape_coords[scene_index % len(shape_coords)]
-        draw.rectangle(sc, fill=(200, 200, 200))
-        
-        # Text layer
-        draw.rectangle([80, 800, 1000, 1100], outline=(218, 165, 32), width=8, fill=(10, 10, 10))
-        draw.text((120, 880), f"Scene {scene_index + 1} Hash Buffer", fill=(218, 165, 32))
-        draw.text((120, 940), search_query[:80], fill=(255, 255, 255))
-        
-        placeholder.save(target_path)
-        logger.info(f"✅ Unique branded placeholder saved for Scene {scene_index + 1}")
-    except Exception as pe:
-        logger.error(f"Even placeholder creation failed: {pe}")
-    
-    return {"type": "image", "path": target_path}
+                time.sleep(3 * attempt)
+                
+    raise RuntimeError(f"❌ ALL image generation engines exhausted for Scene {scene_index + 1}. Aborting.")
 
 
 def process_scene_assets(tts_client, scene, index, voice_config=None, visual_config=None):
