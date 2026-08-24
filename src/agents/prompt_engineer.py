@@ -83,7 +83,7 @@ class PromptEngineerAgent:
             schema_dict = response_schema
             
         payload = {
-            "model": "google/gemini-2.0-flash-lite-preview-02-05:free",
+            "model": "google/gemma-2-9b-it:free",
             "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}

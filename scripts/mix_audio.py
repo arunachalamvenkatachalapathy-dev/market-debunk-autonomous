@@ -19,7 +19,7 @@ def mix_audio_track(voice_path, output_path):
     voice = AudioSegment.from_file(voice_path)
     
     # 1. Add Background Music
-    bgm_files = [f for f in os.listdir(BGM_DIR) if f.endswith(".mp3")]
+    bgm_files = [f for f in os.listdir(BGM_DIR) if f.endswith(".mp3") or f.endswith(".webm")]
     if not bgm_files:
         logger.warning("No BGM files found. Outputting voice only.")
         voice.export(output_path, format="mp3")
@@ -44,7 +44,7 @@ def mix_audio_track(voice_path, output_path):
     mixed_audio = voice.overlay(bgm)
     
     # 2. Add SFX every ~4 seconds
-    sfx_files = [f for f in os.listdir(SFX_DIR) if f.endswith(".mp3")]
+    sfx_files = [f for f in os.listdir(SFX_DIR) if f.endswith(".mp3") or f.endswith(".webm")]
     if sfx_files:
         logger.info("Adding premium SFX hits...")
         # 4 seconds = 4000 ms

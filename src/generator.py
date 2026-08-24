@@ -308,9 +308,20 @@ def _poll_fal_queue(endpoint, payload, headers, output_path):
     logger.info(f"📋 [Fal.ai] Job Queued! Request ID: {request_id}")
     poll_endpoint = f"{endpoint}/requests/{request_id}"
     
+    retries = 0
     while True:
         try:
-            poll_res = requests.get(poll_endpoint, headers=headers).json()
+            res = requests.get(poll_endpoint, headers=headers)
+            if res.status_code != 200:
+                logger.warning(f"Fal polling returned {res.status_code}. Retrying...")
+                retries += 1
+                if retries > 10:
+                    logger.error("Fal API polling failed after 10 retries.")
+                    return None
+                time.sleep(3)
+                continue
+                
+            poll_res = res.json()
             status = poll_res.get("status")
             if status == "COMPLETED":
                 video_url = poll_res.get("video", {}).get("url")
@@ -326,8 +337,12 @@ def _poll_fal_queue(endpoint, payload, headers, output_path):
                 return None
             time.sleep(2)
         except Exception as e:
-            logger.error(f"Fal polling error: {e}")
-            return None
+            retries += 1
+            if retries > 10:
+                logger.error(f"Fal polling error: {e}. Exiting.")
+                return None
+            logger.warning(f"Fal polling error: {e}. Retrying...")
+            time.sleep(3)
 
 def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
     """

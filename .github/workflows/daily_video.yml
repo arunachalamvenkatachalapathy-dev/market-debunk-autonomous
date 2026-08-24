@@ -13,7 +13,7 @@ concurrency:
 jobs:
   generate-and-publish:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 45
     
     # Required permissions to commit the used_topics.json back to the repo
     permissions:

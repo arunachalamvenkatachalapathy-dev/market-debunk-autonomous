@@ -50,17 +50,33 @@ def download_audio(name, query, out_dir):
         logger.info(f"Successfully downloaded {name}")
         return True
     except subprocess.CalledProcessError as e:
-        logger.error(f"Failed to download {name}: {e}. Falling back to default audio...")
-        import shutil
-        if "bgm" in name:
-            fallback = os.path.join(AUDIO_DIR, "bgm.mp3")
-        else:
-            fallback = os.path.join(AUDIO_DIR, "whoosh.mp3")
+        logger.error(f"Failed to download {name}: {e}. Trying fallback...")
         
-        if os.path.exists(fallback):
-            shutil.copy(fallback, out_path)
-            logger.info(f"Used fallback for {name}")
+        # Check if we already have this file but in webm format
+        fallback_webm = os.path.join(out_dir, f"{name}.webm")
+        if os.path.exists(fallback_webm):
+            logger.info(f"Using existing .webm fallback for {name}")
+            import shutil
+            shutil.copy(fallback_webm, out_path.replace('.mp3', '.webm'))
             return True
+            
+        # Generic fallback
+        import glob
+        existing_mp3s = glob.glob(os.path.join(out_dir, "*.mp3"))
+        existing_webms = glob.glob(os.path.join(out_dir, "*.webm"))
+        
+        if existing_mp3s:
+            import shutil
+            shutil.copy(existing_mp3s[0], out_path)
+            logger.info(f"Used generic .mp3 fallback for {name}")
+            return True
+        elif existing_webms:
+            import shutil
+            shutil.copy(existing_webms[0], out_path.replace('.mp3', '.webm'))
+            logger.info(f"Used generic .webm fallback for {name}")
+            return True
+            
+        logger.warning(f"No fallback found for {name}. Proceeding without it.")
         return False
 
 def main():
