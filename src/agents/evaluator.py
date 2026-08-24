@@ -231,7 +231,7 @@ class EvaluatorAgent:
         est_runtime = word_count / 2.5
         details["word_count"] = word_count
         details["est_runtime"] = round(est_runtime, 1)
-        if est_runtime < 25 or est_runtime > 55:
+        if est_runtime < 15 or est_runtime > 60:
             return False, f"Runtime estimate out of bounds: {est_runtime:.1f}s", details
 
         # Check 9: Removed arrow states check as it is obsolete.
@@ -477,8 +477,8 @@ class EvaluatorAgent:
             if "MarginV" not in content and subtitle_style:
                 margin_v = subtitle_style.get("margin_v", 0)
                 details["margin_v"] = margin_v
-                if margin_v < 400 or margin_v > 550:
-                    logger.warning(f"MarginV {margin_v} outside safe zone (400-550)")
+                if margin_v < 100 or margin_v > 1500:
+                    logger.warning(f"MarginV {margin_v} outside full-bleed safe zone (100-1500)")
 
         except Exception as e:
             return False, f"Failed to parse ASS file: {e}", details

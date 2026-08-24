@@ -61,8 +61,70 @@ class PromptEngineerAgent:
             logger.warning(f"Could not initialize NvidiaClient: {e}. Falling back to Gemini.")
             self.nvidia = None
 
+    def _call_openrouter(self, system_prompt, user_prompt, response_schema, temperature=0.7):
+        import os
+        api_key = os.environ.get("OPENROUTER_API_KEY")
+        if not api_key:
+            return None
+        
+        url = "https://openrouter.ai/api/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://marketdebunk.com",
+            "X-Title": "MarketDebunk-AI",
+        }
+        
+        # Convert Pydantic schema to JSON schema if needed
+        import pydantic
+        if isinstance(response_schema, type) and issubclass(response_schema, pydantic.BaseModel):
+            schema_dict = response_schema.model_json_schema()
+        else:
+            schema_dict = response_schema
+            
+        payload = {
+            "model": "google/gemini-2.0-flash-lite-preview-02-05:free",
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            "temperature": temperature,
+            "response_format": {
+                "type": "json_schema",
+                "json_schema": {
+                    "name": "response",
+                    "strict": True,
+                    "schema": schema_dict
+                }
+            }
+        }
+        
+        try:
+            res = requests.post(url, headers=headers, json=payload, timeout=45)
+            if res.status_code == 200:
+                data = res.json()
+                content = data["choices"][0]["message"]["content"]
+                return json.loads(content)
+            elif res.status_code == 429:
+                logger.warning("OpenRouter rate limit hit (429). Falling back to native Gemini...")
+                return None
+            else:
+                logger.warning(f"OpenRouter API returned {res.status_code}: {res.text}. Falling back...")
+                return None
+        except Exception as e:
+            logger.warning(f"OpenRouter exception: {e}. Falling back to native Gemini...")
+            return None
+
     def _call_gemini(self, system_prompt, user_prompt, response_schema, temperature=0.7):
-        """Unified Gemini call with structured output and API key rotation for rate limits."""
+        """Unified LLM call: Tries OpenRouter first, then falls back to direct Gemini API with rotation."""
+        
+        # 1. Try OpenRouter First (Free/Cost-Effective)
+        or_response = self._call_openrouter(system_prompt, user_prompt, response_schema, temperature)
+        if or_response is not None:
+            return or_response
+            
+        # 2. Fallback to Native Gemini
+        logger.info("🤖 Using Native Gemini API fallback...")
         last_error = None
         
         import time
@@ -441,12 +503,14 @@ class PromptEngineerAgent:
         system_prompt = (
             FRAMEWORK_RULES +
             "\nYour task: Generate a high-voltage FAST-PACED full-bleed B-roll script for the given topic.\n"
-            "STYLE: Full-bleed vertical B-roll explainer, no host.\n"
-            "CUTS: new shot every 1-2s, hard cuts only, no transitions.\n"
-            "SCRIPT: short declarative fragments (5-10 words per beat max), one beat = one caption = one cut.\n"
-            "ARC: hook (striking ambiguous claim) -> mechanism (institutional/legal context) -> proof (literal process footage) -> payoff (present-day stakes).\n"
-            "Write extremely punchy, aggressive scripts meant to be spoken fast.\n"
-            "Do NOT write long flowing sentences. Chop them into short clauses.\n"
+            "TARGET AUDIENCE: 22-35 year old ambitious investors, professionals, and hustlers.\n"
+            "CORE PURPOSE: Aggressively debunk financial myths and provide actionable, eye-opening truth.\n"
+            "STYLE: Full-bleed vertical B-roll explainer, no host. Extremely high-retention viral style.\n"
+            "THE 3-SECOND HOOK: Start with a bold, curiosity-driven question or a claim that challenges a core belief. No long intros.\n"
+            "CUTS: new shot every 1.5s, hard cuts only, no transitions. Visual layering is key.\n"
+            "SCRIPT: short declarative fragments (3-7 words per beat max), one beat = one caption = one cut. One-liner style.\n"
+            "ARC: aggressive hook -> institutional/legal context -> literal process proof -> present-day stakes.\n"
+            "Write extremely punchy scripts meant to be spoken fast. Do NOT write long flowing sentences.\n"
             "Return JSON according to the schema."
             "\nANTI-DRIFT RULES:\n"
             "- EVERY scene's narration MUST reference the same thesis from Scene 1.\n"

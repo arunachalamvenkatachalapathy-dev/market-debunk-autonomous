@@ -35,10 +35,14 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y ffmpeg espeak-ng
           
       - name: Install Python Dependencies
-        run: pip install -r requirements.txt
+        run: pip install -r requirements.txt yt-dlp pydub
+        
+      - name: Download Premium Audio & SFX
+        run: python scripts/download_premium_audio.py
         
       - name: Run Autonomous Pipeline
         env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
           LLM_API_KEYS: ${{ secrets.LLM_API_KEYS }}
           FAL_KEY: ${{ secrets.FAL_KEY }}

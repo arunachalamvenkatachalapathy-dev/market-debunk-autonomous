@@ -288,58 +288,89 @@ def generate_scene_voice(tts_client, text, scene_index, voice_config_scene=None,
         logger.error(f"edge-tts failed: {e}")
         raise RuntimeError(f"Text-to-Speech synthesis failed: {e}")
 
+def _poll_fal_queue(endpoint, payload, headers, output_path):
+    import requests
+    import time
+    
+    try:
+        response = requests.post(endpoint, json=payload, headers=headers)
+        response.raise_for_status()
+    except Exception as e:
+        logger.error(f"❌ [Fal.ai] Start job failed: {e}")
+        if hasattr(e, 'response') and e.response is not None:
+             logger.error(f"Response: {e.response.text}")
+        return None
+        
+    request_id = response.json().get("request_id")
+    if not request_id:
+        return None
+        
+    logger.info(f"📋 [Fal.ai] Job Queued! Request ID: {request_id}")
+    poll_endpoint = f"{endpoint}/requests/{request_id}"
+    
+    while True:
+        try:
+            poll_res = requests.get(poll_endpoint, headers=headers).json()
+            status = poll_res.get("status")
+            if status == "COMPLETED":
+                video_url = poll_res.get("video", {}).get("url")
+                if not video_url:
+                    return None
+                logger.info("✅ [Fal.ai] Rendering Complete! Downloading...")
+                video_bytes = requests.get(video_url).content
+                with open(output_path, "wb") as f:
+                    f.write(video_bytes)
+                return output_path
+            elif status == "FAILED":
+                logger.error(f"Fal.ai failed: {poll_res.get('error')}")
+                return None
+            time.sleep(2)
+        except Exception as e:
+            logger.error(f"Fal polling error: {e}")
+            return None
+
 def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
     """
-    Dynamically fetches a high-quality vertical stock video from Pexels API using the scene's visual prompt.
-    Falls back to pre-downloaded stock loops if API key is missing or search fails.
+    Dynamically generates a high-quality vertical AI video from Fal.ai (Kling / Luma).
+    Falls back to pre-downloaded stock loops if the API fails.
     """
     import glob
     import requests
     import urllib.request
     import hashlib
+    import time
     
     bg_dir = os.path.join(os.getcwd(), "assets", "backgrounds")
     os.makedirs(bg_dir, exist_ok=True)
     
     category = visual_config_scene.get("category_tag", "").lower() if visual_config_scene else "finance"
-    search_query = f"{category} {visual_prompt}".strip()[:50]  # Pexels prefers shorter, targeted queries
+    search_query = f"Cinematic vertical shot, highly detailed, photorealistic. {visual_prompt}"
     
-    try:
-        pexels_key = get_secret("PEXELS_API_KEY")
-    except ValueError:
-        pexels_key = None
+    fal_key = os.environ.get("FAL_KEY")
+    target_path = os.path.join(bg_dir, f"ai_scene_{hashlib.md5(search_query.encode()).hexdigest()[:8]}.mp4")
+    
+    if fal_key and not os.path.exists(target_path):
+        headers = {"Authorization": f"Key {fal_key}", "Content-Type": "application/json"}
+        logger.info(f"🎬 [Fal.ai] Generating AI Video for Scene {scene_index + 1}...")
         
-    if pexels_key:
-        logger.info(f"🔎 PEXELS API: Searching for '{search_query}'...")
-        try:
-            url = f"https://api.pexels.com/videos/search?query={category}&orientation=portrait&per_page=15"
-            headers = {"Authorization": pexels_key}
-            res = requests.get(url, headers=headers, timeout=10)
-            if res.status_code == 200:
-                videos = res.json().get("videos", [])
-                if videos:
-                    # Pick a deterministic video based on scene index to avoid repeats
-                    vid = videos[scene_index % len(videos)]
-                    video_files = vid.get("video_files", [])
-                    # Prefer HD portrait (width ~1080)
-                    hd_files = [f for f in video_files if f.get("quality") == "hd" and f.get("width", 0) >= 1080]
-                    if not hd_files:
-                        hd_files = sorted(video_files, key=lambda x: x.get("width", 0), reverse=True)
-                    
-                    if hd_files:
-                        download_url = hd_files[0].get("link")
-                        vid_id = vid.get("id")
-                        target_path = os.path.join(bg_dir, f"pexels_{vid_id}.mp4")
-                        if not os.path.exists(target_path):
-                            logger.info(f"⬇️ Downloading Pexels B-Roll: {vid_id}...")
-                            urllib.request.urlretrieve(download_url, target_path)
-                        
-                        logger.info(f"🎬 PEXELS B-ROLL [SCENE {scene_index + 1}]: {os.path.basename(target_path)}")
-                        return {"type": "video", "path": target_path}
-            else:
-                logger.warning(f"Pexels API failed ({res.status_code}): {res.text}")
-        except Exception as e:
-            logger.warning(f"Pexels search/download failed: {e}")
+        # 1. Try Kling Video
+        logger.info(f"   -> Attempting Kling AI...")
+        payload = {"prompt": search_query, "aspect_ratio": "9:16", "duration": "5"}
+        res = _poll_fal_queue("https://queue.fal.run/fal-ai/kling-video/v1/standard/text-to-video", payload, headers, target_path)
+        
+        if res:
+            return {"type": "video", "path": target_path}
+            
+        # 2. Try Luma Dream Machine Fallback
+        logger.warning(f"   -> Kling failed. Falling back to Luma Dream Machine...")
+        payload = {"prompt": search_query, "aspect_ratio": "9:16"}
+        res = _poll_fal_queue("https://queue.fal.run/fal-ai/luma-dream-machine", payload, headers, target_path)
+        
+        if res:
+            return {"type": "video", "path": target_path}
+            
+    if os.path.exists(target_path):
+        return {"type": "video", "path": target_path}
             
     # --- FALLBACK: STATIC STOCK LOOPS ---
     logger.info(f"⚠️ Falling back to local static loops for Scene {scene_index + 1}")
