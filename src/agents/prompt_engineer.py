@@ -5,6 +5,7 @@ mascot, subtitles, assembly, and publishing metadata.
 """
 import logging
 import json
+import requests
 import random
 import hashlib
 import xml.etree.ElementTree as ET
@@ -375,19 +376,6 @@ class PromptEngineerAgent:
         """Generates the full dynamic-scene structured script following viral retention rules."""
         logger.info(f"📝 PE Agent [SCRIPT]: Writing script for: '{topic[:60]}...'")
 
-        # Use NVIDIA NIM to brainstorm 3 ultra-punchy viral hooks if available
-        suggested_hook = ""
-        if self.nvidia:
-            try:
-                hook_res = self.nvidia.generate_json(
-                    prompt=f"Topic: {topic}\nBrainstorm ONE ultra-punchy 3-5 word viral hook in English for a YouTube Short (e.g. 'STOP Buying This Stock!', 'The ₹50,000 ATH Trap!').",
-                    system_prompt="You are an elite YouTube Shorts hook engineer. Output JSON with key 'hook'.\nWrite a 5-10 word hook using short declarative fragments."
-                )
-                suggested_hook = hook_res.get("hook", "")
-                if suggested_hook:
-                    logger.info(f"🔥 NVIDIA NIM Brainstormed Hook: '{suggested_hook}'")
-            except Exception as e:
-                logger.warning(f"NVIDIA hook brainstorming skipped: {e}")
 
         system_prompt = (
             FRAMEWORK_RULES +
