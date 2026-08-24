@@ -18,50 +18,42 @@ def mix_audio_track(voice_path, output_path):
     logger.info("Loading voiceover...")
     voice = AudioSegment.from_file(voice_path)
     
-    # 1. Add Background Music
+    # 1. Add Background Music (Crossfade 2 tracks)
     bgm_files = [f for f in os.listdir(BGM_DIR) if f.endswith(".mp3") or f.endswith(".webm")]
     if not bgm_files:
         logger.warning("No BGM files found. Outputting voice only.")
         voice.export(output_path, format="mp3")
         return True
         
-    chosen_bgm = random.choice(bgm_files)
-    logger.info(f"Mixing BGM: {chosen_bgm}")
-    bgm = AudioSegment.from_file(os.path.join(BGM_DIR, chosen_bgm))
+    import random
+    if len(bgm_files) >= 2:
+        chosen_bgms = random.sample(bgm_files, 2)
+    else:
+        chosen_bgms = [bgm_files[0], bgm_files[0]]
+        
+    logger.info(f"Mixing BGM Tracks: {chosen_bgms}")
+    bgm1 = AudioSegment.from_file(os.path.join(BGM_DIR, chosen_bgms[0])) - 15
+    bgm2 = AudioSegment.from_file(os.path.join(BGM_DIR, chosen_bgms[1])) - 15
     
-    # Lower BGM volume heavily so it doesn't overpower voice
-    bgm = bgm - 15  # Reduce by 15 dB
+    half_length = len(voice) // 2
     
-    # Loop BGM if voiceover is longer
-    if len(bgm) < len(voice):
-        loops = (len(voice) // len(bgm)) + 1
-        bgm = bgm * loops
+    # Loop BGM to ensure it's long enough
+    while len(bgm1) < half_length + 2000:
+        bgm1 = bgm1 + bgm1
+    while len(bgm2) < half_length + 2000:
+        bgm2 = bgm2 + bgm2
+        
+    bgm1 = bgm1[:half_length + 2000].fade_out(2000)
+    bgm2 = bgm2[:len(voice) - half_length + 2000].fade_in(2000)
     
-    # Trim BGM to exact length of voiceover
-    bgm = bgm[:len(voice)]
+    # Append with crossfade
+    final_bgm = bgm1.append(bgm2, crossfade=2000)
+    final_bgm = final_bgm[:len(voice)]
     
     # Overlay BGM onto voice
-    mixed_audio = voice.overlay(bgm)
+    mixed_audio = voice.overlay(final_bgm)
     
-    # 2. Add SFX every ~4 seconds
-    sfx_files = [f for f in os.listdir(SFX_DIR) if f.endswith(".mp3") or f.endswith(".webm")]
-    if sfx_files:
-        logger.info("Adding premium SFX hits...")
-        # 4 seconds = 4000 ms
-        interval = 4000
-        current_time = interval
-        
-        while current_time < len(mixed_audio):
-            chosen_sfx = random.choice(sfx_files)
-            sfx = AudioSegment.from_file(os.path.join(SFX_DIR, chosen_sfx))
-            # Lower SFX slightly
-            sfx = sfx - 5 
-            
-            mixed_audio = mixed_audio.overlay(sfx, position=current_time)
-            # Randomize interval between 3 and 5 seconds for natural feel
-            current_time += random.randint(3000, 5000)
-    
-    logger.info("Exporting mixed master audio...")
+    logger.info("Exporting mixed master audio (No SFX clicks as requested)...")
     mixed_audio.export(output_path, format="mp3")
     return True
 

@@ -124,8 +124,8 @@ def generate_kokoro_voice(text, scene_index, arrow_state="arrow_up"):
     clean_text = re.sub(r'<[^>]+>', '', text).strip()
     clean_text = clean_text.replace('"', "'")
 
-    # Use a single, deep, cinematic narrator voice
-    voice_name = "am_adam"
+    # Use a friendly, natural, energetic narrator voice
+    voice_name = "am_michael"
     speed = 1.05
 
     logger.info(f"🎙️ Synthesizing voice for Scene {scene_index} (Speaker: {arrow_state}, Kokoro voice: {voice_name})...")
@@ -291,158 +291,55 @@ def generate_scene_voice(tts_client, text, scene_index, voice_config_scene=None,
         
         return audio_path, word_timings, audio_duration
 
-def _poll_fal_queue(endpoint, payload, headers, output_path):
-    import requests
-    import time
-    
-    try:
-        response = requests.post(endpoint, json=payload, headers=headers)
-        response.raise_for_status()
-    except Exception as e:
-        logger.error(f"❌ [Fal.ai] Start job failed: {e}")
-        if hasattr(e, 'response') and e.response is not None:
-             logger.error(f"Response: {e.response.text}")
-        return None
-        
-    request_id = response.json().get("request_id")
-    if not request_id:
-        return None
-        
-    logger.info(f"📋 [Fal.ai] Job Queued! Request ID: {request_id}")
-    poll_endpoint = f"{endpoint}/requests/{request_id}"
-    
-    retries = 0
-    while True:
-        try:
-            res = requests.get(poll_endpoint, headers=headers)
-            if res.status_code != 200:
-                logger.warning(f"Fal polling returned {res.status_code}. Retrying...")
-                retries += 1
-                if retries > 10:
-                    logger.error("Fal API polling failed after 10 retries.")
-                    return None
-                time.sleep(3)
-                continue
-                
-            poll_res = res.json()
-            status = poll_res.get("status")
-            if status == "COMPLETED":
-                # For images, Fal.ai usually returns "images" array
-                images = poll_res.get("images", [])
-                if images and len(images) > 0:
-                    media_url = images[0].get("url")
-                else:
-                    # Fallback if the model uses 'video' or another key
-                    media_url = poll_res.get("image", {}).get("url") or poll_res.get("video", {}).get("url")
-                
-                if not media_url:
-                    return None
-                logger.info("✅ [Fal.ai] Rendering Complete! Downloading...")
-                media_bytes = requests.get(media_url).content
-                with open(output_path, "wb") as f:
-                    f.write(media_bytes)
-                return output_path
-            elif status == "FAILED":
-                logger.error(f"Fal.ai failed: {poll_res.get('error')}")
-                return None
-            time.sleep(2)
-        except Exception as e:
-            retries += 1
-            if retries > 10:
-                logger.error(f"Fal polling error: {e}. Exiting.")
-                return None
-            logger.warning(f"Fal polling error: {e}. Retrying...")
-            time.sleep(3)
-
 def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
     """
-    Dynamically generates a high-quality vertical AI video from Fal.ai (Kling / Luma).
-    Falls back to pre-downloaded stock loops if the API fails.
+    Dynamically generates a high-quality vertical AI image using Gemini Imagen 3.
     """
-    import glob
-    import requests
-    import urllib.request
     import hashlib
-    import time
+    import io
+    from PIL import Image
+    from google import genai
+    from google.genai import types
     
     bg_dir = os.path.join(os.getcwd(), "assets", "backgrounds")
     os.makedirs(bg_dir, exist_ok=True)
     
-    category = visual_config_scene.get("category_tag", "").lower() if visual_config_scene else "finance"
-    search_query = f"Cinematic vertical shot, highly detailed, photorealistic. {visual_prompt}"
-    
-    fal_key = os.environ.get("FAL_KEY")
+    # Apply standard brand identity style if not explicitly present
+    search_query = visual_prompt
+    if "Professional sleek minimalist corporate" not in search_query:
+        search_query = f"Professional sleek minimalist corporate 3D illustration, deep navy blue and vibrant gold color palette, highly recognizable editorial infographic aesthetic, no text, no letters. {visual_prompt}"
+        
     target_path = os.path.join(bg_dir, f"ai_scene_{hashlib.md5(search_query.encode()).hexdigest()[:8]}.jpg")
     
-    if fal_key and not os.path.exists(target_path):
-        headers = {"Authorization": f"Key {fal_key}", "Content-Type": "application/json"}
-        logger.info(f"🎬 [Fal.ai] Generating AI Image for Scene {scene_index + 1}...")
-        
-        # 1. Try Flux Pro
-        logger.info(f"   -> Attempting Flux Pro 1.1...")
-        payload = {"prompt": search_query, "aspect_ratio": "9:16"}
-        res = _poll_fal_queue("https://queue.fal.run/fal-ai/flux-pro/v1.1", payload, headers, target_path)
-        
-        if res:
-            return {"type": "image", "path": target_path}
+    if not os.path.exists(target_path):
+        logger.info(f"🎬 [Gemini] Generating AI Image for Scene {scene_index + 1}...")
+        api_key = get_secret("LLM_API_KEY")
+        if not api_key:
+            logger.error("LLM_API_KEY missing for image generation!")
+            return {"type": "image", "path": os.path.join(os.getcwd(), "assets", "fallback.png")}
             
-    if os.path.exists(target_path):
-        return {"type": "image", "path": target_path}
-            
-    # --- FALLBACK: STATIC STOCK LOOPS ---
-    logger.info(f"⚠️ Falling back to local static loops for Scene {scene_index + 1}")
-    
-    bg_files = sorted(glob.glob(os.path.join(bg_dir, "bg_*.mp4")))
-    if len(bg_files) < 15:
+        client = genai.Client(api_key=api_key)
         try:
-            from scripts.download_stock_loops import download_all_stock_loops
-            download_all_stock_loops()
-            bg_files = sorted(glob.glob(os.path.join(bg_dir, "bg_*.mp4")))
+            result = client.models.generate_images(
+                model='imagen-3.0-generate-002',
+                prompt=search_query,
+                config=types.GenerateImagesConfig(
+                    number_of_images=1,
+                    output_mime_type="image/jpeg",
+                    aspect_ratio="9:16"
+                )
+            )
+            for generated_image in result.generated_images:
+                image = Image.open(io.BytesIO(generated_image.image.image_bytes))
+                image.save(target_path)
+                logger.info(f"✅ [Gemini] Image generated and saved to {target_path}")
+                break # Only need 1 image
         except Exception as e:
-            logger.warning(f"Stock loop downloader warning: {e}")
-            bg_files = sorted(glob.glob(os.path.join(bg_dir, "bg_*.mp4")))
+            logger.error(f"Gemini image generation failed: {e}")
+            fallback_path = os.path.join(os.getcwd(), "assets", "fallback.png")
+            return {"type": "image", "path": fallback_path}
 
-    if bg_files:
-        CATEGORY_BG_MAP = {
-            "vaults":     [0, 1],
-            "crowds":     [2, 3],
-            "growth":     [4, 5, 6],
-            "digital":    [7, 8, 9],
-            "hands":      [10, 11],
-            "paperwork":  [12, 13, 14],
-        }
-        
-        selected_bg = None
-        if category and category in CATEGORY_BG_MAP:
-            candidate_indices = CATEGORY_BG_MAP[category]
-            pick_idx = candidate_indices[scene_index % len(candidate_indices)]
-            if pick_idx < len(bg_files):
-                selected_bg = bg_files[pick_idx]
-                logger.info(f"🎬 CATEGORY-MATCHED LOCAL B-ROLL: '{category}' → {os.path.basename(selected_bg)}")
-        
-        if not selected_bg:
-            bg_mem_file = os.path.join(os.getcwd(), "used_bg.json")
-            last_bg_idx = 0
-            if os.path.exists(bg_mem_file):
-                try:
-                    with open(bg_mem_file, "r") as f:
-                        last_bg_idx = json.load(f).get("last_index", 0)
-                except Exception:
-                    pass
-            bg_index = (last_bg_idx + scene_index) % len(bg_files)
-            try:
-                with open(bg_mem_file, "w") as f:
-                    json.dump({"last_index": bg_index + 1, "bg_file": os.path.basename(bg_files[bg_index])}, f)
-            except Exception:
-                pass
-            selected_bg = bg_files[bg_index]
-            logger.info(f"🎬 ROUND-ROBIN LOCAL B-ROLL: {os.path.basename(selected_bg)}")
-        
-        return {"type": "video", "path": selected_bg}
-    else:
-        logger.warning(f"⚠️ Falling back to default background asset for Scene {scene_index}")
-        fallback_path = os.path.join(os.getcwd(), "assets", "fallback.png")
-        return {"type": "image", "path": fallback_path}
+    return {"type": "image", "path": target_path}
 
 
 def process_scene_assets(tts_client, scene, index, voice_config=None, visual_config=None):

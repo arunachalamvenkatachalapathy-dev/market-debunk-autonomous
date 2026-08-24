@@ -166,7 +166,7 @@ class PromptEngineerAgent:
                         }
                     elif "VoiceConfig" in schema_name:
                         return {
-                            "voice_name": "am_adam",
+                            "voice_name": "am_michael",
                             "overall_energy": "medium",
                             "scenes": [
                                 {"scene_number": 1, "ssml_text": "<speak>In a small village, <break time='200ms'/> two merchants debated the secret to wealth.</speak>", "pacing_rate": "+10%", "emphasis_words": ["wealth"]},
@@ -178,7 +178,7 @@ class PromptEngineerAgent:
                         }
                     elif "VisualConfig" in schema_name:
                         return {
-                            "global_style_suffix": "cinematic lighting, photorealistic, highly detailed, 8k resolution",
+                            "global_style_suffix": "Professional sleek minimalist corporate 3D illustration, deep navy blue and vibrant gold color palette, highly recognizable editorial infographic aesthetic, no text, no letters",
                             "scenes": [
                                 {"scene_number": 1, "animation_tag": "educational", "enhanced_prompt": "Two ancient merchants arguing in a dimly lit, cinematic market.", "negative_prompt": "text, watermark", "category_tag": "character", "composition_directive": "center"},
                                 {"scene_number": 2, "animation_tag": "bearish", "enhanced_prompt": "A tired merchant carrying heavy bags of coins at midnight.", "negative_prompt": "text, watermark", "category_tag": "metaphor", "composition_directive": "left-third"},
@@ -488,7 +488,8 @@ class PromptEngineerAgent:
             "- Keep a steady, engaging storytelling pace.\n"
             "- Use <break time='400ms'/> before the key reveal or punchline.\n"
             "- Use <emphasis level='strong'> on important concept words.\n"
-            "- Voice name should be 'af_bella' or 'am_adam' (deep, cinematic voices).\n"
+            "- Voice name should be 'am_michael' (friendly, natural, energetic narrator voice).\n"
+            "- Do NOT use unnatural sound effects like random clicks or pops. Keep the audio natural and engaging.\n"
         )
 
         user_prompt = f"Here are the scenes to engineer voice for:\n{scenes_text}"
@@ -517,7 +518,7 @@ class PromptEngineerAgent:
             "- Category tags (character, metaphor, landscape, object, abstract) MUST NOT repeat in adjacent scenes\n"
             "- Use at least 3 different categories across scenes\n"
             "- Each prompt must be COMPLETELY unique — no two should describe similar imagery\n"
-            "- The global_style_suffix should be: 'cinematic lighting, photorealistic, highly detailed, 8k resolution'\n"
+            "- The global_style_suffix should be: 'Professional sleek minimalist corporate 3D illustration, deep navy blue and vibrant gold color palette, highly recognizable editorial infographic aesthetic, no text, no letters'\n"
         )
 
         user_prompt = f"Here are the scenes to generate visual prompts for:\n{scenes_text}"
