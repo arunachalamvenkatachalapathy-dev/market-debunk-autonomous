@@ -88,7 +88,7 @@ def generate_ass_file(processed_scenes, total_duration, subtitle_style=None, ass
         outline_width = 10
         shadow_depth = 0
         margin_v = LAYOUT_CONFIG["subtitle_margin_v"]
-        alignment = 5  # Middle center alignment
+        alignment = 2  # Bottom center alignment
     else:
         font_name = subtitle_style.get("font_name", "Arial Black")
         font_size = 112
@@ -98,7 +98,7 @@ def generate_ass_file(processed_scenes, total_duration, subtitle_style=None, ass
         outline_width = 10
         shadow_depth = 0
         margin_v = subtitle_style.get("margin_v", LAYOUT_CONFIG["subtitle_margin_v"])
-        alignment = 5
+        alignment = 2
         logger.info(f"📝 Using High-Retention subtitle styling: {font_name} {font_size}pt, MarginV={margin_v}")
 
     ass_header = (
@@ -145,7 +145,7 @@ def generate_ass_file(processed_scenes, total_duration, subtitle_style=None, ass
         
         # Center position at the exact safe zone defined by margin_v
         # No bouncing, no scaling, just clean static text.
-        pos_tag = r"{\an5}"
+        pos_tag = r"{\an2}"
         
         dialogue_lines.append(
             f"Dialogue: 0,{start_str},{end_str},Default,,0,0,0,,{pos_tag}{text}"

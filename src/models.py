@@ -12,34 +12,26 @@ from pydantic import BaseModel, Field
 
 class Scene(BaseModel):
     scene_number: int = Field(description="Chronological scene index starting at 1")
-    narration: str = Field(description="The voiceover text for this scene (around 15-25 words), extremely punchy and high impact")
-    popup_text: str = Field(
-        default="",
-        description="Optional punchy large text to pop up on screen (e.g. '₹50,000!', 'WARNING', '#01'). Max 15 chars."
-    )
-    popup_asset_type: str = Field(
-        default="none",
-        description="Type of visual asset to pop up: 'screenshot', 'chart', 'meme', or 'none'."
-    )
+    narration: str = Field(description="The voiceover text for this scene (around 15-25 words), compelling and storytelling style")
     visual_prompt: str = Field(
-        description="Descriptive text-to-image prompt if an asset needs to be generated. MUST rotate between visual categories."
+        description="Descriptive text-to-image prompt. Highly detailed, cinematic, photorealistic."
     )
     visual_category: str = Field(
-        description="The visual category tag for this scene. One of: ui, chart, meme, abstract, bold_text, none."
+        description="The visual category tag for this scene. One of: character, metaphor, landscape, object, abstract, architectural."
     )
 
 
 class VideoScript(BaseModel):
     thesis: str = Field(
-        description="The core topic or myth this video is about. Max 15 words."
+        description="The core topic, story, or concept this video is about. Max 15 words."
     )
     title: str = Field(description="Catchy short-form video title anchored to the thesis")
     description: str = Field(description="YouTube/Instagram description with hashtags")
     scenes: list[Scene] = Field(
         description="Exactly 5 scenes following the narrative arc: "
-        "1=HOOK (fast, punchy), 2=INTRO (setup the problem), "
-        "3=POINT 1 (key data), 4=POINT 2 (reveal), "
-        "5=OUTRO (CTA). Every scene must be highly energetic."
+        "1=HOOK (striking opening), 2=BUILDUP (story context), "
+        "3=CONFLICT (the problem), 4=REVEAL (the concept/solution), "
+        "5=OUTRO (resolution/CTA). Every scene must be highly engaging."
     )
 
 

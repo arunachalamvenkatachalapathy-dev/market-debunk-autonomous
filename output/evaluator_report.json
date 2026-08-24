@@ -1,36 +1,36 @@
 {
-  "timestamp": "2026-08-23T15:35:20.979409+00:00",
-  "topic": "The true cost of high-frequency trading in modern markets",
+  "timestamp": "2026-08-24T15:28:13.715475+00:00",
+  "topic": "MONEY PECHU analysis on இதெல்லாம் dividend Stocks! அந்த stocks-ஐ தேர்வு செய்வது எப்படி? | TATA |TCS | ITC | Natco | [Video ID: HmOq74jiuu4]\nLink: https://www.youtube.com/watch?v=HmOq74jiuu4\nSingle Thesis: MYTH: The US Treasury buyback program is the primary driver of rising gold prices. TRUTH: Gold is rallying because reckless fiscal spending is forcing the Treasury to manipulate bond markets, signaling that monetary policy is no longer independent.",
   "gates": {
     "topic": {
       "passed": true,
       "reason": "Topic is fresh and valid",
       "details": {
-        "word_count": 9,
+        "word_count": 65,
         "status": "fresh"
       },
-      "timestamp": "2026-08-23T15:35:21.021431+00:00"
+      "timestamp": "2026-08-24T15:28:26.298764+00:00"
     },
     "script": {
       "passed": true,
       "reason": "Script passes all framework rules (thesis coherent, 5-act arc)",
       "details": {
         "scene_count": 5,
-        "hook_word_count": 4,
-        "thesis": "High-frequency trading algorithms drain retail investor profits through micro-latency exploitation.",
-        "thesis_scene_coverage": "2/5",
+        "hook_word_count": 22,
+        "thesis": "Gold prices are rising due to fiscal instability, not just Treasury buyback programs.",
+        "thesis_scene_coverage": "4/5",
         "categories": [
-          "bold_text",
-          "ui",
-          "chart",
-          "meme",
-          "abstract"
+          "architectural",
+          "character",
+          "abstract",
+          "object",
+          "landscape"
         ],
         "unique_categories": 5,
-        "word_count": 75,
-        "est_runtime": 30.0
+        "word_count": 115,
+        "est_runtime": 46.0
       },
-      "timestamp": "2026-08-23T15:35:29.980137+00:00"
+      "timestamp": "2026-08-24T15:28:32.984354+00:00"
     },
     "voice_engineering": {
       "passed": true,
@@ -38,21 +38,21 @@
       "details": {
         "scene_count": 5
       },
-      "timestamp": "2026-08-23T15:35:32.361648+00:00"
+      "timestamp": "2026-08-24T15:28:35.934012+00:00"
     },
     "visual_engineering": {
       "passed": true,
       "reason": "Visual config valid",
       "details": {
         "categories": [
-          "industrial",
-          "pov",
-          "macro",
-          "archival",
-          "crowds"
+          "architectural",
+          "character",
+          "abstract",
+          "object",
+          "landscape"
         ]
       },
-      "timestamp": "2026-08-23T15:35:35.389175+00:00"
+      "timestamp": "2026-08-24T15:28:39.534504+00:00"
     },
     "voice": {
       "passed": true,
@@ -67,30 +67,31 @@
         ],
         "total_duration": 35.0
       },
-      "timestamp": "2026-08-23T15:39:41.395021+00:00"
+      "timestamp": "2026-08-24T15:33:06.420062+00:00"
     },
     "visuals": {
       "passed": true,
       "reason": "All visual assets valid and unique",
       "details": {
         "file_sizes": [
-          806842,
-          806842,
-          806842,
-          806842,
-          806842
+          571905,
+          571905,
+          571905,
+          571905,
+          571905
         ],
         "perceptual_check": "skipped"
       },
-      "timestamp": "2026-08-23T15:39:41.462656+00:00"
+      "timestamp": "2026-08-24T15:33:06.434696+00:00"
     },
     "subtitle_style": {
-      "passed": false,
-      "reason": "MarginV 960 outside split-screen safe zone (1000-1200)",
+      "passed": true,
+      "reason": "Subtitle style valid",
       "details": {
-        "margin_v": 960
+        "margin_v": 960,
+        "font_size": 90
       },
-      "timestamp": "2026-08-23T15:39:44.170020+00:00"
+      "timestamp": "2026-08-24T15:33:11.279699+00:00"
     },
     "assembly_config": {
       "passed": true,
@@ -101,17 +102,17 @@
         "fps": 30,
         "logo_width": 150
       },
-      "timestamp": "2026-08-23T15:39:45.503937+00:00"
+      "timestamp": "2026-08-24T15:33:15.498310+00:00"
     },
     "assembly": {
       "passed": false,
-      "reason": "Crashed: name 'video_clips' is not defined",
+      "reason": "Crashed: [WinError 2] The system cannot find the file specified",
       "details": {},
-      "timestamp": "2026-08-23T15:39:45.579709+00:00"
+      "timestamp": "2026-08-24T15:33:15.543907+00:00"
     }
   },
   "recommendation": "BLOCK",
   "total_gates": 9,
-  "passed_gates": 7,
-  "failed_gates": 2
+  "passed_gates": 8,
+  "failed_gates": 1
 }

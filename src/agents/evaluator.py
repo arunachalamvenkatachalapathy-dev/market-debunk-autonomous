@@ -176,13 +176,13 @@ class EvaluatorAgent:
         if len(scenes) != 5:
             return False, f"Must have exactly 5 scenes (HOOK→MYTH→EVIDENCE→REVEAL→CTA), got {len(scenes)}", details
 
-        # Check 2: Hook ≤5 words (cold open must complete in <1.8s)
+        # Check 2: Hook ≤25 words (relaxed for storytelling format)
         first_narration = scenes[0].get("narration", "")
         hook = first_narration.replace("?", ".").replace("!", ".").split(".")[0]
         hook_words = hook.split()
         details["hook_word_count"] = len(hook_words)
-        if len(hook_words) > 5:
-            return False, f"Hook too long ({len(hook_words)} words, max 5 for cold open)", details
+        if len(hook_words) > 25:
+            return False, f"Hook too long ({len(hook_words)} words, max 25 for storytelling)", details
 
         # Check 3: Thesis Coherence Gate (NEW — the #1 retention check)
         thesis = script_data.get("thesis", "")

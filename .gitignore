@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+logs.txt
+final_logs.txt
+scratch/
+output/
+.agents/
+.gemini/
+assets/kokoro_models/*.onnx
+assets/kokoro_models/*.bin
+*.mp4
+*.webm

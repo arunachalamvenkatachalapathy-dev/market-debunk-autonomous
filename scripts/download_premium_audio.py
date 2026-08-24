@@ -56,8 +56,10 @@ def download_audio(name, query, out_dir):
         fallback_webm = os.path.join(out_dir, f"{name}.webm")
         if os.path.exists(fallback_webm):
             logger.info(f"Using existing .webm fallback for {name}")
-            import shutil
-            shutil.copy(fallback_webm, out_path.replace('.mp3', '.webm'))
+            dst = out_path.replace('.mp3', '.webm')
+            if fallback_webm != dst:
+                import shutil
+                shutil.copy(fallback_webm, dst)
             return True
             
         # Generic fallback
@@ -66,13 +68,17 @@ def download_audio(name, query, out_dir):
         existing_webms = glob.glob(os.path.join(out_dir, "*.webm"))
         
         if existing_mp3s:
-            import shutil
-            shutil.copy(existing_mp3s[0], out_path)
+            dst = out_path
+            if existing_mp3s[0] != dst:
+                import shutil
+                shutil.copy(existing_mp3s[0], dst)
             logger.info(f"Used generic .mp3 fallback for {name}")
             return True
         elif existing_webms:
-            import shutil
-            shutil.copy(existing_webms[0], out_path.replace('.mp3', '.webm'))
+            dst = out_path.replace('.mp3', '.webm')
+            if existing_webms[0] != dst:
+                import shutil
+                shutil.copy(existing_webms[0], dst)
             logger.info(f"Used generic .webm fallback for {name}")
             return True
             
