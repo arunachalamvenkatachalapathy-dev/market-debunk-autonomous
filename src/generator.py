@@ -313,7 +313,17 @@ def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
     
     if not os.path.exists(target_path):
         logger.info(f"🎬 [Gemini] Generating AI Image for Scene {scene_index + 1}...")
-        api_key = get_secret("LLM_API_KEY")
+        api_key = None
+        try:
+            api_key = get_secret("LLM_API_KEY")
+        except ValueError:
+            try:
+                keys_str = get_secret("LLM_API_KEYS")
+                if keys_str:
+                    api_key = keys_str.split(",")[0].strip()
+            except ValueError:
+                pass
+                
         if not api_key:
             logger.error("LLM_API_KEY missing for image generation!")
             return {"type": "image", "path": os.path.join(os.getcwd(), "assets", "fallback.png")}
