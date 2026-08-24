@@ -296,6 +296,14 @@ def assemble_final_video(processed_scenes, subtitle_style=None, assembly_config=
         "-i", audio_list_path, "-c", "copy", combined_audio
     ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
 
+    # 4.5 Mix BGM and SFX
+    logger.info("Mixing BGM and SFX with voiceover...")
+    combined_audio_mixed = os.path.join(OUTPUT_DIR, "combined_audio_mixed.mp3")
+    mix_script = os.path.join(os.getcwd(), "scripts", "mix_audio.py")
+    subprocess.run([
+        "python", mix_script, combined_audio, combined_audio_mixed
+    ], check=True)
+
     # 5. Merge stitched video and stitched audio with playback speed synchronization
     logger.info("Merging audio and video tracks with auto duration sync...")
     video_with_audio = os.path.join(OUTPUT_DIR, "video_with_audio.mp4")
@@ -308,7 +316,7 @@ def assemble_final_video(processed_scenes, subtitle_style=None, assembly_config=
         logger.info(f"Adjusting video playback speed: v_dur={v_dur:.2f}s -> target a_dur={a_dur:.2f}s")
         speed_factor = a_dur / v_dur
         subprocess.run([
-            "ffmpeg", "-y", "-i", combined_video, "-i", combined_audio,
+            "ffmpeg", "-y", "-i", combined_video, "-i", combined_audio_mixed,
             "-filter_complex", f"[0:v]setpts={speed_factor}*PTS[v_synced]",
             "-map", "[v_synced]", "-map", "1:a:0",
             "-c:v", output_codec, "-c:a", audio_codec,
@@ -317,7 +325,7 @@ def assemble_final_video(processed_scenes, subtitle_style=None, assembly_config=
         ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
     else:
         subprocess.run([
-            "ffmpeg", "-y", "-i", combined_video, "-i", combined_audio,
+            "ffmpeg", "-y", "-i", combined_video, "-i", combined_audio_mixed,
             "-map", "0:v:0", "-map", "1:a:0", "-c:v", "copy", "-c:a", audio_codec,
             "-t", f"{a_dur:.3f}",
             video_with_audio
@@ -336,28 +344,20 @@ def assemble_final_video(processed_scenes, subtitle_style=None, assembly_config=
     inputs.extend(["-i", "logo_transparent.png"])
     input_count += 1
     
-    # Add BGM as input 2
-    bgm_input_idx = -1
-    if os.path.exists("assets/audio/bgm.mp3"):
-        inputs.extend(["-stream_loop", "-1", "-i", "assets/audio/bgm.mp3"])
-        bgm_input_idx = input_count
-        input_count += 1
-    
     filter_chains = []
     
     # Scale logo and place at top right with PE-configured size/padding
     filter_chains.append(f"[1:v]scale={logo_scale}:-1[logo];[0:v][logo]overlay=W-w-{logo_padding}:{logo_padding}[v1]")
     
     # Burn subtitles on top
-    # On Windows, FFmpeg filter strings break if there's an unescaped colon (like D:\)
-    ass_path_escaped = ass_path.replace('\\', '/').replace(':', '\\:')
+    # On Windows, FFmpeg filter strings break if there's an unescaped colon (like C:\) in absolute paths.
+    # It is much safer to use a relative path with forward slashes.
+    ass_path_rel = os.path.relpath(ass_path, os.getcwd())
+    ass_path_escaped = ass_path_rel.replace('\\', '/')
     filter_chains.append(f"[v1]subtitles='{ass_path_escaped}'[vout]")
     
-    # Audio Loudness Normalization with PE-configured parameters and BGM mix
+    # Audio Loudness Normalization with PE-configured parameters
     a_in = "0:a"
-    if bgm_input_idx != -1:
-        filter_chains.append(f"[0:a][{bgm_input_idx}:a]amix=inputs=2:duration=first:dropout_transition=2:weights=1.0 0.15[a_mixed]")
-        a_in = "a_mixed"
         
     filter_chains.append(
         f"[{a_in}]loudnorm=I={loudness_i}:LRA={loudness_lra}:TP={loudness_tp}[aout]"

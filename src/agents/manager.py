@@ -370,8 +370,8 @@ class ManagerAgent:
         if not subtitle_style:
             return False, "Subtitle style is None", {}
         margin_v = subtitle_style.get("margin_v", 0)
-        if margin_v < 1000 or margin_v > 1200:
-            return False, f"MarginV {margin_v} outside split-screen safe zone (1000-1200)", {"margin_v": margin_v}
+        if margin_v < 100 or margin_v > 1500:
+            return False, f"MarginV {margin_v} outside full-bleed safe zone (100-1500)", {"margin_v": margin_v}
         font_size = subtitle_style.get("font_size", 0)
         if font_size < 60 or font_size > 120:
             return False, f"Font size {font_size} out of range (60-120)", {"font_size": font_size}
