@@ -63,7 +63,7 @@ class PromptEngineerAgent:
             for client in self.clients:
                 try:
                     response = client.models.generate_content(
-                        model="gemini-3.1-flash-lite",
+                        model="gemini-2.0-flash",
                         contents=[system_prompt, user_prompt],
                         config=types.GenerateContentConfig(
                             response_mime_type="application/json",
@@ -489,23 +489,6 @@ class PromptEngineerAgent:
         scenes = script.get("scenes", []) if isinstance(script, dict) else [s.model_dump() if hasattr(s, "model_dump") else s for s in getattr(script, "scenes", [])]
         scenes_text = json.dumps(scenes, indent=2)
 
-        # Use NVIDIA NIM for high-CTR title formulas if available
-        nvidia_titles = []
-        if self.nvidia:
-            try:
-                res = self.nvidia.generate_json(
-                    prompt=(
-                        f"Script Summary:\n{scenes_text}\n\n"
-                        "Generate 3 VIRAL YouTube Shorts titles (max 50 chars each, include #Shorts, use 1 alert emoji like 🚨, 📉, ❌, ⚠️) "
-                        "using Curiosity-Gap & Loss-Aversion formulas. Also generate 1 controversial pinned_comment question for comments."
-                    ),
-                    system_prompt="You are a YouTube Shorts viral growth specialist. Return JSON with keys: 'titles' (list of 3 strings), 'pinned_comment' (string)."
-                )
-                nvidia_titles = res.get("titles", [])
-                logger.info(f"🔥 NVIDIA NIM Engineered Titles: {nvidia_titles}")
-            except Exception as e:
-                logger.warning(f"NVIDIA publish metadata skipped: {e}")
-
         system_prompt = (
             FRAMEWORK_RULES +
             "\nYour task: Generate optimized YouTube Shorts titles (with #Shorts), description, tags, and a pinned discussion comment."
@@ -517,13 +500,7 @@ class PromptEngineerAgent:
             "\nCRITICAL LANGUAGE MANDATE: All metadata MUST be 100% in FLUENT, HIGH-IMPACT ENGLISH. Never use Tamil words or characters."
         )
         user_prompt = f"Generate publishing metadata for this script:\n{scenes_text}"
-        data = self._call_gemini(system_prompt, user_prompt, PublishMetadata, temperature=0.3)
-        
-        # If NVIDIA generated stronger titles, blend them in
-        if nvidia_titles and isinstance(data, dict):
-            data["youtube_titles"] = [t if "#Shorts" in t else f"{t} #Shorts" for t in nvidia_titles[:3]]
-        
-        return data
+        return self._call_gemini(system_prompt, user_prompt, PublishMetadata, temperature=0.3)
 
 
     def execute(self):
