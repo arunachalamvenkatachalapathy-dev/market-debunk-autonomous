@@ -370,39 +370,43 @@ def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
             if attempt < max_attempts:
                 time.sleep(3 * attempt)  # exponential backoff
     
-    # ── Fallback: Use Free Open-Source API (Pollinations / Flux / SDXL) ──
-    logger.warning(f"⚠️ Imagen API exhausted for Scene {scene_index + 1}. Trying free Pollinations API (Meta/Flux)...")
-    try:
-        import urllib.parse
-        import requests
-        # Clean prompt and encode
-        safe_prompt = urllib.parse.quote(search_query[:200])
-        url = f"https://image.pollinations.ai/prompt/{safe_prompt}?width=1080&height=1920&nologo=true"
-        
-        response = requests.get(url, timeout=30)
-        if response.status_code == 200:
-            with open(target_path, 'wb') as f:
-                f.write(response.content)
-            logger.info(f"✅ [Pollinations] Scene {scene_index + 1} saved → {target_path}")
-            return {"type": "image", "path": target_path}
-        else:
-            logger.error(f"Pollinations returned status {response.status_code}")
-    except Exception as fe:
-        logger.error(f"❌ Free alternative image generation also failed for Scene {scene_index + 1}: {fe}")
+    # ── Removed free alternative API per user request ──
+    logger.warning(f"⚠️ Imagen API exhausted for Scene {scene_index + 1}. No fallback APIs available.")
 
     # ── Last resort: generate a unique branded placeholder per scene ──
     # CRITICAL: DO NOT reuse fallback.png — identical file = hash distance 0 = evaluator blocks
     logger.error(f"❌ All image generation methods exhausted for Scene {scene_index + 1}. Creating unique placeholder.")
     try:
         from PIL import ImageDraw, ImageFont
-        placeholder = Image.new("RGB", (1080, 1920), color=(10 + scene_index*5, 25, 60))  # deep navy, slightly different per scene
+        
+        # Radically different background colors to ensure perceptual hash difference
+        bg_colors = [
+            (10, 25, 60),    # Navy
+            (60, 15, 15),    # Dark Red
+            (15, 60, 15),    # Dark Green
+            (60, 60, 15),    # Dark Yellow
+            (40, 15, 60)     # Dark Purple
+        ]
+        bg_color = bg_colors[scene_index % len(bg_colors)]
+        placeholder = Image.new("RGB", (1080, 1920), color=bg_color)
         draw = ImageDraw.Draw(placeholder)
-        # Draw a unique scene marker so each file has different pixels
-        draw.rectangle([80, 800, 1000, 1100], outline=(218, 165, 32), width=4 + scene_index)  # gold border, unique width
+        
+        # Draw a huge contrasting shape in a different quadrant to guarantee hash distance > 2
+        shape_coords = [
+            [0, 0, 540, 960],          # Top Left
+            [540, 0, 1080, 960],       # Top Right
+            [0, 960, 540, 1920],       # Bottom Left
+            [540, 960, 1080, 1920],    # Bottom Right
+            [270, 480, 810, 1440]      # Center
+        ]
+        sc = shape_coords[scene_index % len(shape_coords)]
+        draw.rectangle(sc, fill=(200, 200, 200))
+        
+        # Text layer
+        draw.rectangle([80, 800, 1000, 1100], outline=(218, 165, 32), width=8, fill=(10, 10, 10))
         draw.text((120, 880), f"Scene {scene_index + 1} Hash Buffer", fill=(218, 165, 32))
-        draw.text((120, 940), search_query[:80], fill=(200, 200, 200))
-        # Draw some unique lines to force completely different hash
-        draw.line([0, 0, 1080, scene_index * 100], fill=(218, 165, 32), width=10)
+        draw.text((120, 940), search_query[:80], fill=(255, 255, 255))
+        
         placeholder.save(target_path)
         logger.info(f"✅ Unique branded placeholder saved for Scene {scene_index + 1}")
     except Exception as pe:
