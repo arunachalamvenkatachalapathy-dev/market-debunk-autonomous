@@ -294,9 +294,13 @@ def generate_scene_voice(tts_client, text, scene_index, voice_config_scene=None,
 def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
     """
     Dynamically generates a high-quality vertical AI image using Gemini Imagen 3.
+    Each scene gets a UNIQUE cache key based on scene_index + prompt hash to
+    prevent cross-scene image reuse (which triggers the imagehash dedup gate).
+    Retries up to 3 times on API failure.
     """
     import hashlib
     import io
+    import time
     from PIL import Image
     from google import genai
     from google.genai import types
@@ -307,28 +311,44 @@ def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
     # Apply standard brand identity style if not explicitly present
     search_query = visual_prompt
     if "Professional sleek minimalist corporate" not in search_query:
-        search_query = f"Professional sleek minimalist corporate 3D illustration, deep navy blue and vibrant gold color palette, highly recognizable editorial infographic aesthetic, no text, no letters. {visual_prompt}"
-        
-    target_path = os.path.join(bg_dir, f"ai_scene_{hashlib.md5(search_query.encode()).hexdigest()[:8]}.jpg")
+        search_query = (
+            f"Professional sleek minimalist corporate 3D illustration, "
+            f"deep navy blue and vibrant gold color palette, "
+            f"highly recognizable editorial infographic aesthetic, no text, no letters. "
+            f"{visual_prompt}"
+        )
     
-    if not os.path.exists(target_path):
-        logger.info(f"🎬 [Gemini] Generating AI Image for Scene {scene_index + 1}...")
-        api_key = None
+    # FIX #1: Cache key includes scene_index to guarantee a unique file per scene.
+    # Previously only prompt hash was used — two similar prompts shared the same file.
+    prompt_hash = hashlib.md5(search_query.encode()).hexdigest()[:8]
+    target_path = os.path.join(bg_dir, f"ai_scene_{scene_index}_{prompt_hash}.jpg")
+    
+    if os.path.exists(target_path):
+        logger.info(f"✅ [Gemini] Using cached image for Scene {scene_index + 1}: {target_path}")
+        return {"type": "image", "path": target_path}
+
+    logger.info(f"🎬 [Gemini] Generating AI Image for Scene {scene_index + 1}...")
+    
+    api_key = None
+    try:
+        api_key = get_secret("LLM_API_KEY")
+    except ValueError:
         try:
-            api_key = get_secret("LLM_API_KEY")
+            keys_str = get_secret("LLM_API_KEYS")
+            if keys_str:
+                api_key = keys_str.split(",")[0].strip()
         except ValueError:
-            try:
-                keys_str = get_secret("LLM_API_KEYS")
-                if keys_str:
-                    api_key = keys_str.split(",")[0].strip()
-            except ValueError:
-                pass
-                
-        if not api_key:
-            logger.error("LLM_API_KEY missing for image generation!")
-            return {"type": "image", "path": os.path.join(os.getcwd(), "assets", "fallback.png")}
+            pass
             
-        client = genai.Client(api_key=api_key)
+    if not api_key:
+        logger.error("LLM_API_KEY / LLM_API_KEYS missing for image generation!")
+        return {"type": "image", "path": os.path.join(os.getcwd(), "assets", "fallback.png")}
+
+    client = genai.Client(api_key=api_key)
+    
+    # FIX #6: Per-scene retry — 3 attempts before giving up
+    max_attempts = 3
+    for attempt in range(1, max_attempts + 1):
         try:
             result = client.models.generate_images(
                 model='imagen-3.0-generate-002',
@@ -342,14 +362,18 @@ def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
             for generated_image in result.generated_images:
                 image = Image.open(io.BytesIO(generated_image.image.image_bytes))
                 image.save(target_path)
-                logger.info(f"✅ [Gemini] Image generated and saved to {target_path}")
-                break # Only need 1 image
+                logger.info(f"✅ [Gemini] Image for Scene {scene_index + 1} saved → {target_path}")
+                return {"type": "image", "path": target_path}
+                
         except Exception as e:
-            logger.error(f"Gemini image generation failed: {e}")
-            fallback_path = os.path.join(os.getcwd(), "assets", "fallback.png")
-            return {"type": "image", "path": fallback_path}
-
-    return {"type": "image", "path": target_path}
+            logger.warning(f"⚠️ Gemini Imagen attempt {attempt}/{max_attempts} failed for Scene {scene_index + 1}: {e}")
+            if attempt < max_attempts:
+                time.sleep(3 * attempt)  # exponential backoff
+            else:
+                logger.error(f"❌ All {max_attempts} Gemini Imagen attempts failed for Scene {scene_index + 1}. Using fallback.")
+                return {"type": "image", "path": os.path.join(os.getcwd(), "assets", "fallback.png")}
+    
+    return {"type": "image", "path": os.path.join(os.getcwd(), "assets", "fallback.png")}
 
 
 def process_scene_assets(tts_client, scene, index, voice_config=None, visual_config=None):

@@ -5,7 +5,6 @@ mascot, subtitles, assembly, and publishing metadata.
 """
 import logging
 import json
-import requests
 import random
 import hashlib
 import xml.etree.ElementTree as ET
@@ -16,7 +15,7 @@ from src.models import (
     VideoScript, VoiceConfig, VisualConfig,
     SubtitleStyle, AssemblyConfig, PublishMetadata
 )
-from .nvidia_client import NvidiaClient
+# NvidiaClient removed — pipeline is Gemini-only per user directive
 
 logger = logging.getLogger(__name__)
 
@@ -42,72 +41,14 @@ FRAMEWORK_RULES = (
 
 
 class PromptEngineerAgent:
-    """The creative AI controlling every section of the pipeline with NVIDIA NIM & Gemini engines."""
+    """The creative AI controlling every section of the pipeline. Gemini-only."""
 
     def __init__(self, gemini_client_or_clients):
         if isinstance(gemini_client_or_clients, list):
             self.clients = gemini_client_or_clients
         else:
             self.clients = [gemini_client_or_clients]
-        try:
-            self.nvidia = NvidiaClient()
-        except Exception as e:
-            logger.warning(f"Could not initialize NvidiaClient: {e}. Falling back to Gemini.")
-            self.nvidia = None
 
-    def _call_openrouter(self, system_prompt, user_prompt, response_schema, temperature=0.7):
-        import os
-        api_key = os.environ.get("OPENROUTER_API_KEY")
-        if not api_key:
-            return None
-        
-        url = "https://openrouter.ai/api/v1/chat/completions"
-        headers = {
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-            "HTTP-Referer": "https://marketdebunk.com",
-            "X-Title": "MarketDebunk-AI",
-        }
-        
-        # Convert Pydantic schema to JSON schema if needed
-        import pydantic
-        if isinstance(response_schema, type) and issubclass(response_schema, pydantic.BaseModel):
-            schema_dict = response_schema.model_json_schema()
-        else:
-            schema_dict = response_schema
-            
-        payload = {
-            "model": "google/gemma-2-9b-it:free",
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt}
-            ],
-            "temperature": temperature,
-            "response_format": {
-                "type": "json_schema",
-                "json_schema": {
-                    "name": "response",
-                    "strict": True,
-                    "schema": schema_dict
-                }
-            }
-        }
-        
-        try:
-            res = requests.post(url, headers=headers, json=payload, timeout=45)
-            if res.status_code == 200:
-                data = res.json()
-                content = data["choices"][0]["message"]["content"]
-                return json.loads(content)
-            elif res.status_code == 429:
-                logger.warning("OpenRouter rate limit hit (429). Falling back to native Gemini...")
-                return None
-            else:
-                logger.warning(f"OpenRouter API returned {res.status_code}: {res.text}. Falling back...")
-                return None
-        except Exception as e:
-            logger.warning(f"OpenRouter exception: {e}. Falling back to native Gemini...")
-            return None
 
     def _call_gemini(self, system_prompt, user_prompt, response_schema, temperature=0.7):
         """Unified LLM call: Strictly Native Gemini API based on user preference."""
