@@ -389,7 +389,8 @@ class PromptEngineerAgent:
             "Return JSON according to the schema."
             "\nANTI-DRIFT RULES:\n"
             "- EVERY scene's narration MUST advance the story logically and contain substantial dialogue.\n"
-            "- Total script reading time: 45-60 seconds (approx 130-180 words total). Do NOT make it shorter than 130 words.\n"
+            "- CRITICAL: Each of the 5 scenes MUST contain at least 3 to 4 full sentences of narration.\n"
+            "- Total script reading time: 45-60 seconds. The combined narration MUST be strictly between 130 and 180 words. Do NOT generate less than 130 words.\n"
             "- Include a high-CTR YouTube title (with #Shorts) and description with hashtags.\n"
         )
 
