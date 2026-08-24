@@ -155,7 +155,7 @@ def generate_kokoro_voice(text, scene_index, arrow_state="arrow_up"):
 
 
 def generate_scene_voice(tts_client, text, scene_index, voice_config_scene=None, arrow_state="arrow_up"):
-    """Generate audio using Fish Audio API (energetic, Indian-understandable voice)."""
+    """Generate audio using Fish Audio API (energetic, Indian-understandable voice). Falls back to Kokoro TTS."""
     import requests
     import subprocess
     import re
@@ -171,102 +171,61 @@ def generate_scene_voice(tts_client, text, scene_index, voice_config_scene=None,
     except ValueError:
         pass
         
-    if not fish_api_key:
-        logger.warning("FISH_AUDIO_API_KEY is missing. You MUST add this secret for voice generation.")
-        # We will attempt without auth in case there is a free tier, but it will likely fail.
-        
-    url = "https://api.fish.audio/v1/tts"
-    headers = {
-        "Content-Type": "application/json"
-    }
     if fish_api_key:
-        headers["Authorization"] = f"Bearer {fish_api_key}"
+        url = "https://api.fish.audio/v1/tts"
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {fish_api_key}"
+        }
+        payload = {
+            "text": clean_text,
+            "format": "mp3",
+            # Default reference_id for an energetic clear English voice
+            "reference_id": "c1f73740e53a47948a27d2c31cc91781" 
+        }
         
-    payload = {
-        "text": clean_text,
-        "format": "mp3",
-        # Default reference_id for an energetic clear English voice
-        "reference_id": "c1f73740e53a47948a27d2c31cc91781" 
-    }
-    
-    logger.info(f"🎙️ Generating voice for Scene {scene_index} via Fish Audio API...")
-    max_retries = 3
-    for attempt in range(1, max_retries + 1):
+        logger.info(f"🎙️ Generating voice for Scene {scene_index} via Fish Audio API...")
         try:
             response = requests.post(url, headers=headers, json=payload, timeout=60)
             if response.status_code == 200:
                 with open(audio_path, "wb") as f:
                     f.write(response.content)
                 logger.info(f"✅ [Fish Audio] Scene {scene_index} voice saved.")
-                break
-            else:
-                logger.error(f"Fish Audio error: {response.text}")
-                if attempt == max_retries:
-                    raise RuntimeError(f"Fish Audio failed: {response.text}")
-        except Exception as e:
-            logger.warning(f"⚠️ Fish Audio attempt {attempt} failed: {e}")
-            if attempt == max_retries:
-                raise RuntimeError(f"Voice generation completely failed: {e}")
-            time.sleep(3 * attempt)
-            
-    # Probe exact audio duration using ffprobe
-    audio_duration = 5.0
-    try:
-        probe_cmd = [
-            "ffprobe", "-v", "error", "-show_entries", "format=duration",
-            "-of", "default=noprint_wrappers=1:nokey=1", audio_path
-        ]
-        dur_res = subprocess.run(probe_cmd, capture_output=True, text=True, check=True, timeout=15)
-        audio_duration = float(dur_res.stdout.strip())
-    except Exception as pe:
-        logger.warning(f"Failed to probe audio duration for Scene {scene_index}: {pe}")
-        
-    words = clean_text.split()
-    step = (audio_duration * 0.9) / max(1, len(words))
-    word_timings = [{"word": w, "time_seconds": round(0.1 + i * step, 3)} for i, w in enumerate(words)]
-    
-    return audio_path, word_timings, audio_duration                logger.info(f"Parsed {len(word_timings)} word timings from VTT for Scene {scene_index}")
-            except Exception as vtt_err:
-                logger.warning(f"VTT parse failed for Scene {scene_index}: {vtt_err}")
-                word_timings = []
-            finally:
+                
+                # Probe exact audio duration using ffprobe
+                audio_duration = 5.0
                 try:
-                    os.remove(vtt_path)
-                except Exception:
-                    pass
-
-        if not word_timings or len(word_timings) < len(words) * 0.4:
-            logger.info(f"Using uniform timing fallback for Scene {scene_index} ({audio_duration:.2f}s, {len(words)} words)")
-            step = (audio_duration * 0.85) / max(1, len(words))
-            word_timings = [{"word": w, "time_seconds": round(0.1 + i * step, 3)} for i, w in enumerate(words)]
-        else:
-            last_time = word_timings[-1]["time_seconds"]
-            if last_time > 0 and audio_duration > 0:
-                target_end = max(0.5, audio_duration * 0.88)
-                scale_factor = target_end / last_time
-                for wt in word_timings:
-                    wt["time_seconds"] = round(wt["time_seconds"] * scale_factor, 3)
-            
-        logger.info(f"✅ Voice track for Scene {scene_index} ({audio_duration:.2f}s) with {len(word_timings)} synced word timings.")
-        return audio_path, word_timings, audio_duration
+                    probe_cmd = [
+                        "ffprobe", "-v", "error", "-show_entries", "format=duration",
+                        "-of", "default=noprint_wrappers=1:nokey=1", audio_path
+                    ]
+                    dur_res = subprocess.run(probe_cmd, capture_output=True, text=True, check=True, timeout=15)
+                    audio_duration = float(dur_res.stdout.strip())
+                except Exception as pe:
+                    logger.warning(f"Failed to probe audio duration for Scene {scene_index}: {pe}")
+                    
+                words = clean_text.split()
+                step = (audio_duration * 0.9) / max(1, len(words))
+                word_timings = [{"word": w, "time_seconds": round(0.1 + i * step, 3)} for i, w in enumerate(words)]
+                
+                return audio_path, word_timings, audio_duration
+            else:
+                logger.warning(f"⚠️ Fish Audio failed with status {response.status_code}: {response.text}")
+        except Exception as e:
+            logger.warning(f"⚠️ Fish Audio request failed: {e}")
+    else:
+        logger.warning("⚠️ FISH_AUDIO_API_KEY is missing. Skipping Fish Audio.")
         
-    except Exception as e:
-        logger.error(f"edge-tts failed: {e}")
-        logger.warning(f"Both Kokoro and edge-tts failed (likely sandbox network block). Using fallback audio track.")
-        import shutil
-        fallback_source = os.path.join("assets", "audio", "bgm", "bgm_the_weekend.webm")
-        if not os.path.exists(fallback_source):
-            open(audio_path, 'w').close() # Create empty file if no fallback exists
-        else:
-            shutil.copy(fallback_source, audio_path)
-            
-        # Create dummy word timings so subtitle generator doesn't crash
-        words = text.split()
-        audio_duration = 5.0
-        step = (audio_duration * 0.85) / max(1, len(words))
-        word_timings = [{"word": w, "time_seconds": round(0.1 + i * step, 3)} for i, w in enumerate(words)]
-        
-        return audio_path, word_timings, audio_duration
+    # --- FALLBACK: KOKORO TTS ---
+    logger.info(f"🔄 Falling back to Kokoro TTS for Scene {scene_index}...")
+    try:
+        import concurrent.futures
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as kokoro_exec:
+            future = kokoro_exec.submit(generate_kokoro_voice, clean_text, scene_index, arrow_state)
+            return future.result(timeout=60.0)
+    except Exception as kokoro_err:
+        logger.error(f"❌ Kokoro TTS fallback also failed: {kokoro_err}")
+        raise RuntimeError(f"Voice generation completely failed. Fish Audio and Kokoro TTS both failed.")
 
 def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
     """
