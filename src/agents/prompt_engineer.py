@@ -27,7 +27,7 @@ FRAMEWORK_RULES = (
     "You are the Lead Creative AI for a high-retention, storytelling YouTube Shorts channel.\n"
     "VIRAL RETENTION RULES you must ALWAYS enforce:\n"
     "- NO citations ever. Never say 'according to', 'sources say', 'experts claim'.\n"
-    "- 35-50 second target runtime (maximum retention rate, minimal dropoff).\n"
+    "- 45-60 second target runtime (maximum retention rate, minimal dropoff). Ensure you write enough dialogue to fill this time.\n"
     "- Cold open hook MUST BE CAPTIVATING (must set up a story, mystery, or interesting premise).\n"
     "- Hook style: Parable, Curiosity Gap, or Historical Anecdote.\n"
     "- High-quality storytelling: A single narrator speaking with a deep, engaging, and cinematic voice.\n"
@@ -388,8 +388,8 @@ class PromptEngineerAgent:
             "ARC: Hook (Introduction) -> Buildup (Context) -> Conflict (The twist or problem) -> Reveal (The financial concept) -> Outro (Takeaway).\n"
             "Return JSON according to the schema."
             "\nANTI-DRIFT RULES:\n"
-            "- EVERY scene's narration MUST advance the story logically.\n"
-            "- Total script reading time: 35-50 seconds (approx 100-150 words total).\n"
+            "- EVERY scene's narration MUST advance the story logically and contain substantial dialogue.\n"
+            "- Total script reading time: 45-60 seconds (approx 130-180 words total). Do NOT make it shorter than 130 words.\n"
             "- Include a high-CTR YouTube title (with #Shorts) and description with hashtags.\n"
         )
 

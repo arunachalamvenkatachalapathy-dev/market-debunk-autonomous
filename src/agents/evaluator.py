@@ -231,7 +231,7 @@ class EvaluatorAgent:
         est_runtime = word_count / 2.5
         details["word_count"] = word_count
         details["est_runtime"] = round(est_runtime, 1)
-        if est_runtime < 15 or est_runtime > 60:
+        if est_runtime < 40 or est_runtime > 90:
             return False, f"Runtime estimate out of bounds: {est_runtime:.1f}s", details
 
         # Check 9: Removed arrow states check as it is obsolete.
@@ -303,7 +303,7 @@ class EvaluatorAgent:
         details["scene_durations"] = [round(d, 2) for d in scene_durations]
         details["total_duration"] = round(total_duration, 2)
 
-        if total_duration < 20 or total_duration > 70:
+        if total_duration < 40 or total_duration > 90:
             return False, f"Total audio duration out of range: {total_duration:.1f}s", details
 
         # Check word timings exist
