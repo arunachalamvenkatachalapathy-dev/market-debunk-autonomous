@@ -44,133 +44,162 @@ FRAMEWORK_RULES = (
 class PromptEngineerAgent:
     """The creative AI controlling every section of the pipeline. Gemini-only."""
 
-    def __init__(self, gemini_client_or_clients):
-        if isinstance(gemini_client_or_clients, list):
-            self.clients = gemini_client_or_clients
-        else:
-            self.clients = [gemini_client_or_clients]
+    def __init__(self, api_keys, openrouter_key=None, nvidia_key=None):
+        self.api_keys = api_keys if isinstance(api_keys, list) else [api_keys]
+        from google import genai
+        self.clients = [genai.Client(api_key=k) for k in self.api_keys if k]
         self.current_client_idx = 0
+        self.openrouter_key = openrouter_key
+        self.nvidia_key = nvidia_key
 
 
     def _call_gemini(self, system_prompt, user_prompt, response_schema, temperature=0.7):
-        """Unified LLM call: Strictly Native Gemini API based on user preference."""
-        logger.info("🤖 Using Native Gemini API...")
-        last_error = None
-        
+        """Unified LLM call: Tries Gemini, falls back to OpenRouter, then NVIDIA."""
         import time
         max_retries = 3
 
-        for attempt in range(max_retries):
-            for i in range(len(self.clients)):
-                
-                # [NEW STRUCTURE] True Round-Robin: We always advance to the next key 
-                # on every single call to evenly distribute the load across all accounts.
-                self.current_client_idx = (self.current_client_idx + 1) % len(self.clients)
-                client = self.clients[self.current_client_idx]
-                
-                try:
-                    response = client.models.generate_content(
-                        model="gemini-3.6-flash",
-                        contents=[system_prompt, user_prompt],
-                        config=types.GenerateContentConfig(
-                            response_mime_type="application/json",
-                            response_schema=response_schema,
-                            temperature=temperature
-                        ),
-                    )
-
-                    # [NEW STRUCTURE] Pacing Delay: Guarantee we never hit 15 RPM
-                    import time
-                    time.sleep(2.5)
-
-                    if hasattr(response, "parsed") and response.parsed:
-                        data = response.parsed
-                        if hasattr(data, "model_dump"):
-                            return data.model_dump()
-                        return data
-
-                    return json.loads(response.text)
+        if self.clients:
+            logger.info("🤖 Using Native Gemini API...")
+            for attempt in range(max_retries):
+                for i in range(len(self.clients)):
+                    self.current_client_idx = (self.current_client_idx + 1) % len(self.clients)
+                    client = self.clients[self.current_client_idx]
                     
-                except Exception as e:
-                    err_str = str(e).upper()
-                    if any(code in err_str for code in ["429", "503", "500", "RESOURCE_EXHAUSTED", "UNAVAILABLE", "TIMEOUT", "DEADLINE"]):
-                        last_error = e
-                        logger.warning(f"Prompt Engineer encountered transient error (429/503) on Key {self.current_client_idx + 1}.")
+                    try:
+                        response = client.models.generate_content(
+                            model="gemini-3.6-flash",
+                            contents=[system_prompt, user_prompt],
+                            config=types.GenerateContentConfig(
+                                response_mime_type="application/json",
+                                response_schema=response_schema,
+                                temperature=temperature
+                            ),
+                        )
+
+                        time.sleep(2.5)
+
+                        if hasattr(response, "parsed") and response.parsed:
+                            data = response.parsed
+                            if hasattr(data, "model_dump"):
+                                return data.model_dump()
+                            return data
+
+                        return json.loads(response.text)
                         
-                        if i < len(self.clients) - 1:
-                            logger.info(f"Hot-swapping to next available Key...")
-                            continue # Try next key immediately without sleeping
+                    except Exception as e:
+                        err_str = str(e).upper()
+                        if any(code in err_str for code in ["429", "503", "500", "RESOURCE_EXHAUSTED", "UNAVAILABLE", "TIMEOUT", "DEADLINE"]):
+                            logger.warning(f"Gemini error (429/503) on Key {self.current_client_idx + 1}.")
                             
-                        import re
-                        sleep_time = 15.0
-                        match = re.search(r'RETRY IN (\d+\.?\d*)S', err_str)
-                        if match:
-                            sleep_time = float(match.group(1)) + 1.0
-                            
-                        logger.warning(f"All keys exhausted. Sleeping for {sleep_time:.1f}s before retrying (Attempt {attempt+1}/{max_retries})...")
-                        time.sleep(sleep_time)
-                        break
-                    logger.error(f"Prompt Engineer Gemini call failed: {e}")
-                    
-                    # ── Sandbox Mock Fallback ──
-                    logger.warning("Applying fallback mock response due to network failure...")
-                    schema_name = response_schema.__name__ if hasattr(response_schema, "__name__") else str(response_schema)
-                    if "VideoScript" in schema_name:
-                        return {
-                            "thesis": "The secret behind passive income.",
-                            "title": "The Passive Income Secret #Shorts",
-                            "description": "Discover the truth about passive income! #finance #money #shorts",
-                            "scenes": [
-                                {"scene_number": 1, "narration": "In a small village, two merchants debated the secret to wealth.", "visual_prompt": "Two ancient merchants arguing in a dimly lit, cinematic market.", "visual_category": "character"},
-                                {"scene_number": 2, "narration": "One traded time for money, working day and night.", "visual_prompt": "A tired merchant carrying heavy bags of coins at midnight.", "visual_category": "metaphor"},
-                                {"scene_number": 3, "narration": "The other traded money for assets, building a system.", "visual_prompt": "A clever merchant watching a beautifully engineered water wheel.", "visual_category": "object"},
-                                {"scene_number": 4, "narration": "Soon, the system worked for him while he slept peacefully.", "visual_prompt": "A serene, wealthy merchant sleeping while gold coins accumulate.", "visual_category": "abstract"},
-                                {"scene_number": 5, "narration": "That is the true power of passive income. Start building yours.", "visual_prompt": "A grand cinematic shot of a wealthy empire at sunrise.", "visual_category": "landscape"}
-                            ]
-                        }
-                    elif "VoiceConfig" in schema_name:
-                        return {
-                            "voice_name": "am_michael",
-                            "overall_energy": "medium",
-                            "scenes": [
-                                {"scene_number": 1, "ssml_text": "<speak>In a small village, <break time='200ms'/> two merchants debated the secret to wealth.</speak>", "pacing_rate": "+10%", "emphasis_words": ["wealth"]},
-                                {"scene_number": 2, "ssml_text": "<speak>One traded time for money, working day and night.</speak>", "pacing_rate": "+5%", "emphasis_words": ["time", "money"]},
-                                {"scene_number": 3, "ssml_text": "<speak>The other traded money for assets, building a system.</speak>", "pacing_rate": "+0%", "emphasis_words": ["assets", "system"]},
-                                {"scene_number": 4, "ssml_text": "<speak>Soon, <break time='300ms'/> the system worked for him while he slept peacefully.</speak>", "pacing_rate": "-5%", "emphasis_words": ["worked"]},
-                                {"scene_number": 5, "ssml_text": "<speak><emphasis level='strong'>That</emphasis> is the true power of passive income. Start building yours.</speak>", "pacing_rate": "+5%", "emphasis_words": ["power", "passive"]}
-                            ]
-                        }
-                    elif "VisualConfig" in schema_name:
-                        return {
-                            "global_style_suffix": "Professional sleek minimalist corporate 3D illustration, deep navy blue and vibrant gold color palette, highly recognizable editorial infographic aesthetic, no text, no letters",
-                            "scenes": [
-                                {"scene_number": 1, "animation_tag": "educational", "enhanced_prompt": "Two ancient merchants arguing in a dimly lit, cinematic market.", "negative_prompt": "text, watermark", "category_tag": "character", "composition_directive": "center"},
-                                {"scene_number": 2, "animation_tag": "bearish", "enhanced_prompt": "A tired merchant carrying heavy bags of coins at midnight.", "negative_prompt": "text, watermark", "category_tag": "metaphor", "composition_directive": "left-third"},
-                                {"scene_number": 3, "animation_tag": "bullish", "enhanced_prompt": "A clever merchant watching a beautifully engineered water wheel.", "negative_prompt": "text, watermark", "category_tag": "object", "composition_directive": "right-third"},
-                                {"scene_number": 4, "animation_tag": "neutral", "enhanced_prompt": "A serene, wealthy merchant sleeping while gold coins accumulate.", "negative_prompt": "text, watermark", "category_tag": "abstract", "composition_directive": "center"},
-                                {"scene_number": 5, "animation_tag": "bullish", "enhanced_prompt": "A grand cinematic shot of a wealthy empire at sunrise.", "negative_prompt": "text, watermark", "category_tag": "landscape", "composition_directive": "center"}
-                            ]
-                        }
-                    elif "PublishMetadata" in schema_name:
-                        return {
-                            "youtube_titles": ["The Passive Income Secret #Shorts", "How to get rich #Shorts", "Stop trading time for money #Shorts"],
-                            "youtube_description": "Discover the truth about passive income! #finance #money #shorts",
-                            "youtube_tags": ["shorts", "finance", "money"],
-                            "telegram_caption": "Discover the truth about passive income! #finance",
-                            "instagram_description": "Discover the truth about passive income! #finance",
-                            "pinned_comment": "Are you building passive income?",
-                            "category_id": "27"
-                        }
-                    raise e
-            
-            if attempt < max_retries - 1:
-                logger.warning(f"Retrying Gemini call (Attempt {attempt + 1}/{max_retries}) after 5s delay...")
-                import time
-                time.sleep(5)
+                            if i < len(self.clients) - 1:
+                                logger.info(f"Hot-swapping to next available Gemini Key...")
+                                continue
+                                
+                            logger.warning(f"All Gemini keys exhausted.")
+                            break # Break inner loop
+                        logger.error(f"Prompt Engineer Gemini call failed: {e}")
                 
-        if last_error:
-            raise last_error
-        raise RuntimeError("Gemini call failed without explicit error.")
+                # If we broke out of the inner loop due to exhaustion, we break the outer loop to trigger fallback
+                break
+
+        # --- FALLBACK TO OPENROUTER ---
+        if self.openrouter_key:
+            logger.info("🤖 Falling back to OpenRouter (google/gemini-flash-1.5-exp)...")
+            try:
+                import openai
+                client = openai.OpenAI(base_url="https://openrouter.ai/api/v1", api_key=self.openrouter_key)
+                schema_dict = response_schema.model_json_schema() if hasattr(response_schema, "model_json_schema") else response_schema.schema()
+                response = client.chat.completions.create(
+                    model="google/gemini-flash-1.5-exp",
+                    messages=[
+                        {"role": "system", "content": system_prompt + "\n\nYou MUST return a valid JSON object matching this schema:\n" + json.dumps(schema_dict)},
+                        {"role": "user", "content": user_prompt}
+                    ],
+                    temperature=temperature,
+                    response_format={"type": "json_object"}
+                )
+                content = response.choices[0].message.content
+                return json.loads(content)
+            except Exception as e:
+                logger.error(f"OpenRouter call failed: {e}")
+
+        # --- FALLBACK TO NVIDIA NIM ---
+        if self.nvidia_key:
+            logger.info("🤖 Falling back to NVIDIA NIM (meta/llama-3.1-70b-instruct)...")
+            try:
+                import openai
+                client = openai.OpenAI(base_url="https://integrate.api.nvidia.com/v1", api_key=self.nvidia_key)
+                schema_dict = response_schema.model_json_schema() if hasattr(response_schema, "model_json_schema") else response_schema.schema()
+                response = client.chat.completions.create(
+                    model="meta/llama-3.1-70b-instruct",
+                    messages=[
+                        {"role": "system", "content": system_prompt + "\n\nYou MUST return a valid JSON object exactly matching this schema:\n" + json.dumps(schema_dict)},
+                        {"role": "user", "content": user_prompt}
+                    ],
+                    temperature=temperature,
+                    max_tokens=2048,
+                )
+                content = response.choices[0].message.content.strip()
+                if content.startswith("```json"):
+                    content = content[7:-3]
+                elif content.startswith("```"):
+                    content = content[3:-3]
+                return json.loads(content.strip())
+            except Exception as e:
+                logger.error(f"NVIDIA NIM call failed: {e}")
+                    
+        # ── Sandbox Mock Fallback ──
+        logger.warning("Applying fallback mock response due to network failure...")
+        schema_name = response_schema.__name__ if hasattr(response_schema, "__name__") else str(response_schema)
+        if "VideoScript" in schema_name:
+            return {
+                "thesis": "The secret behind passive income.",
+                "title": "The Passive Income Secret #Shorts",
+                "description": "Discover the truth about passive income! #finance #money #shorts",
+                "scenes": [
+                    {"scene_number": 1, "narration": "In a small village, two merchants debated the secret to wealth.", "visual_prompt": "Two ancient merchants arguing in a dimly lit, cinematic market.", "visual_category": "character"},
+                    {"scene_number": 2, "narration": "One traded time for money, working day and night.", "visual_prompt": "A tired merchant carrying heavy bags of coins at midnight.", "visual_category": "metaphor"},
+                    {"scene_number": 3, "narration": "The other traded money for assets, building a system.", "visual_prompt": "A clever merchant watching a beautifully engineered water wheel.", "visual_category": "object"},
+                    {"scene_number": 4, "narration": "Soon, the system worked for him while he slept peacefully.", "visual_prompt": "A serene, wealthy merchant sleeping while gold coins accumulate.", "visual_category": "abstract"},
+                    {"scene_number": 5, "narration": "That is the true power of passive income. Start building yours.", "visual_prompt": "A grand cinematic shot of a wealthy empire at sunrise.", "visual_category": "landscape"}
+                ]
+        }
+        elif "VoiceConfig" in schema_name:
+            return {
+                "voice_name": "am_michael",
+                "overall_energy": "medium",
+                "scenes": [
+                    {"scene_number": 1, "ssml_text": "<speak>In a small village, <break time='200ms'/> two merchants debated the secret to wealth.</speak>", "pacing_rate": "+10%", "emphasis_words": ["wealth"]},
+                    {"scene_number": 2, "ssml_text": "<speak>One traded time for money, working day and night.</speak>", "pacing_rate": "+5%", "emphasis_words": ["time", "money"]},
+                    {"scene_number": 3, "ssml_text": "<speak>The other traded money for assets, building a system.</speak>", "pacing_rate": "+0%", "emphasis_words": ["assets", "system"]},
+                    {"scene_number": 4, "ssml_text": "<speak>Soon, <break time='300ms'/> the system worked for him while he slept peacefully.</speak>", "pacing_rate": "-5%", "emphasis_words": ["worked"]},
+                    {"scene_number": 5, "ssml_text": "<speak><emphasis level='strong'>That</emphasis> is the true power of passive income. Start building yours.</speak>", "pacing_rate": "+5%", "emphasis_words": ["power", "passive"]}
+                ]
+            }
+        elif "VisualConfig" in schema_name:
+            return {
+                "global_style_suffix": "Professional sleek minimalist corporate 3D illustration, deep navy blue and vibrant gold color palette, highly recognizable editorial infographic aesthetic, no text, no letters",
+                "scenes": [
+                    {"scene_number": 1, "animation_tag": "educational", "enhanced_prompt": "Two ancient merchants arguing in a dimly lit, cinematic market.", "negative_prompt": "text, watermark", "category_tag": "character", "composition_directive": "center"},
+                    {"scene_number": 2, "animation_tag": "bearish", "enhanced_prompt": "A tired merchant carrying heavy bags of coins at midnight.", "negative_prompt": "text, watermark", "category_tag": "metaphor", "composition_directive": "left-third"},
+                    {"scene_number": 3, "animation_tag": "bullish", "enhanced_prompt": "A clever merchant watching a beautifully engineered water wheel.", "negative_prompt": "text, watermark", "category_tag": "object", "composition_directive": "right-third"},
+                    {"scene_number": 4, "animation_tag": "neutral", "enhanced_prompt": "A serene, wealthy merchant sleeping while gold coins accumulate.", "negative_prompt": "text, watermark", "category_tag": "abstract", "composition_directive": "center"},
+                    {"scene_number": 5, "animation_tag": "bullish", "enhanced_prompt": "A grand cinematic shot of a wealthy empire at sunrise.", "negative_prompt": "text, watermark", "category_tag": "landscape", "composition_directive": "center"}
+                ]
+            }
+        elif "PublishMetadata" in schema_name:
+            return {
+                "youtube_titles": ["The Passive Income Secret #Shorts", "How to get rich #Shorts", "Stop trading time for money #Shorts"],
+                "youtube_description": "Discover the truth about passive income! #finance #money #shorts",
+                "youtube_tags": ["shorts", "finance", "money"],
+                "telegram_caption": "Discover the truth about passive income! #finance",
+                "instagram_description": "Discover the truth about passive income! #finance",
+                "pinned_comment": "Are you building passive income?",
+                "category_id": "27"
+            }
+        
+        # If no mock matches, we must raise
+        raise RuntimeError("All LLM providers (Gemini, OpenRouter, NVIDIA) failed.")
 
     # ──────────────────────────────────────────────
     #  SECTION 1: TOPIC DISCOVERY (EXHAUSTIVE & DUPLICATE-FREE)

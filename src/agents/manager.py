@@ -39,8 +39,11 @@ class ManagerAgent:
         if not api_keys:
             logger.warning("No LLM_API_KEYS or LLM_API_KEY found.")
             
+        openrouter_key = os.environ.get("OPENROUTER_API_KEY") or get_secret("OPENROUTER_API_KEY")
+        nvidia_key = os.environ.get("NVIDIA_API_KEY") or get_secret("NVIDIA_API_KEY")
+            
         self.gemini_clients = [genai.Client(api_key=k) for k in api_keys]
-        self.prompt_engineer = PromptEngineerAgent(self.gemini_clients)
+        self.prompt_engineer = PromptEngineerAgent(api_keys, openrouter_key, nvidia_key)
         self.evaluator = EvaluatorAgent()
         self.inspector = InspectorAgent(self.gemini_clients[0] if self.gemini_clients else None)
         self.report = None
