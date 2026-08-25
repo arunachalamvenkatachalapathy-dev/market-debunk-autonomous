@@ -314,11 +314,37 @@ def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
             f"highly recognizable editorial infographic aesthetic, no text, no letters. "
             f"{visual_prompt}"
         )
-    
+    if visual_config_scene and visual_config_scene.get("negative_prompt"):
+        search_query += f" avoid: {visual_config_scene['negative_prompt']}"
+        
     prompt_hash = hashlib.md5(f"{scene_index}_{search_query}".encode('utf-8')).hexdigest()[:8]
     target_path = os.path.join(bg_dir, f"bg_{scene_index}_{prompt_hash}.jpg")
     
-    # ── PRIMARY: NVIDIA NIM ──
+    # ── PRIMARY: GEMINI (NANO BANANA) ──
+    gemini_key = os.environ.get("GEMINI_TTS_API_KEY") or get_secret("GEMINI_TTS_API_KEY")
+    if gemini_key:
+        logger.info(f"🎨 Generating image for Scene {scene_index + 1} via Gemini (gemini-3.1-flash-image)...")
+        try:
+            client = genai.Client(api_key=gemini_key)
+            result = client.models.generate_content(
+                model='gemini-3.1-flash-image',
+                contents=search_query,
+                config=types.GenerateContentConfig(
+                    response_modalities=["TEXT", "IMAGE"],
+                )
+            )
+            for generated_content in result.candidates[0].content.parts:
+                if generated_content.inline_data:
+                    image_bytes = generated_content.inline_data.data
+                    with open(target_path, "wb") as f:
+                        f.write(image_bytes)
+                    logger.info(f"✅ [Gemini] Image for Scene {scene_index + 1} saved → {target_path}")
+                    return {"type": "image", "path": target_path}
+            logger.warning(f"⚠️ Gemini API did not return an image part for Scene {scene_index + 1}")
+        except Exception as e:
+            logger.warning(f"⚠️ Gemini API failed for Scene {scene_index + 1}: {e}")
+
+    # ── SECONDARY: NVIDIA NIM ──
     try:
         nvidia_api_key = get_secret("NVIDIA_API_KEY")
     except Exception:

@@ -10,6 +10,12 @@ from pydantic import BaseModel, Field
 #  SCRIPT MODELS (existing, moved here for single source of truth)
 # ──────────────────────────────────────────────
 
+class CharacterDef(BaseModel):
+    name: str = Field(description="The name of the character (e.g. Mark, Arthur)")
+    visual_description: str = Field(
+        description="Highly detailed visual description of the character for image generation"
+    )
+
 class Scene(BaseModel):
     scene_number: int = Field(description="Chronological scene index starting at 1")
     narration: str = Field(description="The voiceover text for this scene (around 15-25 words), compelling and storytelling style")
@@ -19,6 +25,14 @@ class Scene(BaseModel):
     visual_category: str = Field(
         description="The visual category tag for this scene. One of: character, metaphor, landscape, object, abstract, architectural."
     )
+    character_focus: list[str] = Field(
+        default_factory=list,
+        description="Names of the characters from the cast that are on screen in this scene."
+    )
+    diagram_callouts: list[str] = Field(
+        default_factory=list,
+        description="Short text labels to be displayed on screen during the scene (e.g. ['MARK\\'S COST', 'ARTHUR\\'S BENEFIT']). Mostly used in the explanation scene."
+    )
 
 
 class VideoScript(BaseModel):
@@ -27,11 +41,13 @@ class VideoScript(BaseModel):
     )
     title: str = Field(description="Catchy short-form video title anchored to the thesis")
     description: str = Field(description="YouTube/Instagram description with hashtags")
+    cast: list[CharacterDef] = Field(
+        description="The ensemble cast of characters (usually 2+) for this parable."
+    )
     scenes: list[Scene] = Field(
-        description="Exactly 5 scenes following the narrative arc: "
-        "1=HOOK (striking opening), 2=BUILDUP (story context), "
-        "3=CONFLICT (the problem), 4=REVEAL (the concept/solution), "
-        "5=OUTRO (resolution/CTA). Every scene must be highly engaging."
+        description="Exactly 8 scenes following the narrative arc: "
+        "1=HOOK, 2=INVESTOR INTRO, 3=FREE-RIDER INTRO, "
+        "4=COMPLICATION, 5=TWIST, 6=HARVEST/PAYOFF, 7=CONCEPT DEFINED, 8=MODERN ANALOGY."
     )
 
 

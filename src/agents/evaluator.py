@@ -155,15 +155,14 @@ class EvaluatorAgent:
         🔴 HARD GATE — blocks pipeline on failure.
         
         Checks:
-        - Exactly 5 scenes (locked narrative arc)
-        - Hook ≤5 words (cold open)
+        - Exactly 8 scenes (locked parable arc)
+        - Hook ≤25 words (cold open)
         - Thesis field present and threaded through ≥3 scenes
         - No citation language
         - Visual prompts all distinct
         - Visual categories rotate (no adjacent repeats)
         - ≥3 unique visual categories
-        - Estimated runtime 30-55s
-        - Arrow states present and valid
+        - Estimated runtime 100-160s
         - Title and description present
         """
         logger.info("🚦 Evaluator [GATE_SCRIPT]: Validating script...")
@@ -172,9 +171,9 @@ class EvaluatorAgent:
         scenes = script_data.get("scenes", [])
         details["scene_count"] = len(scenes)
 
-        # Check 1: Must have exactly 5 scenes (locked 5-act arc)
-        if len(scenes) != 5:
-            return False, f"Must have exactly 5 scenes (HOOK→MYTH→EVIDENCE→REVEAL→CTA), got {len(scenes)}", details
+        # Check 1: Must have exactly 8 scenes (locked parable arc)
+        if len(scenes) != 8:
+            return False, f"Must have exactly 8 scenes for the parable format, got {len(scenes)}", details
 
         # Check 2: Hook ≤25 words (relaxed for storytelling format)
         first_narration = scenes[0].get("narration", "")
@@ -184,13 +183,13 @@ class EvaluatorAgent:
         if len(hook_words) > 25:
             return False, f"Hook too long ({len(hook_words)} words, max 25 for storytelling)", details
 
-        # Check 3: Thesis Coherence Gate (NEW — the #1 retention check)
+        # Check 3: Thesis Coherence Gate
         thesis = script_data.get("thesis", "")
         details["thesis"] = thesis
         if not thesis or len(thesis.split()) < 3:
             return False, "Script missing a clear thesis (need ≥3 words)", details
         
-        # Check that thesis keywords appear in at least 3 of 5 scenes
+        # Check that thesis keywords appear in at least 3 of 8 scenes
         thesis_words = set(w.lower() for w in thesis.split() if len(w) > 3)
         scene_hits = 0
         for s in scenes:
@@ -226,15 +225,13 @@ class EvaluatorAgent:
         if len(unique_cats) < 3:
             return False, f"Only {len(unique_cats)} unique categories, need ≥3", details
 
-        # Check 8: Estimated runtime (5 scenes × ~7s = 35s target)
+        # Check 8: Estimated runtime (~110-140s target)
         word_count = len(full_text.split())
         est_runtime = word_count / 2.5
         details["word_count"] = word_count
         details["est_runtime"] = round(est_runtime, 1)
-        if est_runtime < 40 or est_runtime > 90:
+        if est_runtime < 90 or est_runtime > 170:
             return False, f"Runtime estimate out of bounds: {est_runtime:.1f}s", details
-
-        # Check 9: Removed arrow states check as it is obsolete.
 
         # Check 10: Title and description
         if not script_data.get("title"):
@@ -242,7 +239,7 @@ class EvaluatorAgent:
         if not script_data.get("description"):
             return False, "Missing description", details
 
-        return True, "Script passes all framework rules (thesis coherent, 5-act arc)", details
+        return True, "Script passes all framework rules (thesis coherent, 8-act parable)", details
 
     # ──────────────────────────────────────────────
     #  GATE 3: VOICE

@@ -122,8 +122,7 @@ def generate_ass_file(processed_scenes, total_duration, subtitle_style=None, ass
         "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n"
     )
 
-    # ── Full-Bleed B-Roll Style: One Caption Per Scene ──
-    # The script is engineered so that 1 scene = 1 beat = 1 caption (5-10 words).
+    # ── Parable Style: No Narration Captions, Only Diagram Callouts ──
     dialogue_lines = []
     current_time_offset = 0.0
     
@@ -135,22 +134,18 @@ def generate_ass_file(processed_scenes, total_duration, subtitle_style=None, ass
         start_str = format_ass_time(start_time)
         end_str = format_ass_time(end_time)
         
-        # Get the narration text for this scene
-        text = scene.get("narration_text", "").strip()
-        if not text:
-            text = scene.get("ssml_text", "").strip()
+        # Only render diagram callouts. No narration subtitles.
+        callouts = scene.get("diagram_callouts", [])
+        if callouts:
+            # Join callouts with a newline (\N in ASS syntax)
+            text = "\\N".join(callouts)
+            # Center alignment (\an5) for diagram labels
+            pos_tag = r"{\an5}"
             
-        # Clean up any SSML tags if present
-        text = re.sub(r'<[^>]+>', '', text).strip()
-        
-        # Center position at the exact safe zone defined by margin_v
-        # No bouncing, no scaling, just clean static text.
-        pos_tag = r"{\an2}"
-        
-        dialogue_lines.append(
-            f"Dialogue: 0,{start_str},{end_str},Default,,0,0,0,,{pos_tag}{text}"
-        )
-        
+            dialogue_lines.append(
+                f"Dialogue: 0,{start_str},{end_str},Default,,0,0,0,,{pos_tag}{text}"
+            )
+            
         current_time_offset += dur
         
     ass_content = ass_header + "\n".join(dialogue_lines) + "\n"
