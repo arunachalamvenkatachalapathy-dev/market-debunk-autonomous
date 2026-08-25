@@ -228,8 +228,41 @@ def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
         except Exception as e:
             logger.warning(f"⚠️ NVIDIA API failed for Scene {scene_index + 1}: {e}")
 
-    # ── FALLBACK: HUGGING FACE SERVERLESS ──
-    logger.warning(f"🔄 NVIDIA failed or not configured. Trying Hugging Face Serverless fallback for Scene {scene_index + 1}...")
+    # ── SECONDARY: FAL AI ──
+    logger.warning(f"🔄 NVIDIA failed or not configured. Trying FAL AI fallback for Scene {scene_index + 1}...")
+    fal_key = None
+    try:
+        fal_key = get_secret("FAL_KEY")
+    except ValueError:
+        pass
+        
+    if fal_key:
+        try:
+            import requests
+            url = "https://fal.run/fal-ai/fast-sdxl"
+            headers = {
+                "Authorization": f"Key {fal_key}",
+                "Content-Type": "application/json"
+            }
+            payload = {
+                "prompt": search_query,
+                "image_size": "portrait_16_9"
+            }
+            response = requests.post(url, headers=headers, json=payload, timeout=60)
+            response.raise_for_status()
+            response_body = response.json()
+            if "images" in response_body and len(response_body["images"]) > 0:
+                image_url = response_body["images"][0]["url"]
+                img_data = requests.get(image_url).content
+                with open(target_path, "wb") as f:
+                    f.write(img_data)
+                logger.info(f"✅ [FAL AI] Image for Scene {scene_index + 1} saved → {target_path}")
+                return {"type": "image", "path": target_path}
+        except Exception as e:
+            logger.warning(f"⚠️ FAL AI failed for Scene {scene_index + 1}: {e}")
+
+    # ── TERTIARY: HUGGING FACE SERVERLESS ──
+    logger.warning(f"🔄 FAL AI failed or not configured. Trying Hugging Face Serverless fallback for Scene {scene_index + 1}...")
     hf_api_key = None
     try:
         hf_api_key = get_secret("HF_API_KEY")
