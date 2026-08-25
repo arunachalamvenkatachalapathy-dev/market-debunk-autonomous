@@ -106,7 +106,8 @@ def generate_gemini_voice(text, scene_index, arrow_state="arrow_up"):
     
     logger.info(f"🎙️ Synthesizing voice for Scene {scene_index} using Gemini Live Audio API...")
 
-    gemini_key = os.environ.get("GEMINI_TTS_API_KEY") or get_secret("GEMINI_TTS_API_KEY")
+    keys_str = os.environ.get("LLM_API_KEYS") or get_secret("LLM_API_KEYS") or ""
+    gemini_key = keys_str.split(",")[0] if keys_str else None
     if not gemini_key:
         raise ValueError("GEMINI_TTS_API_KEY not found in environment or secrets.")
 
@@ -321,7 +322,8 @@ def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
     target_path = os.path.join(bg_dir, f"bg_{scene_index}_{prompt_hash}.jpg")
     
     # ── PRIMARY: GEMINI (NANO BANANA) ──
-    gemini_key = os.environ.get("GEMINI_TTS_API_KEY") or get_secret("GEMINI_TTS_API_KEY")
+    keys_str = os.environ.get("LLM_API_KEYS") or get_secret("LLM_API_KEYS") or ""
+    gemini_key = keys_str.split(",")[0] if keys_str else None
     if gemini_key:
         logger.info(f"🎨 Generating image for Scene {scene_index + 1} via Gemini (gemini-3.1-flash-image)...")
         try:
