@@ -206,8 +206,63 @@ def generate_fish_audio_voice(text, scene_index, arrow_state="arrow_up"):
     return audio_path, word_timings, audio_duration
 
 
+def generate_kokoro_voice(text, scene_index):
+    """
+    Synthesize audio using Kokoro (via FAL AI) as a tertiary fallback.
+    """
+    import os
+    import subprocess
+    import requests
+    import re
+    
+    logger.info(f"🎙️ Synthesizing voice for Scene {scene_index} using KOKORO (FAL AI) Fallback...")
+    
+    fal_key = get_secret("FAL_KEY")
+    if not fal_key:
+        raise ValueError("FAL_KEY not found for Kokoro TTS.")
+        
+    audio_path = os.path.join(OUTPUT_DIR, f"scene_{scene_index}.mp3")
+    clean_text = re.sub(r'<[^>]+>', '', text).strip()
+    
+    url = "https://fal.run/fal-ai/kokoro"
+    headers = {
+        "Authorization": f"Key {fal_key}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "prompt": clean_text,
+        "voice": "am_adam" # standard male energetic voice
+    }
+    
+    response = requests.post(url, headers=headers, json=payload, timeout=60)
+    response.raise_for_status()
+    response_body = response.json()
+    
+    if "audio" in response_body and "url" in response_body["audio"]:
+        audio_url = response_body["audio"]["url"]
+        img_data = requests.get(audio_url).content
+        with open(audio_path, "wb") as f:
+            f.write(img_data)
+    else:
+        raise RuntimeError("Kokoro FAL AI response missing audio URL.")
+        
+    probe_cmd = [
+        "ffprobe", "-v", "error", "-show_entries", "format=duration",
+        "-of", "default=noprint_wrappers=1:nokey=1", audio_path
+    ]
+    dur_res = subprocess.run(probe_cmd, capture_output=True, text=True, check=True, timeout=15)
+    audio_duration = float(dur_res.stdout.strip())
+
+    words = clean_text.split()
+    step = (audio_duration * 0.85) / max(1, len(words))
+    word_timings = [{"word": w, "time_seconds": round(0.1 + i * step, 3)} for i, w in enumerate(words)]
+    
+    logger.info(f"✅ Kokoro track generated for Scene {scene_index} ({audio_duration:.2f}s)")
+    return audio_path, word_timings, audio_duration
+
+
 def generate_scene_voice(tts_client, text, scene_index, voice_config_scene=None, arrow_state="arrow_up"):
-    """Generate audio using Gemini Live API with Fish Audio fallback."""
+    """Generate audio using Gemini Live API with Fish Audio and Kokoro fallback."""
     try:
         import concurrent.futures
         with concurrent.futures.ThreadPoolExecutor(max_workers=1) as exec:
@@ -218,8 +273,12 @@ def generate_scene_voice(tts_client, text, scene_index, voice_config_scene=None,
         try:
             return generate_fish_audio_voice(text, scene_index, arrow_state)
         except Exception as e2:
-            logger.error(f"❌ Fish Audio TTS fallback also failed: {e2}")
-            raise RuntimeError(f"Voice generation completely failed. Gemini err: {err}, Fish err: {e2}")
+            logger.warning(f"⚠️ Fish Audio TTS fallback failed: {e2}. Falling back to Kokoro...")
+            try:
+                return generate_kokoro_voice(text, scene_index)
+            except Exception as e3:
+                logger.error(f"❌ Kokoro TTS fallback also failed: {e3}")
+                raise RuntimeError(f"Voice generation completely failed. Gemini err: {err}, Fish err: {e2}, Kokoro err: {e3}")
 
 def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
     """
