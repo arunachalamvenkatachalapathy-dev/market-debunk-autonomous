@@ -432,6 +432,8 @@ class PromptEngineerAgent:
             "- EVERY scene's narration MUST advance the story logically and contain substantial dialogue.\n"
             "- CRITICAL: Each of the 8 scenes MUST contain at least 2 to 4 full sentences of narration.\n"
             "- Total script reading time: 110-140 seconds. The combined narration MUST be strictly between 230 and 280 words.\n"
+            "- NEVER use citation language like 'reports show', 'according to', 'sources say', 'experts claim', 'study shows', 'research indicates', 'data suggests', or 'analysts say'.\n"
+            "- CRITICAL: No adjacent scenes can share the same `visual_category`. You MUST alternate categories.\n"
             "- Include a high-CTR YouTube title (with #Shorts) and description with hashtags.\n"
         )
 
