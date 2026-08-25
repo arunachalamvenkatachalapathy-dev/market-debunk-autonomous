@@ -111,14 +111,14 @@ class PromptEngineerAgent:
 
         # --- FALLBACK TO GROQ ---
         if self.groq_key:
-            logger.info("🤖 Falling back to Groq (llama-3.1-70b-versatile)...")
+            logger.info("🤖 Falling back to Groq (llama-3.3-70b-versatile)...")
             try:
                 import openai
                 import re
                 client = openai.OpenAI(base_url="https://api.groq.com/openai/v1", api_key=self.groq_key)
                 schema_dict = response_schema.model_json_schema() if hasattr(response_schema, "model_json_schema") else response_schema.schema()
                 response = client.chat.completions.create(
-                    model="llama-3.1-70b-versatile",
+                    model="llama-3.3-70b-versatile",
                     messages=[
                         {"role": "system", "content": system_prompt + "\n\nYou MUST return a valid JSON object matching this schema:\n" + json.dumps(schema_dict)},
                         {"role": "user", "content": user_prompt}
