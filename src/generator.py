@@ -125,6 +125,9 @@ def generate_gemini_voice(text, scene_index, arrow_state="arrow_up"):
                 async for response in session.receive():
                     if response.data:
                         pcm_data.extend(response.data)
+                    server_content = getattr(response, 'server_content', None)
+                    if server_content is not None and getattr(server_content, 'turn_complete', False):
+                        break
         except Exception as e:
             logger.error(f"Gemini Live API error: {e}")
             raise
