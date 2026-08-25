@@ -217,7 +217,7 @@ class PromptEngineerAgent:
     def fetch_fresh_topic(self):
         """Fetches the latest topic from any of the target channels in the multi-channel registry."""
         import os, random
-        from datetime import datetime, timezone
+        from datetime import datetime, timezone, timedelta
 
         TARGET_CHANNELS = [
             {"name": "MONEY PECHU", "channel_id": "UC7fQFl37yAOaPaoxQm-TqSA"}, # Monday
@@ -246,10 +246,11 @@ class PromptEngineerAgent:
 
             if yt_api_key:
                 try:
-                    logger.info(f"🔍 PE Agent [TOPIC]: Attempting YouTube Data API search for '{ch_name}'...")
+                    logger.info(f"🔍 PE Agent [TOPIC]: Attempting YouTube Data API search for '{ch_name}' (last 3 days)...")
+                    three_days_ago = (datetime.now(timezone.utc) - timedelta(days=3)).strftime('%Y-%m-%dT%H:%M:%SZ')
                     api_url = (
                         f"https://www.googleapis.com/youtube/v3/search?"
-                        f"key={yt_api_key}&channelId={channel_id}&part=snippet&order=date&maxResults=15&type=video"
+                        f"key={yt_api_key}&channelId={channel_id}&part=snippet&order=date&maxResults=15&type=video&publishedAfter={three_days_ago}"
                     )
                     res = requests.get(api_url, timeout=10)
                     if res.status_code == 200:
@@ -282,6 +283,12 @@ class PromptEngineerAgent:
                     entries = root.findall("default:entry", ns)
                     
                     for entry in entries[:15]:
+                        published_str = entry.findtext("default:published", namespaces=ns)
+                        if published_str:
+                            pub_dt = datetime.strptime(published_str[:19], "%Y-%m-%dT%H:%M:%S").replace(tzinfo=timezone.utc)
+                            if pub_dt < datetime.now(timezone.utc) - timedelta(days=3):
+                                continue
+
                         title = entry.findtext("default:title", namespaces=ns) or ""
                         link = entry.find("default:link", namespaces=ns)
                         video_url = link.attrib['href'] if link is not None else ""
@@ -313,12 +320,8 @@ class PromptEngineerAgent:
         """Helper to build transcript summary topic for a video strictly using actual video text."""
         source_text = self._fetch_youtube_transcript(video_id) if video_id else None
         
-        if not source_text and rss_description and len(rss_description.strip()) > 50:
-            logger.info(f"🔍 PE Agent [TOPIC]: Using detailed RSS video description fallback for {video_id}")
-            source_text = rss_description
-
-        if not source_text or len(source_text.strip()) < 20:
-            logger.warning(f"🔍 PE Agent [TOPIC]: No transcript or description available for video {video_id}. Skipping (no guessing from title).")
+        if not source_text or len(source_text.strip()) < 50:
+            logger.warning(f"🔍 PE Agent [TOPIC]: No valid transcript available for video {video_id}. Skipping (no guessing from title allowed).")
             return None
 
         truncated = source_text[:15000]
