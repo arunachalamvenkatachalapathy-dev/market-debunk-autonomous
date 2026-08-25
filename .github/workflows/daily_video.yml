@@ -50,6 +50,7 @@ jobs:
         
       - name: Run Autonomous Pipeline
         env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
           GEMINI_TTS_API_KEY: ${{ secrets.GEMINI_TTS_API_KEY }}

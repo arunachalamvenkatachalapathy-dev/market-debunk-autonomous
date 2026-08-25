@@ -44,13 +44,14 @@ FRAMEWORK_RULES = (
 class PromptEngineerAgent:
     """The creative AI controlling every section of the pipeline. Gemini-only."""
 
-    def __init__(self, api_keys, openrouter_key=None, nvidia_key=None):
+    def __init__(self, api_keys, openrouter_key=None, nvidia_key=None, groq_key=None):
         self.api_keys = api_keys if isinstance(api_keys, list) else [api_keys]
         from google import genai
         self.clients = [genai.Client(api_key=k) for k in self.api_keys if k]
         self.current_client_idx = 0
         self.openrouter_key = openrouter_key
         self.nvidia_key = nvidia_key
+        self.groq_key = groq_key
 
 
     def _call_gemini(self, system_prompt, user_prompt, response_schema, temperature=0.7):
@@ -122,6 +123,27 @@ class PromptEngineerAgent:
                 return json.loads(content)
             except Exception as e:
                 logger.error(f"OpenRouter call failed: {e}")
+
+        # --- FALLBACK TO GROQ ---
+        if self.groq_key:
+            logger.info("🤖 Falling back to Groq (llama-3.1-70b-versatile)...")
+            try:
+                import openai
+                client = openai.OpenAI(base_url="https://api.groq.com/openai/v1", api_key=self.groq_key)
+                schema_dict = response_schema.model_json_schema() if hasattr(response_schema, "model_json_schema") else response_schema.schema()
+                response = client.chat.completions.create(
+                    model="llama-3.1-70b-versatile",
+                    messages=[
+                        {"role": "system", "content": system_prompt + "\n\nYou MUST return a valid JSON object matching this schema:\n" + json.dumps(schema_dict)},
+                        {"role": "user", "content": user_prompt}
+                    ],
+                    temperature=temperature,
+                    response_format={"type": "json_object"}
+                )
+                content = response.choices[0].message.content
+                return json.loads(content)
+            except Exception as e:
+                logger.error(f"Groq call failed: {e}")
 
         # --- FALLBACK TO NVIDIA NIM ---
         if self.nvidia_key:
