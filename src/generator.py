@@ -105,19 +105,9 @@ def generate_kokoro_voice(text, scene_index, arrow_state="arrow_up"):
     model_file = os.path.join(models_dir, "kokoro-v1.0.onnx")
     voices_file = os.path.join(models_dir, "voices-v1.0.bin")
 
-    if not os.path.exists(model_file):
-        logger.info("Downloading Kokoro-82M ONNX model weights...")
-        urllib.request.urlretrieve(
-            "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx",
-            model_file
-        )
-
-    if not os.path.exists(voices_file):
-        logger.info("Downloading Kokoro-82M voice embeddings...")
-        urllib.request.urlretrieve(
-            "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin",
-            voices_file
-        )
+    if not os.path.exists(model_file) or not os.path.exists(voices_file):
+        logger.error("❌ Kokoro ONNX model files are missing. They must be downloaded before running the generator.")
+        raise FileNotFoundError("Kokoro model files not found in assets/kokoro_models/")
 
     audio_path = os.path.join(OUTPUT_DIR, f"scene_{scene_index}.mp3")
 
@@ -222,7 +212,7 @@ def generate_scene_voice(tts_client, text, scene_index, voice_config_scene=None,
         import concurrent.futures
         with concurrent.futures.ThreadPoolExecutor(max_workers=1) as kokoro_exec:
             future = kokoro_exec.submit(generate_kokoro_voice, clean_text, scene_index, arrow_state)
-            return future.result(timeout=60.0)
+            return future.result(timeout=120.0)
     except Exception as kokoro_err:
         logger.error(f"❌ Kokoro TTS fallback also failed: {kokoro_err}")
         raise RuntimeError(f"Voice generation completely failed. Fish Audio and Kokoro TTS both failed.")
@@ -287,41 +277,39 @@ def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
         except Exception as e:
             logger.warning(f"⚠️ NVIDIA API failed for Scene {scene_index + 1}: {e}")
 
-    # ── FALLBACK: GEMINI IMAGEN ──
-    logger.warning(f"🔄 NVIDIA failed or not configured. Trying Gemini Imagen fallback for Scene {scene_index + 1}...")
-    api_key = None
+    # ── FALLBACK: HUGGING FACE SERVERLESS ──
+    logger.warning(f"🔄 NVIDIA failed or not configured. Trying Hugging Face Serverless fallback for Scene {scene_index + 1}...")
+    hf_api_key = None
     try:
-        api_key = get_secret("LLM_API_KEY")
+        hf_api_key = get_secret("HF_API_KEY")
     except ValueError:
         pass
             
-    if not api_key:
-        raise RuntimeError("LLM_API_KEY missing, image generation completely failed.")
+    if not hf_api_key:
+        raise RuntimeError("HF_API_KEY missing, image generation completely failed.")
 
-    client = genai.Client(api_key=api_key)
+    import requests
+    import time
+    
+    API_URL = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0"
+    headers = {"Authorization": f"Bearer {hf_api_key}"}
     
     max_attempts = 3
     for attempt in range(1, max_attempts + 1):
         try:
-            result = client.models.generate_images(
-                model='imagen-3.0-generate-001',
-                prompt=search_query,
-                config=types.GenerateImagesConfig(
-                    number_of_images=1,
-                    output_mime_type="image/jpeg",
-                    aspect_ratio="9:16"
-                )
-            )
-            for generated_image in result.generated_images:
-                image = Image.open(io.BytesIO(generated_image.image.image_bytes))
-                image.save(target_path)
-                logger.info(f"✅ [Gemini Imagen] Image for Scene {scene_index + 1} saved → {target_path}")
+            payload = {"inputs": search_query}
+            response = requests.post(API_URL, headers=headers, json=payload, timeout=60)
+            if response.status_code == 200:
+                with open(target_path, "wb") as f:
+                    f.write(response.content)
+                logger.info(f"✅ [Hugging Face] Image for Scene {scene_index + 1} saved → {target_path}")
                 return {"type": "image", "path": target_path}
-                
+            else:
+                logger.warning(f"⚠️ Hugging Face attempt {attempt}/{max_attempts} failed: {response.text}")
         except Exception as e:
-            logger.warning(f"⚠️ Gemini Imagen attempt {attempt}/{max_attempts} failed for Scene {scene_index + 1}: {e}")
-            if attempt < max_attempts:
-                time.sleep(3 * attempt)
+            logger.warning(f"⚠️ Hugging Face attempt {attempt}/{max_attempts} failed for Scene {scene_index + 1}: {e}")
+        if attempt < max_attempts:
+            time.sleep(3 * attempt)
                 
     raise RuntimeError(f"❌ ALL image generation engines exhausted for Scene {scene_index + 1}. Aborting.")
 

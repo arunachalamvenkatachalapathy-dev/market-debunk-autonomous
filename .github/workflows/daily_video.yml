@@ -40,6 +40,12 @@ jobs:
       - name: Download Premium Audio & SFX
         run: python scripts/download_premium_audio.py
         
+      - name: Pre-download Kokoro ONNX Models
+        run: |
+          mkdir -p assets/kokoro_models
+          wget -q -O assets/kokoro_models/kokoro-v1.0.onnx https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx
+          wget -q -O assets/kokoro_models/voices-v1.0.bin https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin
+
       - name: Run Autonomous Pipeline
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
