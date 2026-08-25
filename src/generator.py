@@ -321,20 +321,27 @@ def process_scene_assets(tts_client, scene, index, voice_config=None, visual_con
                 visual_config_scene = vs
                 break
     
-    audio_path, word_timings, audio_duration = generate_scene_voice(
-        tts_client, scene["narration"], index,
-        voice_config_scene=voice_config_scene,
-        arrow_state=scene.get("arrow_state", "arrow_up")
-    )
+    import concurrent.futures
     
     visual_prompt = scene.get("visual_prompt", "")
     if visual_config_scene and visual_config_scene.get("enhanced_prompt"):
         visual_prompt = visual_config_scene["enhanced_prompt"]
-    
-    visual_asset = generate_scene_image(
-        visual_prompt, index,
-        visual_config_scene=visual_config_scene
-    )
+        
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+        voice_future = executor.submit(
+            generate_scene_voice,
+            tts_client, scene["narration"], index,
+            voice_config_scene=voice_config_scene,
+            arrow_state=scene.get("arrow_state", "arrow_up")
+        )
+        visual_future = executor.submit(
+            generate_scene_image,
+            visual_prompt, index,
+            visual_config_scene=visual_config_scene
+        )
+        
+        audio_path, word_timings, audio_duration = voice_future.result()
+        visual_asset = visual_future.result()
     
     emphasis_words = []
     if voice_config_scene:
