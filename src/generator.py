@@ -157,16 +157,69 @@ def generate_gemini_voice(text, scene_index, arrow_state="arrow_up"):
     return audio_path, word_timings, audio_duration
 
 
+def generate_fish_audio_voice(text, scene_index, arrow_state="arrow_up"):
+    """
+    Synthesize audio using Fish Audio API as a fallback.
+    """
+    import os
+    import subprocess
+    import requests
+    import re
+    
+    logger.info(f"🎙️ Synthesizing voice for Scene {scene_index} using FISH AUDIO Fallback...")
+    
+    fish_api_key = get_secret("FISH_AUDIO_API_KEY")
+    if not fish_api_key:
+        raise ValueError("FISH_AUDIO_API_KEY not found.")
+        
+    audio_path = os.path.join(OUTPUT_DIR, f"scene_{scene_index}.mp3")
+    clean_text = re.sub(r'<[^>]+>', '', text).strip()
+    
+    url = "https://api.fish.audio/v1/tts"
+    headers = {
+        "Authorization": f"Bearer {fish_api_key}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "text": clean_text,
+        "format": "mp3",
+    }
+    
+    response = requests.post(url, headers=headers, json=payload, timeout=60)
+    response.raise_for_status()
+    
+    with open(audio_path, "wb") as f:
+        f.write(response.content)
+        
+    probe_cmd = [
+        "ffprobe", "-v", "error", "-show_entries", "format=duration",
+        "-of", "default=noprint_wrappers=1:nokey=1", audio_path
+    ]
+    dur_res = subprocess.run(probe_cmd, capture_output=True, text=True, check=True, timeout=15)
+    audio_duration = float(dur_res.stdout.strip())
+
+    words = clean_text.split()
+    step = (audio_duration * 0.85) / max(1, len(words))
+    word_timings = [{"word": w, "time_seconds": round(0.1 + i * step, 3)} for i, w in enumerate(words)]
+    
+    logger.info(f"✅ Fish Audio track generated for Scene {scene_index} ({audio_duration:.2f}s)")
+    return audio_path, word_timings, audio_duration
+
+
 def generate_scene_voice(tts_client, text, scene_index, voice_config_scene=None, arrow_state="arrow_up"):
-    """Generate audio using Gemini Live API (energetic, Indian-understandable voice)."""
+    """Generate audio using Gemini Live API with Fish Audio fallback."""
     try:
         import concurrent.futures
         with concurrent.futures.ThreadPoolExecutor(max_workers=1) as exec:
             future = exec.submit(generate_gemini_voice, text, scene_index, arrow_state)
             return future.result(timeout=180.0)
     except Exception as err:
-        logger.error(f"❌ Gemini Live Audio TTS failed: {err}")
-        raise RuntimeError(f"Voice generation completely failed. {err}")
+        logger.warning(f"⚠️ Gemini Live Audio TTS failed: {err}. Falling back to Fish Audio...")
+        try:
+            return generate_fish_audio_voice(text, scene_index, arrow_state)
+        except Exception as e2:
+            logger.error(f"❌ Fish Audio TTS fallback also failed: {e2}")
+            raise RuntimeError(f"Voice generation completely failed. Gemini err: {err}, Fish err: {e2}")
 
 def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
     """
