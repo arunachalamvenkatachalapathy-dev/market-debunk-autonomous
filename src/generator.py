@@ -229,10 +229,7 @@ def generate_scene_voice(tts_client, text, scene_index, voice_config_scene=None,
 
 def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
     """
-    Dynamically generates a high-quality vertical AI image using Gemini Imagen 3.
-    Each scene gets a UNIQUE cache key based on scene_index + prompt hash to
-    prevent cross-scene image reuse (which triggers the imagehash dedup gate).
-    Retries up to 3 times on API failure.
+    Dynamically generates a high-quality vertical AI image using NVIDIA NIM or Gemini Imagen 3.
     """
     import hashlib
     import io
@@ -244,7 +241,6 @@ def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
     bg_dir = os.path.join(os.getcwd(), "assets", "backgrounds")
     os.makedirs(bg_dir, exist_ok=True)
     
-    # Apply standard brand identity style if not explicitly present
     search_query = visual_prompt
     if "Professional sleek minimalist corporate" not in search_query:
         search_query = (
@@ -254,12 +250,45 @@ def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
             f"{visual_prompt}"
         )
     
-    # FIX #1: Cache key includes scene_index to guarantee a unique file per scene.
-    # Previously only prompt hash was used — two similar prompts shared the same file.
-        logger.warning(f"⚠️ NVIDIA API failed for Scene {scene_index + 1}: {e}")
+    prompt_hash = hashlib.md5(f"{scene_index}_{search_query}".encode('utf-8')).hexdigest()[:8]
+    target_path = os.path.join(bg_dir, f"bg_{scene_index}_{prompt_hash}.jpg")
+    
+    # ── PRIMARY: NVIDIA NIM ──
+    try:
+        nvidia_api_key = get_secret("NVIDIA_API_KEY")
+    except Exception:
+        nvidia_api_key = None
+        
+    if nvidia_api_key:
+        logger.info(f"🎨 Generating image for Scene {scene_index + 1} via NVIDIA NIM...")
+        try:
+            import requests
+            import base64
+            invoke_url = "https://ai.api.nvidia.com/v1/genai/stabilityai/stable-diffusion-3-medium"
+            headers = {
+                "Authorization": f"Bearer {nvidia_api_key}",
+                "Accept": "application/json",
+            }
+            payload = {
+                "text_prompts": [{"text": search_query}],
+                "cfg_scale": 5,
+                "seed": 0,
+                "steps": 50
+            }
+            response = requests.post(invoke_url, headers=headers, json=payload, timeout=60)
+            response.raise_for_status()
+            response_body = response.json()
+            if "artifacts" in response_body and len(response_body["artifacts"]) > 0:
+                image_data = base64.b64decode(response_body["artifacts"][0]["base64"])
+                with open(target_path, "wb") as f:
+                    f.write(image_data)
+                logger.info(f"✅ [NVIDIA NIM] Image for Scene {scene_index + 1} saved → {target_path}")
+                return {"type": "image", "path": target_path}
+        except Exception as e:
+            logger.warning(f"⚠️ NVIDIA API failed for Scene {scene_index + 1}: {e}")
 
     # ── FALLBACK: GEMINI IMAGEN ──
-    logger.warning(f"⚠️ NVIDIA failed. Trying Gemini Imagen fallback for Scene {scene_index + 1}...")
+    logger.warning(f"🔄 NVIDIA failed or not configured. Trying Gemini Imagen fallback for Scene {scene_index + 1}...")
     api_key = None
     try:
         api_key = get_secret("LLM_API_KEY")
