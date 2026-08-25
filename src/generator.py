@@ -240,9 +240,18 @@ def generate_kokoro_voice(text, scene_index):
     
     if "audio" in response_body and "url" in response_body["audio"]:
         audio_url = response_body["audio"]["url"]
-        img_data = requests.get(audio_url).content
-        with open(audio_path, "wb") as f:
-            f.write(img_data)
+        audio_data = requests.get(audio_url).content
+        
+        wav_path = audio_path.replace(".mp3", ".wav")
+        with open(wav_path, "wb") as f:
+            f.write(audio_data)
+            
+        # Convert WAV to MP3 to ensure FFmpeg concat doesn't crash later
+        conv_cmd = ["ffmpeg", "-y", "-i", wav_path, "-codec:a", "libmp3lame", "-qscale:a", "2", audio_path]
+        subprocess.run(conv_cmd, capture_output=True, check=True)
+        
+        if os.path.exists(wav_path):
+            os.remove(wav_path)
     else:
         raise RuntimeError("Kokoro FAL AI response missing audio URL.")
         
