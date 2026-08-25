@@ -37,7 +37,15 @@ jobs:
       - name: Install Python Dependencies
         run: pip install -r requirements.txt yt-dlp pydub
         
+      - name: Cache Premium Audio & SFX
+        id: cache-audio
+        uses: actions/cache@v4
+        with:
+          path: assets/audio
+          key: premium-audio-${{ hashFiles('scripts/download_premium_audio.py') }}
+          
       - name: Download Premium Audio & SFX
+        if: steps.cache-audio.outputs.cache-hit != 'true'
         run: python scripts/download_premium_audio.py
         
       - name: Pre-download Kokoro ONNX Models

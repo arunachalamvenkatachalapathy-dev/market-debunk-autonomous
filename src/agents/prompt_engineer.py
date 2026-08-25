@@ -49,6 +49,7 @@ class PromptEngineerAgent:
             self.clients = gemini_client_or_clients
         else:
             self.clients = [gemini_client_or_clients]
+        self.current_client_idx = 0
 
 
     def _call_gemini(self, system_prompt, user_prompt, response_schema, temperature=0.7):
@@ -60,7 +61,8 @@ class PromptEngineerAgent:
         max_retries = 3
 
         for attempt in range(max_retries):
-            for client in self.clients:
+            for i in range(len(self.clients)):
+                client = self.clients[self.current_client_idx]
                 try:
                     response = client.models.generate_content(
                         model="gemini-3.6-flash",
@@ -83,17 +85,25 @@ class PromptEngineerAgent:
                 except Exception as e:
                     err_str = str(e).upper()
                     if any(code in err_str for code in ["429", "503", "500", "RESOURCE_EXHAUSTED", "UNAVAILABLE", "TIMEOUT", "DEADLINE"]):
-                        import re, time
+                        last_error = e
+                        logger.warning(f"Prompt Engineer encountered transient error (429/503) on Key {self.current_client_idx + 1}.")
                         
+                        # Rotate key permanently for future calls as well
+                        self.current_client_idx = (self.current_client_idx + 1) % len(self.clients)
+                        
+                        if i < len(self.clients) - 1:
+                            logger.info(f"Hot-swapping to Key {self.current_client_idx + 1}...")
+                            continue # Try next key immediately without sleeping
+                            
+                        import re, time
                         sleep_time = 15.0
                         match = re.search(r'RETRY IN (\d+\.?\d*)S', err_str)
                         if match:
                             sleep_time = float(match.group(1)) + 1.0
                             
-                        logger.warning(f"Prompt Engineer encountered transient error (429/503). Sleeping for {sleep_time:.1f}s before retrying (Attempt {attempt+1}/{max_retries})...")
-                        last_error = e
+                        logger.warning(f"All keys exhausted. Sleeping for {sleep_time:.1f}s before retrying (Attempt {attempt+1}/{max_retries})...")
                         time.sleep(sleep_time)
-                        continue
+                        break
                     logger.error(f"Prompt Engineer Gemini call failed: {e}")
                     
                     # ── Sandbox Mock Fallback ──
