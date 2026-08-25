@@ -87,47 +87,60 @@ def is_duplicate_topic(topic_hash):
         return False
 
 
-def generate_kokoro_voice(text, scene_index, arrow_state="arrow_up"):
+def generate_gemini_voice(text, scene_index, arrow_state="arrow_up"):
     """
-    Synthesize audio using Kokoro-82M ONNX model (kokoro-onnx).
-    100% Free & Open Source engine delivering ultra-fast natural human speech.
-    Returns (audio_path, word_timings, audio_duration) if successful.
+    Synthesize audio using Gemini 3.5 Live Translate API (Audio output mode).
+    This acts as a high-fidelity cloud TTS engine.
     """
-    from kokoro_onnx import Kokoro
-    import soundfile as sf
-    import urllib.request
+    import asyncio
+    import os
     import subprocess
     import re
-
-    models_dir = os.path.join(os.getcwd(), "assets", "kokoro_models")
-    os.makedirs(models_dir, exist_ok=True)
-
-    model_file = os.path.join(models_dir, "kokoro-v1.0.onnx")
-    voices_file = os.path.join(models_dir, "voices-v1.0.bin")
-
-    if not os.path.exists(model_file) or not os.path.exists(voices_file):
-        logger.error("❌ Kokoro ONNX model files are missing. They must be downloaded before running the generator.")
-        raise FileNotFoundError("Kokoro model files not found in assets/kokoro_models/")
+    from google import genai
+    from google.genai import types
 
     audio_path = os.path.join(OUTPUT_DIR, f"scene_{scene_index}.mp3")
+    pcm_path = os.path.join(OUTPUT_DIR, f"scene_{scene_index}.pcm")
 
     clean_text = re.sub(r'<[^>]+>', '', text).strip()
-    clean_text = clean_text.replace('"', "'")
+    
+    logger.info(f"🎙️ Synthesizing voice for Scene {scene_index} using Gemini Live Audio API...")
 
-    # Use a friendly, natural, energetic narrator voice
-    voice_name = "am_michael"
-    speed = 1.05
+    gemini_key = os.environ.get("GEMINI_TTS_API_KEY") or get_secret("GEMINI_TTS_API_KEY")
+    if not gemini_key:
+        raise ValueError("GEMINI_TTS_API_KEY not found in environment or secrets.")
 
-    logger.info(f"🎙️ Synthesizing voice for Scene {scene_index} (Speaker: {arrow_state}, Kokoro voice: {voice_name})...")
+    async def _run_gemini_websocket():
+        client = genai.Client(http_options={"api_version": "v1beta"}, api_key=gemini_key)
+        MODEL = "models/gemini-3.5-live-translate-preview"
+        CONFIG = types.LiveConnectConfig(
+            response_modalities=["AUDIO"],
+            translation_config=types.TranslationConfig(target_language_code="en"),
+        )
+        
+        pcm_data = bytearray()
+        try:
+            async with client.aio.live.connect(model=MODEL, config=CONFIG) as session:
+                await session.send(input=clean_text, end_of_turn=True)
+                async for response in session.receive():
+                    if response.data:
+                        pcm_data.extend(response.data)
+        except Exception as e:
+            logger.error(f"Gemini Live API error: {e}")
+            raise
+            
+        with open(pcm_path, "wb") as f:
+            f.write(pcm_data)
 
-    kokoro = Kokoro(model_file, voices_file)
-    samples, sample_rate = kokoro.create(clean_text, voice=voice_name, speed=speed, lang="en-us")
+    asyncio.run(_run_gemini_websocket())
 
-    wav_path = os.path.join(OUTPUT_DIR, f"scene_{scene_index}_kokoro.wav")
-    sf.write(wav_path, samples, sample_rate)
-
-    conv_cmd = ["ffmpeg", "-y", "-i", wav_path, "-codec:a", "libmp3lame", "-qscale:a", "2", audio_path]
+    # Convert PCM to MP3 using FFmpeg (Gemini Live Audio is 24000Hz s16le PCM)
+    conv_cmd = ["ffmpeg", "-y", "-f", "s16le", "-ar", "24000", "-ac", "1", "-i", pcm_path, "-codec:a", "libmp3lame", "-qscale:a", "2", audio_path]
     subprocess.run(conv_cmd, capture_output=True, check=True)
+
+    # Clean up raw PCM
+    if os.path.exists(pcm_path):
+        os.remove(pcm_path)
 
     probe_cmd = [
         "ffprobe", "-v", "error", "-show_entries", "format=duration",
@@ -140,82 +153,20 @@ def generate_kokoro_voice(text, scene_index, arrow_state="arrow_up"):
     step = (audio_duration * 0.85) / max(1, len(words))
     word_timings = [{"word": w, "time_seconds": round(0.1 + i * step, 3)} for i, w in enumerate(words)]
 
-    logger.info(f"✅ Kokoro-82M ONNX voice track generated for Scene {scene_index} ({audio_duration:.2f}s)")
+    logger.info(f"✅ Gemini Live Audio track generated for Scene {scene_index} ({audio_duration:.2f}s)")
     return audio_path, word_timings, audio_duration
 
 
 def generate_scene_voice(tts_client, text, scene_index, voice_config_scene=None, arrow_state="arrow_up"):
-    """Generate audio using Fish Audio API (energetic, Indian-understandable voice). Falls back to Kokoro TTS."""
-    import requests
-    import subprocess
-    import re
-    
-    audio_path = os.path.join(OUTPUT_DIR, f"scene_{scene_index}.mp3")
-    
-    # Clean any inline SSML/XML tags from narration to prevent TTS voice glitches
-    clean_text = re.sub(r'<[^>]+>', '', text).strip()
-    
-    fish_api_key = None
-    try:
-        fish_api_key = get_secret("FISH_AUDIO_API_KEY")
-    except ValueError:
-        pass
-        
-    if fish_api_key:
-        url = "https://api.fish.audio/v1/tts"
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {fish_api_key}"
-        }
-        payload = {
-            "text": clean_text,
-            "format": "mp3",
-            # Default reference_id for an energetic clear English voice
-            "reference_id": "c1f73740e53a47948a27d2c31cc91781" 
-        }
-        
-        logger.info(f"🎙️ Generating voice for Scene {scene_index} via Fish Audio API...")
-        try:
-            response = requests.post(url, headers=headers, json=payload, timeout=60)
-            if response.status_code == 200:
-                with open(audio_path, "wb") as f:
-                    f.write(response.content)
-                logger.info(f"✅ [Fish Audio] Scene {scene_index} voice saved.")
-                
-                # Probe exact audio duration using ffprobe
-                audio_duration = 5.0
-                try:
-                    probe_cmd = [
-                        "ffprobe", "-v", "error", "-show_entries", "format=duration",
-                        "-of", "default=noprint_wrappers=1:nokey=1", audio_path
-                    ]
-                    dur_res = subprocess.run(probe_cmd, capture_output=True, text=True, check=True, timeout=15)
-                    audio_duration = float(dur_res.stdout.strip())
-                except Exception as pe:
-                    logger.warning(f"Failed to probe audio duration for Scene {scene_index}: {pe}")
-                    
-                words = clean_text.split()
-                step = (audio_duration * 0.9) / max(1, len(words))
-                word_timings = [{"word": w, "time_seconds": round(0.1 + i * step, 3)} for i, w in enumerate(words)]
-                
-                return audio_path, word_timings, audio_duration
-            else:
-                logger.warning(f"⚠️ Fish Audio failed with status {response.status_code}: {response.text}")
-        except Exception as e:
-            logger.warning(f"⚠️ Fish Audio request failed: {e}")
-    else:
-        logger.warning("⚠️ FISH_AUDIO_API_KEY is missing. Skipping Fish Audio.")
-        
-    # --- FALLBACK: KOKORO TTS ---
-    logger.info(f"🔄 Falling back to Kokoro TTS for Scene {scene_index}...")
+    """Generate audio using Gemini Live API (energetic, Indian-understandable voice)."""
     try:
         import concurrent.futures
-        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as kokoro_exec:
-            future = kokoro_exec.submit(generate_kokoro_voice, clean_text, scene_index, arrow_state)
-            return future.result(timeout=120.0)
-    except Exception as kokoro_err:
-        logger.error(f"❌ Kokoro TTS fallback also failed: {kokoro_err}")
-        raise RuntimeError(f"Voice generation completely failed. Fish Audio and Kokoro TTS both failed.")
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as exec:
+            future = exec.submit(generate_gemini_voice, text, scene_index, arrow_state)
+            return future.result(timeout=180.0)
+    except Exception as err:
+        logger.error(f"❌ Gemini Live Audio TTS failed: {err}")
+        raise RuntimeError(f"Voice generation completely failed. {err}")
 
 def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
     """
@@ -390,19 +341,6 @@ def run_synthesis_pipeline(script_data, voice_config=None, visual_config=None):
             
         logger.info(f"⚡ Triggering parallel asset generation for {len(scenes)} scenes...")
         processed_scenes = []
-        
-        # Pre-download Kokoro models synchronously to avoid thread deadlocks
-        models_dir = os.path.join(os.getcwd(), "assets", "kokoro_models")
-        os.makedirs(models_dir, exist_ok=True)
-        model_file = os.path.join(models_dir, "kokoro-v1.0.onnx")
-        voices_file = os.path.join(models_dir, "voices-v1.0.bin")
-        if not os.path.exists(model_file) or not os.path.exists(voices_file):
-            import urllib.request
-            logger.info("Pre-downloading Kokoro-82M ONNX model weights and voices synchronously...")
-            if not os.path.exists(model_file):
-                urllib.request.urlretrieve("https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx", model_file)
-            if not os.path.exists(voices_file):
-                urllib.request.urlretrieve("https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin", voices_file)
         
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(scenes)) as executor:
             futures = [
