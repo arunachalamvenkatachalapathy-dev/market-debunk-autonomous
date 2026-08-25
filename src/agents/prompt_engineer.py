@@ -83,10 +83,16 @@ class PromptEngineerAgent:
                 except Exception as e:
                     err_str = str(e).upper()
                     if any(code in err_str for code in ["429", "503", "500", "RESOURCE_EXHAUSTED", "UNAVAILABLE", "TIMEOUT", "DEADLINE"]):
-                        logger.warning(f"Prompt Engineer encountered transient error ({e}). Rotating key/retrying attempt {attempt+1}/{max_retries}...")
+                        import re, time
+                        
+                        sleep_time = 15.0
+                        match = re.search(r'RETRY IN (\d+\.?\d*)S', err_str)
+                        if match:
+                            sleep_time = float(match.group(1)) + 1.0
+                            
+                        logger.warning(f"Prompt Engineer encountered transient error (429/503). Sleeping for {sleep_time:.1f}s before retrying (Attempt {attempt+1}/{max_retries})...")
                         last_error = e
-                        import time
-                        time.sleep(3)
+                        time.sleep(sleep_time)
                         continue
                     logger.error(f"Prompt Engineer Gemini call failed: {e}")
                     
