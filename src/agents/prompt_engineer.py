@@ -108,6 +108,7 @@ class PromptEngineerAgent:
             logger.info("🤖 Falling back to Groq (llama-3.1-70b-versatile)...")
             try:
                 import openai
+                import re
                 client = openai.OpenAI(base_url="https://api.groq.com/openai/v1", api_key=self.groq_key)
                 schema_dict = response_schema.model_json_schema() if hasattr(response_schema, "model_json_schema") else response_schema.schema()
                 response = client.chat.completions.create(
@@ -120,19 +121,23 @@ class PromptEngineerAgent:
                     response_format={"type": "json_object"}
                 )
                 content = response.choices[0].message.content
-                return json.loads(content)
+                match = re.search(r'```(?:json)?\s*(.*?)\s*```', content, re.DOTALL)
+                if match:
+                    content = match.group(1)
+                return json.loads(content.strip())
             except Exception as e:
                 logger.error(f"Groq call failed: {e}")
 
         # --- FALLBACK TO OPENROUTER ---
         if self.openrouter_key:
-            logger.info("🤖 Falling back to OpenRouter (google/gemini-flash-1.5-exp)...")
+            logger.info("🤖 Falling back to OpenRouter (google/gemini-1.5-flash)...")
             try:
                 import openai
+                import re
                 client = openai.OpenAI(base_url="https://openrouter.ai/api/v1", api_key=self.openrouter_key)
                 schema_dict = response_schema.model_json_schema() if hasattr(response_schema, "model_json_schema") else response_schema.schema()
                 response = client.chat.completions.create(
-                    model="google/gemini-flash-1.5-exp",
+                    model="google/gemini-1.5-flash",
                     messages=[
                         {"role": "system", "content": system_prompt + "\n\nYou MUST return a valid JSON object matching this schema:\n" + json.dumps(schema_dict)},
                         {"role": "user", "content": user_prompt}
@@ -141,7 +146,10 @@ class PromptEngineerAgent:
                     response_format={"type": "json_object"}
                 )
                 content = response.choices[0].message.content
-                return json.loads(content)
+                match = re.search(r'```(?:json)?\s*(.*?)\s*```', content, re.DOTALL)
+                if match:
+                    content = match.group(1)
+                return json.loads(content.strip())
             except Exception as e:
                 logger.error(f"OpenRouter call failed: {e}")
 
@@ -150,6 +158,7 @@ class PromptEngineerAgent:
             logger.info("🤖 Falling back to NVIDIA NIM (meta/llama-3.1-70b-instruct)...")
             try:
                 import openai
+                import re
                 client = openai.OpenAI(base_url="https://integrate.api.nvidia.com/v1", api_key=self.nvidia_key)
                 schema_dict = response_schema.model_json_schema() if hasattr(response_schema, "model_json_schema") else response_schema.schema()
                 response = client.chat.completions.create(
@@ -162,66 +171,15 @@ class PromptEngineerAgent:
                     max_tokens=2048,
                 )
                 content = response.choices[0].message.content.strip()
-                if content.startswith("```json"):
-                    content = content[7:-3]
-                elif content.startswith("```"):
-                    content = content[3:-3]
+                match = re.search(r'```(?:json)?\s*(.*?)\s*```', content, re.DOTALL)
+                if match:
+                    content = match.group(1)
                 return json.loads(content.strip())
             except Exception as e:
                 logger.error(f"NVIDIA NIM call failed: {e}")
+                
+        raise RuntimeError("All LLM APIs (Gemini, Groq, OpenRouter, NVIDIA NIM) failed to generate a valid response.")
                     
-        # ── Sandbox Mock Fallback ──
-        logger.warning("Applying fallback mock response due to network failure...")
-        schema_name = response_schema.__name__ if hasattr(response_schema, "__name__") else str(response_schema)
-        if "VideoScript" in schema_name:
-            return {
-                "thesis": "The secret behind passive income.",
-                "title": "The Passive Income Secret #Shorts",
-                "description": "Discover the truth about passive income! #finance #money #shorts",
-                "scenes": [
-                    {"scene_number": 1, "narration": "In a small village, two merchants debated the secret to wealth.", "visual_prompt": "Two ancient merchants arguing in a dimly lit, cinematic market.", "visual_category": "character"},
-                    {"scene_number": 2, "narration": "One traded time for money, working day and night.", "visual_prompt": "A tired merchant carrying heavy bags of coins at midnight.", "visual_category": "metaphor"},
-                    {"scene_number": 3, "narration": "The other traded money for assets, building a system.", "visual_prompt": "A clever merchant watching a beautifully engineered water wheel.", "visual_category": "object"},
-                    {"scene_number": 4, "narration": "Soon, the system worked for him while he slept peacefully.", "visual_prompt": "A serene, wealthy merchant sleeping while gold coins accumulate.", "visual_category": "abstract"},
-                    {"scene_number": 5, "narration": "That is the true power of passive income. Start building yours.", "visual_prompt": "A grand cinematic shot of a wealthy empire at sunrise.", "visual_category": "landscape"}
-                ]
-        }
-        elif "VoiceConfig" in schema_name:
-            return {
-                "voice_name": "am_michael",
-                "overall_energy": "medium",
-                "scenes": [
-                    {"scene_number": 1, "ssml_text": "<speak>In a small village, <break time='200ms'/> two merchants debated the secret to wealth.</speak>", "pacing_rate": "+10%", "emphasis_words": ["wealth"]},
-                    {"scene_number": 2, "ssml_text": "<speak>One traded time for money, working day and night.</speak>", "pacing_rate": "+5%", "emphasis_words": ["time", "money"]},
-                    {"scene_number": 3, "ssml_text": "<speak>The other traded money for assets, building a system.</speak>", "pacing_rate": "+0%", "emphasis_words": ["assets", "system"]},
-                    {"scene_number": 4, "ssml_text": "<speak>Soon, <break time='300ms'/> the system worked for him while he slept peacefully.</speak>", "pacing_rate": "-5%", "emphasis_words": ["worked"]},
-                    {"scene_number": 5, "ssml_text": "<speak><emphasis level='strong'>That</emphasis> is the true power of passive income. Start building yours.</speak>", "pacing_rate": "+5%", "emphasis_words": ["power", "passive"]}
-                ]
-            }
-        elif "VisualConfig" in schema_name:
-            return {
-                "global_style_suffix": "Professional sleek minimalist corporate 3D illustration, deep navy blue and vibrant gold color palette, highly recognizable editorial infographic aesthetic, no text, no letters",
-                "scenes": [
-                    {"scene_number": 1, "animation_tag": "educational", "enhanced_prompt": "Two ancient merchants arguing in a dimly lit, cinematic market.", "negative_prompt": "text, watermark", "category_tag": "character", "composition_directive": "center"},
-                    {"scene_number": 2, "animation_tag": "bearish", "enhanced_prompt": "A tired merchant carrying heavy bags of coins at midnight.", "negative_prompt": "text, watermark", "category_tag": "metaphor", "composition_directive": "left-third"},
-                    {"scene_number": 3, "animation_tag": "bullish", "enhanced_prompt": "A clever merchant watching a beautifully engineered water wheel.", "negative_prompt": "text, watermark", "category_tag": "object", "composition_directive": "right-third"},
-                    {"scene_number": 4, "animation_tag": "neutral", "enhanced_prompt": "A serene, wealthy merchant sleeping while gold coins accumulate.", "negative_prompt": "text, watermark", "category_tag": "abstract", "composition_directive": "center"},
-                    {"scene_number": 5, "animation_tag": "bullish", "enhanced_prompt": "A grand cinematic shot of a wealthy empire at sunrise.", "negative_prompt": "text, watermark", "category_tag": "landscape", "composition_directive": "center"}
-                ]
-            }
-        elif "PublishMetadata" in schema_name:
-            return {
-                "youtube_titles": ["The Passive Income Secret #Shorts", "How to get rich #Shorts", "Stop trading time for money #Shorts"],
-                "youtube_description": "Discover the truth about passive income! #finance #money #shorts",
-                "youtube_tags": ["shorts", "finance", "money"],
-                "telegram_caption": "Discover the truth about passive income! #finance",
-                "instagram_description": "Discover the truth about passive income! #finance",
-                "pinned_comment": "Are you building passive income?",
-                "category_id": "27"
-            }
-        
-        # If no mock matches, we must raise
-        raise RuntimeError("All LLM providers (Gemini, OpenRouter, NVIDIA) failed.")
 
     # ──────────────────────────────────────────────
     #  SECTION 1: TOPIC DISCOVERY (EXHAUSTIVE & DUPLICATE-FREE)
