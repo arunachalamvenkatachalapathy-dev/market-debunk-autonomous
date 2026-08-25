@@ -62,7 +62,12 @@ class PromptEngineerAgent:
 
         for attempt in range(max_retries):
             for i in range(len(self.clients)):
+                
+                # [NEW STRUCTURE] True Round-Robin: We always advance to the next key 
+                # on every single call to evenly distribute the load across all accounts.
+                self.current_client_idx = (self.current_client_idx + 1) % len(self.clients)
                 client = self.clients[self.current_client_idx]
+                
                 try:
                     response = client.models.generate_content(
                         model="gemini-3.6-flash",
@@ -73,6 +78,10 @@ class PromptEngineerAgent:
                             temperature=temperature
                         ),
                     )
+
+                    # [NEW STRUCTURE] Pacing Delay: Guarantee we never hit 15 RPM
+                    import time
+                    time.sleep(2.5)
 
                     if hasattr(response, "parsed") and response.parsed:
                         data = response.parsed
@@ -88,14 +97,11 @@ class PromptEngineerAgent:
                         last_error = e
                         logger.warning(f"Prompt Engineer encountered transient error (429/503) on Key {self.current_client_idx + 1}.")
                         
-                        # Rotate key permanently for future calls as well
-                        self.current_client_idx = (self.current_client_idx + 1) % len(self.clients)
-                        
                         if i < len(self.clients) - 1:
-                            logger.info(f"Hot-swapping to Key {self.current_client_idx + 1}...")
+                            logger.info(f"Hot-swapping to next available Key...")
                             continue # Try next key immediately without sleeping
                             
-                        import re, time
+                        import re
                         sleep_time = 15.0
                         match = re.search(r'RETRY IN (\d+\.?\d*)S', err_str)
                         if match:
