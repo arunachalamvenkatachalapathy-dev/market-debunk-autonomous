@@ -103,27 +103,6 @@ class PromptEngineerAgent:
                 # If we broke out of the inner loop due to exhaustion, we break the outer loop to trigger fallback
                 break
 
-        # --- FALLBACK TO OPENROUTER ---
-        if self.openrouter_key:
-            logger.info("🤖 Falling back to OpenRouter (google/gemini-flash-1.5-exp)...")
-            try:
-                import openai
-                client = openai.OpenAI(base_url="https://openrouter.ai/api/v1", api_key=self.openrouter_key)
-                schema_dict = response_schema.model_json_schema() if hasattr(response_schema, "model_json_schema") else response_schema.schema()
-                response = client.chat.completions.create(
-                    model="google/gemini-flash-1.5-exp",
-                    messages=[
-                        {"role": "system", "content": system_prompt + "\n\nYou MUST return a valid JSON object matching this schema:\n" + json.dumps(schema_dict)},
-                        {"role": "user", "content": user_prompt}
-                    ],
-                    temperature=temperature,
-                    response_format={"type": "json_object"}
-                )
-                content = response.choices[0].message.content
-                return json.loads(content)
-            except Exception as e:
-                logger.error(f"OpenRouter call failed: {e}")
-
         # --- FALLBACK TO GROQ ---
         if self.groq_key:
             logger.info("🤖 Falling back to Groq (llama-3.1-70b-versatile)...")
@@ -144,6 +123,27 @@ class PromptEngineerAgent:
                 return json.loads(content)
             except Exception as e:
                 logger.error(f"Groq call failed: {e}")
+
+        # --- FALLBACK TO OPENROUTER ---
+        if self.openrouter_key:
+            logger.info("🤖 Falling back to OpenRouter (google/gemini-flash-1.5-exp)...")
+            try:
+                import openai
+                client = openai.OpenAI(base_url="https://openrouter.ai/api/v1", api_key=self.openrouter_key)
+                schema_dict = response_schema.model_json_schema() if hasattr(response_schema, "model_json_schema") else response_schema.schema()
+                response = client.chat.completions.create(
+                    model="google/gemini-flash-1.5-exp",
+                    messages=[
+                        {"role": "system", "content": system_prompt + "\n\nYou MUST return a valid JSON object matching this schema:\n" + json.dumps(schema_dict)},
+                        {"role": "user", "content": user_prompt}
+                    ],
+                    temperature=temperature,
+                    response_format={"type": "json_object"}
+                )
+                content = response.choices[0].message.content
+                return json.loads(content)
+            except Exception as e:
+                logger.error(f"OpenRouter call failed: {e}")
 
         # --- FALLBACK TO NVIDIA NIM ---
         if self.nvidia_key:
