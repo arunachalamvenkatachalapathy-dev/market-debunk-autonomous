@@ -56,6 +56,7 @@ jobs:
           GEMINI_TTS_API_KEY: ${{ secrets.GEMINI_TTS_API_KEY }}
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
           LLM_API_KEYS: ${{ secrets.LLM_API_KEYS }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           FAL_KEY: ${{ secrets.FAL_KEY }}
           HF_API_KEY: ${{ secrets.HF_API_KEY }}
           YT_API_KEY: ${{ secrets.YT_API_KEY }}
