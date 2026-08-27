@@ -94,3 +94,10 @@ jobs:
             git push
             echo "Successfully committed used_topics.json memory!"
           fi
+
+      - name: Upload Video Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: final-video
+          path: "**/*.mp4"
