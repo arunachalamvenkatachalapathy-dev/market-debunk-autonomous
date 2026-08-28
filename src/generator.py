@@ -91,23 +91,22 @@ def is_duplicate_topic(topic_hash):
 
 
 def generate_gemini_voice(text, scene_index, arrow_state="arrow_up"):
-    """
-    Synthesize audio using Gemini 3.5 Live Translate API (Audio output mode).
-    This acts as a high-fidelity cloud TTS engine.
-    """
     import asyncio
     import os
     import subprocess
     import re
     from google import genai
     from google.genai import types
+    import logging
+    logger = logging.getLogger(__name__)
 
+    OUTPUT_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "output")
     audio_path = os.path.join(OUTPUT_DIR, f"scene_{scene_index}.mp3")
     pcm_path = os.path.join(OUTPUT_DIR, f"scene_{scene_index}.pcm")
 
     clean_text = re.sub(r'<[^>]+>', '', text).strip()
     
-    logger.info(f"🎙️ Synthesizing voice for Scene {scene_index} using Gemini Live Audio API...")
+    logger.info(f"Synthesizing voice for Scene {scene_index} using Gemini 3.1 Flash Live...")
 
     keys_str = os.environ.get("LLM_API_KEYS") or get_secret("LLM_API_KEYS") or ""
     keys_list = [k.strip() for k in keys_str.split(",") if k.strip()]
@@ -117,11 +116,11 @@ def generate_gemini_voice(text, scene_index, arrow_state="arrow_up"):
         raise ValueError("GEMINI_TTS_API_KEY not found in environment or secrets.")
 
     async def _run_gemini_websocket():
-        client = genai.Client(http_options={"api_version": "v1beta"}, api_key=gemini_key)
-        MODEL = "models/gemini-3.5-live-translate-preview"
+        client = genai.Client(http_options={"api_version": "v1alpha"}, api_key=gemini_key)
+        MODEL = "models/gemini-3.1-flash-live-preview"
         CONFIG = types.LiveConnectConfig(
             response_modalities=["AUDIO"],
-            translation_config=types.TranslationConfig(target_language_code="en"),
+            speech_config=types.SpeechConfig(voice_config=types.VoiceConfig(prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name="Aoede")))
         )
         
         pcm_data = bytearray()
@@ -143,11 +142,9 @@ def generate_gemini_voice(text, scene_index, arrow_state="arrow_up"):
 
     asyncio.run(_run_gemini_websocket())
 
-    # Convert PCM to MP3 using FFmpeg (Gemini Live Audio is 24000Hz s16le PCM)
     conv_cmd = ["ffmpeg", "-y", "-f", "s16le", "-ar", "24000", "-ac", "1", "-i", pcm_path, "-codec:a", "libmp3lame", "-qscale:a", "2", audio_path]
     subprocess.run(conv_cmd, capture_output=True, check=True)
 
-    # Clean up raw PCM
     if os.path.exists(pcm_path):
         os.remove(pcm_path)
 
@@ -162,171 +159,8 @@ def generate_gemini_voice(text, scene_index, arrow_state="arrow_up"):
     step = (audio_duration * 0.85) / max(1, len(words))
     word_timings = [{"word": w, "time_seconds": round(0.1 + i * step, 3)} for i, w in enumerate(words)]
 
-    logger.info(f"✅ Gemini Live Audio track generated for Scene {scene_index} ({audio_duration:.2f}s)")
+    logger.info(f"Gemini Live Audio track generated for Scene {scene_index} ({audio_duration:.2f}s)")
     return audio_path, word_timings, audio_duration
-
-
-def generate_fish_audio_voice(text, scene_index, arrow_state="arrow_up"):
-    """
-    Synthesize audio using Fish Audio API as a fallback.
-    """
-    import os
-    import subprocess
-    import requests
-    import re
-    
-    logger.info(f"🎙️ Synthesizing voice for Scene {scene_index} using FISH AUDIO Fallback...")
-    
-    fish_api_key = get_secret("FISH_AUDIO_API_KEY")
-    if not fish_api_key:
-        raise ValueError("FISH_AUDIO_API_KEY not found.")
-        
-    audio_path = os.path.join(OUTPUT_DIR, f"scene_{scene_index}.mp3")
-    clean_text = re.sub(r'<[^>]+>', '', text).strip()
-    
-    url = "https://api.fish.audio/v1/tts"
-    headers = {
-        "Authorization": f"Bearer {fish_api_key}",
-        "Content-Type": "application/json"
-    }
-    payload = {
-        "text": clean_text,
-        "format": "mp3",
-    }
-    
-    response = requests.post(url, headers=headers, json=payload, timeout=60)
-    response.raise_for_status()
-    
-    with open(audio_path, "wb") as f:
-        f.write(response.content)
-        
-    probe_cmd = [
-        "ffprobe", "-v", "error", "-show_entries", "format=duration",
-        "-of", "default=noprint_wrappers=1:nokey=1", audio_path
-    ]
-    dur_res = subprocess.run(probe_cmd, capture_output=True, text=True, check=True, timeout=15)
-    audio_duration = float(dur_res.stdout.strip())
-
-    words = clean_text.split()
-    step = (audio_duration * 0.85) / max(1, len(words))
-    word_timings = [{"word": w, "time_seconds": round(0.1 + i * step, 3)} for i, w in enumerate(words)]
-    
-    logger.info(f"✅ Fish Audio track generated for Scene {scene_index} ({audio_duration:.2f}s)")
-    return audio_path, word_timings, audio_duration
-
-
-def generate_kokoro_voice(text, scene_index):
-    """
-    Synthesize audio using Kokoro (via FAL AI) as a tertiary fallback.
-    """
-    import os
-    import subprocess
-    import requests
-    import re
-    
-    logger.info(f"🎙️ Synthesizing voice for Scene {scene_index} using KOKORO (FAL AI) Fallback...")
-    
-    fal_key = get_secret("FAL_KEY")
-    if not fal_key:
-        raise ValueError("FAL_KEY not found for Kokoro TTS.")
-        
-    audio_path = os.path.join(OUTPUT_DIR, f"scene_{scene_index}.mp3")
-    clean_text = re.sub(r'<[^>]+>', '', text).strip()
-    
-    url = "https://fal.run/fal-ai/kokoro"
-    headers = {
-        "Authorization": f"Key {fal_key}",
-        "Content-Type": "application/json"
-    }
-    payload = {
-        "prompt": clean_text,
-        "voice": "am_adam" # standard male energetic voice
-    }
-    
-    response = requests.post(url, headers=headers, json=payload, timeout=60)
-    response.raise_for_status()
-    response_body = response.json()
-    
-    if "audio" in response_body and "url" in response_body["audio"]:
-        audio_url = response_body["audio"]["url"]
-        audio_data = requests.get(audio_url).content
-        
-        wav_path = audio_path.replace(".mp3", ".wav")
-        with open(wav_path, "wb") as f:
-            f.write(audio_data)
-            
-        # Convert WAV to MP3 to ensure FFmpeg concat doesn't crash later
-        conv_cmd = ["ffmpeg", "-y", "-i", wav_path, "-codec:a", "libmp3lame", "-qscale:a", "2", audio_path]
-        subprocess.run(conv_cmd, capture_output=True, check=True)
-        
-        if os.path.exists(wav_path):
-            os.remove(wav_path)
-    else:
-        raise RuntimeError("Kokoro FAL AI response missing audio URL.")
-        
-    probe_cmd = [
-        "ffprobe", "-v", "error", "-show_entries", "format=duration",
-        "-of", "default=noprint_wrappers=1:nokey=1", audio_path
-    ]
-    dur_res = subprocess.run(probe_cmd, capture_output=True, text=True, check=True, timeout=15)
-    audio_duration = float(dur_res.stdout.strip())
-
-    words = clean_text.split()
-    step = (audio_duration * 0.85) / max(1, len(words))
-    word_timings = [{"word": w, "time_seconds": round(0.1 + i * step, 3)} for i, w in enumerate(words)]
-    
-    logger.info(f"✅ Kokoro track generated for Scene {scene_index} ({audio_duration:.2f}s)")
-    return audio_path, word_timings, audio_duration
-
-
-def generate_scene_voice(tts_client, text, scene_index, voice_config_scene=None, arrow_state="arrow_up"):
-    import os, subprocess, re, requests, sys
-    import logging
-    logger = logging.getLogger(__name__)
-    
-    audio_path = os.path.join(OUTPUT_DIR, f"scene_{scene_index}.mp3")
-    clean_text = re.sub(r'<[^>]+>', '', text).strip()
-    
-    # Try Fish Audio first
-    fish_api_key = os.environ.get("FISH_AUDIO_API_KEY")
-    if fish_api_key:
-        logger.info(f"?? Synthesizing voice for Scene {scene_index} using Fish Audio...")
-        try:
-            url = "https://api.fish.audio/v1/tts"
-            headers = {
-                "Authorization": f"Bearer {fish_api_key}",
-                "Content-Type": "application/json"
-            }
-            # Using a known reference_id for a good voice if available, else omit
-            payload = {
-                "text": clean_text,
-                "format": "mp3",
-                "reference_id": "8064972e6b20469b8bf1e3c8800045f2" # Default to this reference from docs
-            }
-            resp = requests.post(url, json=payload, headers=headers, timeout=30)
-            if resp.status_code == 200:
-                with open(audio_path, "wb") as f:
-                    f.write(resp.content)
-            else:
-                raise Exception(f"Fish Audio failed: {resp.status_code} {resp.text}")
-        except Exception as e:
-            logger.warning(f"Fish Audio failed ({e}). Falling back to Edge-TTS...")
-            fish_api_key = None # trigger fallback
-            
-    # Edge-TTS Fallback
-    if not fish_api_key or not os.path.exists(audio_path):
-        logger.info(f"??? Synthesizing voice for Scene {scene_index} using EDGE-TTS fallback (Andrew)...")
-        voice = "en-US-AndrewMultilingualNeural"
-        subprocess.run([sys.executable, "-m", "edge_tts", "--voice", voice, "--text", clean_text, "--write-media", audio_path], check=True)
-
-    probe_cmd = ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", audio_path]
-    dur_res = subprocess.run(probe_cmd, capture_output=True, text=True, check=True)
-    audio_duration = float(dur_res.stdout.strip())
-    words = clean_text.split()
-    step = (audio_duration * 0.85) / max(1, len(words))
-    word_timings = [{"word": w, "time_seconds": round(0.1 + i * step, 3)} for i, w in enumerate(words)]
-    return audio_path, word_timings, audio_duration
-
 
 
 def fetch_pexels_video(query, scene_index, min_duration=3):
@@ -430,7 +264,7 @@ def process_scene_assets(tts_client, scene, idx, voice_config=None, visual_confi
     visual_prompt = scene.get('visual_prompt', '')
     
     vc = voice_config[idx] if voice_config and idx < len(voice_config) else None
-    audio_path, word_timings, audio_duration = generate_scene_voice(tts_client, text, idx, voice_config_scene=vc)
+    audio_path, word_timings, audio_duration = generate_gemini_voice(text, idx)
     
     vic = visual_config[idx] if visual_config and idx < len(visual_config) else None
     
