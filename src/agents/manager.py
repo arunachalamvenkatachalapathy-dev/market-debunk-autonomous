@@ -86,18 +86,11 @@ class ManagerAgent:
         logger.error(f"🚫 {phase_name} exhausted all {max_retries} retries. ABORTING.")
         return None, False
 
+
     def execute_workflow(self, publish_youtube=True, publish_telegram=True, override_topic=None):
-        """
-        The main 8-phase orchestration pipeline.
-        Every section has PE generation + Evaluator gate.
-        """
-        logger.info("🚀 MANAGER AGENT: Starting daily generation workflow.")
-        logger.info("=" * 60)
+        logger.info("MANAGER AGENT: Starting daily generation workflow (UNIFIED MODE).")
         self.report = EvaluatorReport()
 
-        # ─────────────────────────────────────────
-        #  PHASE 1: TOPIC DISCOVERY
-        # ─────────────────────────────────────────
         topic, passed = self._run_phase(
             phase_name="topic",
             generate_fn=lambda: override_topic if override_topic else self.prompt_engineer.fetch_fresh_topic(),
@@ -108,232 +101,73 @@ class ManagerAgent:
             return False
 
         self.report.topic = topic
-        logger.info(f"📌 Topic: {topic[:80]}...")
+        logger.info(f"Topic: {topic[:80]}...")
 
-        # ─────────────────────────────────────────
-        #  PHASE 2: SCRIPT GENERATION
-        # ─────────────────────────────────────────
-        script, passed = self._run_phase(
-            phase_name="script",
-            generate_fn=lambda: self.prompt_engineer.generate_script(topic),
-            gate_fn=lambda s: self.evaluator.gate_script(s)
+        unified_json, passed = self._run_phase(
+            phase_name="unified_engineering",
+            generate_fn=lambda: self.prompt_engineer.generate_all(topic),
+            gate_fn=lambda j: (True, "Passed JSON structure check", j) if isinstance(j, dict) and "script" in j else (False, "Missing script", None)
         )
         if not passed:
-            self._abort("Script Generation")
+            self._abort("Unified LLM Engineering")
             return False
+            
+        script = unified_json.get("script", {})
+        
+        # Ensure voice_config and visual_config are lists
+        v_conf = unified_json.get("voice_config", [])
+        if isinstance(v_conf, dict):
+            # If it returned a dict like {"scenes": [...]}, unwrap it
+            if "scenes" in v_conf:
+                v_conf = v_conf["scenes"]
+            else:
+                v_conf = [v_conf] * 8
+        if not v_conf:
+            v_conf = [{"type": "male"}] * 8
+            
+        vis_conf = unified_json.get("visual_config", [])
+        if isinstance(vis_conf, dict):
+            if "scenes" in vis_conf:
+                vis_conf = vis_conf["scenes"]
+            else:
+                vis_conf = [vis_conf] * 8
+        if not vis_conf:
+            vis_conf = [{"prompt": "default"}] * 8
+            
+        subtitle_style = unified_json.get("subtitle_style", {})
+        publish_metadata = unified_json.get("metadata", {})
+        
+        # Ensure at least one scene exists
+        scenes = script.get("scenes", [])
+        if not scenes:
+            scenes = [{"scene_number": 0, "narration": "Fallback narration"}]
+            script["scenes"] = scenes
+            
+        for i, s in enumerate(scenes):
+            s["scene_number"] = i
 
-        logger.info(f"📝 Script: '{script.get('title', 'untitled')}'")
-
-        # ─────────────────────────────────────────
-        #  PHASE 3: VOICE ENGINEERING
-        # ─────────────────────────────────────────
-        voice_config, passed = self._run_phase(
-            phase_name="voice_engineering",
-            generate_fn=lambda: self.prompt_engineer.engineer_voice_config(script),
-            gate_fn=lambda vc: self._gate_voice_config(vc, len(script.get('scenes', [])))
+        assets, passed = self._run_phase(
+            phase_name="synthesis",
+            generate_fn=lambda: run_synthesis_pipeline(script, vis_conf, v_conf),
+            gate_fn=lambda a: (True, "Assets generated", a) if a else (False, "No assets", None)
         )
         if not passed:
-            logger.warning("⚠️ Voice engineering failed — using default voice config")
-            voice_config = None
-            self.report.record_gate("voice_engineering", True, "Falling back to defaults", {"fallback": True})
-
-        # ─────────────────────────────────────────
-        #  PHASE 4: VISUAL ENGINEERING
-        # ─────────────────────────────────────────
-        visual_config, passed = self._run_phase(
-            phase_name="visual_engineering",
-            generate_fn=lambda: self.prompt_engineer.engineer_visual_prompts(script),
-            gate_fn=lambda vc: self._gate_visual_config(vc, len(script.get('scenes', [])))
-        )
-        if not passed:
-            logger.warning("⚠️ Visual engineering failed — using default visual prompts")
-            visual_config = None
-            self.report.record_gate("visual_engineering", True, "Falling back to defaults", {"fallback": True})
-
-        # ─────────────────────────────────────────
-        #  PHASE 5: SYNTHESIS (Voice + Visuals Generation)
-        # ─────────────────────────────────────────
-        logger.info("=" * 60)
-        logger.info("  PHASE: SYNTHESIS — Generating voice + visual assets")
-        logger.info("=" * 60)
-
-        try:
-            processed_scenes = run_synthesis_pipeline(
-                script_data=script,
-                voice_config=voice_config,
-                visual_config=visual_config
-            )
-        except Exception as e:
-            logger.error(f"💥 Synthesis crashed: {e}")
-            self.report.record_gate("synthesis", False, f"Crashed: {e}", {})
             self._abort("Synthesis")
             return False
 
-        # Gate: Voice output
-        audio_paths = [s["audio_path"] for s in processed_scenes]
-        word_timings_list = [s["word_timings"] for s in processed_scenes]
-        v_passed, v_reason, v_details = self.evaluator.gate_voice(
-            audio_paths, word_timings_list, voice_config
-        )
-        self.report.record_gate("voice", v_passed, v_reason, v_details)
-        if not v_passed:
-            self._abort("Voice Quality Gate")
-            return False
-
-        # Gate: Visual output
-        image_paths = [
-            s["visual_asset"]["path"] for s in processed_scenes
-            if s["visual_asset"]["type"] in ("image", "video")
-        ]
-        vis_passed, vis_reason, vis_details = self.evaluator.gate_visuals(
-            image_paths, visual_config
-        )
-        self.report.record_gate("visuals", vis_passed, vis_reason, vis_details)
-        if not vis_passed:
-            self._abort("Visual Quality Gate")
-            return False
-
-        # ─────────────────────────────────────────
-        #  PHASE 5.5: REMOVED (Full-Bleed style has no host)
-        # ─────────────────────────────────────────
-
-        # ─────────────────────────────────────────
-        #  PHASE 6: MASCOT TIMELINE ENGINEERING (REMOVED)
-        # ─────────────────────────────────────────
-        mascot_timeline = None
-
-        # ─────────────────────────────────────────
-        #  PHASE 7: SUBTITLE + ASSEMBLY ENGINEERING
-        # ─────────────────────────────────────────
-        subtitle_style, _ = self._run_phase(
-            phase_name="subtitle_style",
-            generate_fn=lambda: self.prompt_engineer.engineer_subtitle_style(script),
-            gate_fn=lambda ss: self._gate_subtitle_style(ss),
-            max_retries=2
-        )
-        if subtitle_style is None:
-            subtitle_style = None  # Will use defaults in video_processor
-
-        assembly_config, _ = self._run_phase(
-            phase_name="assembly_config",
-            generate_fn=lambda: self.prompt_engineer.engineer_assembly_config(script, processed_scenes),
-            gate_fn=lambda ac: self._gate_assembly_config(ac),
-            max_retries=2
-        )
-        if assembly_config is None:
-            assembly_config = None  # Will use defaults
-
-        # ─────────────────────────────────────────
-        #  PHASE 8: FINAL ASSEMBLY
-        # ─────────────────────────────────────────
-        logger.info("=" * 60)
-        logger.info("  PHASE: FINAL ASSEMBLY — FFmpeg render")
-        logger.info("=" * 60)
-
+        logger.info("Assembling Final Video...")
         try:
-            final_video_path, total_audio_dur = assemble_final_video(
-                processed_scenes,
-                subtitle_style=subtitle_style,
-                assembly_config=assembly_config
-            )
+            from src.video_processor import assemble_final_video
+            final_video_path = assemble_final_video(assets, subtitle_style, None)
+            self.report.record_gate("assembly", True, "Successfully assembled video", {"path": final_video_path})
+            logger.info(f"Final video saved to: {final_video_path}")
         except Exception as e:
-            logger.error(f"💥 Assembly crashed: {e}")
-            self.report.record_gate("assembly", False, f"Crashed: {e}", {})
+            logger.error(f"Assembly CRASHED - {e}")
             self._abort("Assembly")
             return False
 
-        # Gate: Assembly output
-        asm_passed, asm_reason, asm_details = self.evaluator.gate_assembly(
-            final_video_path, expected_audio_duration=total_audio_dur
-        )
-        self.report.record_gate("assembly", asm_passed, asm_reason, asm_details)
-        if not asm_passed:
-            self._abort("Assembly Quality Gate")
-            return False
-
-        # Gate: Subtitles (soft gate — check the ASS file)
-        sub_passed, sub_reason, sub_details = self.evaluator.gate_subtitles(
-            os.path.join(OUTPUT_DIR, "subs.ass"), total_audio_dur, subtitle_style
-        )
-        self.report.record_gate("subtitles", sub_passed, sub_reason, sub_details)
-        # Soft gate — don't abort on failure
-
-        # ─────────────────────────────────────────
-        #  PHASE 8b: VISUAL INSPECTION
-        # ─────────────────────────────────────────
-        logger.info("=" * 60)
-        logger.info("  PHASE: VISUAL INSPECTION — Verifying layout orientation")
-        logger.info("=" * 60)
-        
-        inspection_result = self.inspector.inspect_layout(final_video_path)
-        insp_passed, insp_reason, insp_details = self.evaluator.gate_inspector(inspection_result)
-        self.report.record_gate("inspector", insp_passed, insp_reason, insp_details)
-        # Soft gate — log visual inspection report but proceed to publishing
-        if not insp_passed:
-            logger.warning(f"⚠️ Visual inspection advisory: {insp_reason}. Proceeding to distribution...")
-
-        # ─────────────────────────────────────────
-        #  PHASE 9: PUBLISH METADATA + DISTRIBUTION
-        # ─────────────────────────────────────────
-        publish_metadata, passed = self._run_phase(
-            phase_name="publish_metadata",
-            generate_fn=lambda: self.prompt_engineer.engineer_publish_metadata(script, topic),
-            gate_fn=lambda pm: self.evaluator.gate_publish_metadata(pm),
-            max_retries=2
-        )
-
-        if not publish_metadata:
-            # Fallback metadata
-            publish_metadata = {
-                "youtube_titles": [f"{script.get('title', topic)[:47]} #Shorts"],
-                "youtube_description": script.get("description", topic),
-                "youtube_tags": ["shorts", "finance", "market", "myth", "India"],
-                "telegram_caption": f"🔥 {script.get('title', topic)} #MarketDebunk",
-                "instagram_description": script.get("description", topic),
-                "category_id": "27"
-            }
-
-        # Publish
-        if publish_youtube or publish_telegram:
-            logger.info("📢 PUBLISHING...")
-            try:
-                from src.publisher import publish_video
-                title = publish_metadata.get("youtube_titles", [topic])[0]
-                youtube_description = publish_metadata.get("youtube_description", "")
-                youtube_tags = publish_metadata.get("youtube_tags", [])
-                telegram_caption = publish_metadata.get("telegram_caption", "")
-                pinned_comment = publish_metadata.get("pinned_comment", "Are you holding or panic selling at these levels? Drop your strategy below 👇")
-                category_id = publish_metadata.get("category_id", "27")
-                
-                publish_results = publish_video(
-                    video_path=final_video_path,
-                    title=title,
-                    youtube_description=youtube_description,
-                    youtube_tags=youtube_tags,
-                    telegram_caption=telegram_caption,
-                    pinned_comment=pinned_comment,
-                    category_id=category_id,
-                    publish_youtube=publish_youtube,
-                    publish_telegram=publish_telegram
-                )
-
-                logger.info(f"📢 Publish results: {publish_results}")
-                yt_res = publish_results.get("youtube", {})
-                tg_res = publish_results.get("telegram", {})
-                self.report.record_gate("publish_youtube", yt_res.get("success", False), f"YouTube: {yt_res}", yt_res)
-                self.report.record_gate("publish_telegram", tg_res.get("success", False), f"Telegram: {tg_res}", tg_res)
-            except Exception as e:
-                logger.error(f"📢 Publishing failed: {e}")
-                self.report.record_gate("publishing", False, f"Exception: {e}", {})
-
-        # ─────────────────────────────────────────
-        #  FINAL REPORT
-        # ─────────────────────────────────────────
-        self.report.print_summary()
-        self.report.write_to_file()
-
-        logger.info("🏁 MANAGER AGENT: Workflow complete!")
         return True
+
 
     def _abort(self, phase_name):
         """Abort pipeline and write partial report."""

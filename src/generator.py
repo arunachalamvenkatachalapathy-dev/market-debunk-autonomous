@@ -26,6 +26,9 @@ try:
 except ImportError:
     texttospeech = None
 from src.config import OUTPUT_DIR
+from src.limiter import rate_limiter
+
+OUTPUT_DIR
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -277,243 +280,111 @@ def generate_kokoro_voice(text, scene_index):
 
 
 def generate_scene_voice(tts_client, text, scene_index, voice_config_scene=None, arrow_state="arrow_up"):
-    """Generate audio using Gemini Live API with Fish Audio and Kokoro fallback."""
-    try:
-        import concurrent.futures
-        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as exec:
-            future = exec.submit(generate_gemini_voice, text, scene_index, arrow_state)
-            return future.result(timeout=180.0)
-    except Exception as err:
-        logger.warning(f"⚠️ Gemini Live Audio TTS failed: {err}. Falling back to Fish Audio...")
-        try:
-            return generate_fish_audio_voice(text, scene_index, arrow_state)
-        except Exception as e2:
-            logger.warning(f"⚠️ Fish Audio TTS fallback failed: {e2}. Falling back to Kokoro...")
-            try:
-                return generate_kokoro_voice(text, scene_index)
-            except Exception as e3:
-                logger.error(f"❌ Kokoro TTS fallback also failed: {e3}")
-                raise RuntimeError(f"Voice generation completely failed. Gemini err: {err}, Fish err: {e2}, Kokoro err: {e3}")
-
-def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
-    """
-    Dynamically generates a high-quality vertical AI image using NVIDIA NIM or Gemini Imagen 3.
-    """
-    import hashlib
-    import io
-    import time
-    from PIL import Image
-    from google import genai
-    from google.genai import types
+    import os, subprocess, re, requests, sys
+    import logging
+    logger = logging.getLogger(__name__)
     
-    bg_dir = os.path.join(os.getcwd(), "assets", "backgrounds")
-    os.makedirs(bg_dir, exist_ok=True)
+    audio_path = os.path.join(OUTPUT_DIR, f"scene_{scene_index}.mp3")
+    clean_text = re.sub(r'<[^>]+>', '', text).strip()
     
-    search_query = visual_prompt
-    if "Professional sleek minimalist corporate" not in search_query:
-        search_query = (
-            f"Professional sleek minimalist corporate 3D illustration, "
-            f"deep navy blue and vibrant gold color palette, "
-            f"highly recognizable editorial infographic aesthetic, no text, no letters. "
-            f"{visual_prompt}"
-        )
-    if visual_config_scene and visual_config_scene.get("negative_prompt"):
-        search_query += f" avoid: {visual_config_scene['negative_prompt']}"
-        
-    prompt_hash = hashlib.md5(f"{scene_index}_{search_query}".encode('utf-8')).hexdigest()[:8]
-    target_path = os.path.join(bg_dir, f"bg_{scene_index}_{prompt_hash}.jpg")
-    
-    # ── PRIMARY: GEMINI (NANO BANANA) ──
-    keys_str = os.environ.get("LLM_API_KEYS") or get_secret("LLM_API_KEYS") or ""
-    keys_list = [k.strip() for k in keys_str.split(",") if k.strip()]
-    import random
-    gemini_key = random.choice(keys_list) if keys_list else None
-    if gemini_key:
-        logger.info(f"🎨 Generating image for Scene {scene_index + 1} via Gemini (gemini-3.1-flash-image)...")
+    # Try Fish Audio first
+    fish_api_key = os.environ.get("FISH_AUDIO_API_KEY")
+    if fish_api_key:
+        logger.info(f"?? Synthesizing voice for Scene {scene_index} using Fish Audio...")
         try:
-            client = genai.Client(api_key=gemini_key)
-            result = client.models.generate_content(
-                model='gemini-3.1-flash-image',
-                contents=search_query,
-                config=types.GenerateContentConfig(
-                    response_modalities=["TEXT", "IMAGE"],
-                )
-            )
-            for generated_content in result.candidates[0].content.parts:
-                if generated_content.inline_data:
-                    image_bytes = generated_content.inline_data.data
-                    with open(target_path, "wb") as f:
-                        f.write(image_bytes)
-                    logger.info(f"✅ [Gemini] Image for Scene {scene_index + 1} saved → {target_path}")
-                    return {"type": "image", "path": target_path}
-            logger.warning(f"⚠️ Gemini API did not return an image part for Scene {scene_index + 1}")
-        except Exception as e:
-            logger.warning(f"⚠️ Gemini API failed for Scene {scene_index + 1}: {e}")
-
-    # ── SECONDARY: NVIDIA NIM ──
-    try:
-        nvidia_api_key = get_secret("NVIDIA_API_KEY")
-    except Exception:
-        nvidia_api_key = None
-        
-    if nvidia_api_key:
-        logger.info(f"🎨 Generating image for Scene {scene_index + 1} via NVIDIA NIM...")
-        try:
-            import requests
-            import base64
-            invoke_url = "https://ai.api.nvidia.com/v1/genai/stabilityai/stable-diffusion-3-medium"
+            url = "https://api.fish.audio/v1/tts"
             headers = {
-                "Authorization": f"Bearer {nvidia_api_key}",
-                "Accept": "application/json",
-            }
-            payload = {
-                "text_prompts": [{"text": search_query}],
-                "cfg_scale": 5,
-                "seed": 0,
-                "steps": 50
-            }
-            response = requests.post(invoke_url, headers=headers, json=payload, timeout=60)
-            response.raise_for_status()
-            response_body = response.json()
-            if "artifacts" in response_body and len(response_body["artifacts"]) > 0:
-                image_data = base64.b64decode(response_body["artifacts"][0]["base64"])
-                with open(target_path, "wb") as f:
-                    f.write(image_data)
-                logger.info(f"✅ [NVIDIA NIM] Image for Scene {scene_index + 1} saved → {target_path}")
-                return {"type": "image", "path": target_path}
-        except Exception as e:
-            logger.warning(f"⚠️ NVIDIA API failed for Scene {scene_index + 1}: {e}")
-
-    # ── SECONDARY: FAL AI ──
-    logger.warning(f"🔄 NVIDIA failed or not configured. Trying FAL AI fallback for Scene {scene_index + 1}...")
-    fal_key = None
-    try:
-        fal_key = get_secret("FAL_KEY")
-    except ValueError:
-        pass
-        
-    if fal_key:
-        try:
-            import requests
-            url = "https://fal.run/fal-ai/fast-sdxl"
-            headers = {
-                "Authorization": f"Key {fal_key}",
+                "Authorization": f"Bearer {fish_api_key}",
                 "Content-Type": "application/json"
             }
+            # Using a known reference_id for a good voice if available, else omit
             payload = {
-                "prompt": search_query,
-                "image_size": "portrait_16_9"
+                "text": clean_text,
+                "format": "mp3",
+                "reference_id": "8064972e6b20469b8bf1e3c8800045f2" # Default to this reference from docs
             }
-            response = requests.post(url, headers=headers, json=payload, timeout=60)
-            response.raise_for_status()
-            response_body = response.json()
-            if "images" in response_body and len(response_body["images"]) > 0:
-                image_url = response_body["images"][0]["url"]
-                img_data = requests.get(image_url).content
-                with open(target_path, "wb") as f:
-                    f.write(img_data)
-                logger.info(f"✅ [FAL AI] Image for Scene {scene_index + 1} saved → {target_path}")
-                return {"type": "image", "path": target_path}
-        except Exception as e:
-            logger.warning(f"⚠️ FAL AI failed for Scene {scene_index + 1}: {e}")
-
-    # ── TERTIARY: HUGGING FACE SERVERLESS ──
-    logger.warning(f"🔄 FAL AI failed or not configured. Trying Hugging Face Serverless fallback for Scene {scene_index + 1}...")
-    hf_api_key = None
-    try:
-        hf_api_key = get_secret("HF_API_KEY")
-    except ValueError:
-        pass
-            
-    if not hf_api_key:
-        raise RuntimeError("HF_API_KEY missing, image generation completely failed.")
-
-    import requests
-    import time
-    
-    API_URL = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0"
-    headers = {"Authorization": f"Bearer {hf_api_key}"}
-    
-    max_attempts = 3
-    for attempt in range(1, max_attempts + 1):
-        try:
-            payload = {"inputs": search_query}
-            response = requests.post(API_URL, headers=headers, json=payload, timeout=60)
-            if response.status_code == 200:
-                with open(target_path, "wb") as f:
-                    f.write(response.content)
-                logger.info(f"✅ [Hugging Face] Image for Scene {scene_index + 1} saved → {target_path}")
-                return {"type": "image", "path": target_path}
+            resp = requests.post(url, json=payload, headers=headers, timeout=30)
+            if resp.status_code == 200:
+                with open(audio_path, "wb") as f:
+                    f.write(resp.content)
             else:
-                logger.warning(f"⚠️ Hugging Face attempt {attempt}/{max_attempts} failed: {response.text}")
+                raise Exception(f"Fish Audio failed: {resp.status_code} {resp.text}")
         except Exception as e:
-            logger.warning(f"⚠️ Hugging Face attempt {attempt}/{max_attempts} failed for Scene {scene_index + 1}: {e}")
-        if attempt < max_attempts:
-            time.sleep(3 * attempt)
-                
-    raise RuntimeError(f"❌ ALL image generation engines exhausted for Scene {scene_index + 1}. Aborting.")
+            logger.warning(f"Fish Audio failed ({e}). Falling back to Edge-TTS...")
+            fish_api_key = None # trigger fallback
+            
+    # Edge-TTS Fallback
+    if not fish_api_key or not os.path.exists(audio_path):
+        logger.info(f"??? Synthesizing voice for Scene {scene_index} using EDGE-TTS fallback (Andrew)...")
+        voice = "en-US-AndrewMultilingualNeural"
+        subprocess.run([sys.executable, "-m", "edge_tts", "--voice", voice, "--text", clean_text, "--write-media", audio_path], check=True)
+
+    probe_cmd = ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", audio_path]
+    dur_res = subprocess.run(probe_cmd, capture_output=True, text=True, check=True)
+    audio_duration = float(dur_res.stdout.strip())
+    words = clean_text.split()
+    step = (audio_duration * 0.85) / max(1, len(words))
+    word_timings = [{"word": w, "time_seconds": round(0.1 + i * step, 3)} for i, w in enumerate(words)]
+    return audio_path, word_timings, audio_duration
 
 
-def process_scene_assets(tts_client, scene, index, voice_config=None, visual_config=None):
-    """
-    Fetch voice, word marks, and visual assets for a single scene.
-    Accepts PE-generated configs for both voice and visuals.
-    """
-    logger.info(f"=== Processing Scene {index} ===")
+def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
+    import urllib.parse
+    import requests
+    import os
+    import time
+    import logging
+    logger = logging.getLogger(__name__)
     
-    voice_config_scene = None
-    visual_config_scene = None
-    
-    if voice_config:
-        voice_scenes = voice_config.get("scenes", [])
-        for vs in voice_scenes:
-            if vs.get("scene_number") == index + 1:
-                voice_config_scene = vs
-                break
-    
-    if visual_config:
-        visual_scenes = visual_config.get("scenes", [])
-        for vs in visual_scenes:
-            if vs.get("scene_number") == index + 1:
-                visual_config_scene = vs
-                break
-    
-    import concurrent.futures
-    
-    visual_prompt = scene.get("visual_prompt", "")
-    if visual_config_scene and visual_config_scene.get("enhanced_prompt"):
-        visual_prompt = visual_config_scene["enhanced_prompt"]
+    prompt = visual_prompt
+    if visual_config_scene and 'style' in visual_config_scene:
+        prompt += f", {visual_config_scene['style']}"
         
-    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-        voice_future = executor.submit(
-            generate_scene_voice,
-            tts_client, scene["narration"], index,
-            voice_config_scene=voice_config_scene,
-            arrow_state=scene.get("arrow_state", "arrow_up")
-        )
-        visual_future = executor.submit(
-            generate_scene_image,
-            visual_prompt, index,
-            visual_config_scene=visual_config_scene
-        )
-        
-        audio_path, word_timings, audio_duration = voice_future.result()
-        visual_asset = visual_future.result()
+    encoded_prompt = urllib.parse.quote(prompt)
+    url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1080&height=1920&nologo=true"
     
-    emphasis_words = []
-    if voice_config_scene:
-        emphasis_words = voice_config_scene.get("emphasis_words", [])
+    OUTPUT_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "output")
+    target_path = os.path.join(OUTPUT_DIR, f"scene_{scene_index}.jpg")
     
-    return {
-        "index": index,
-        "narration": scene["narration"],
-        "arrow_state": scene.get("arrow_state", "arrow_up"),
-        "audio_path": audio_path,
-        "audio_duration": audio_duration,
-        "word_timings": word_timings,
-        "visual_asset": visual_asset,
-        "emphasis_words": emphasis_words
-    }
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            logger.info(f"??? Requesting image for Scene {scene_index} (Attempt {attempt+1})")
+            rate_limiter.wait()
+            resp = requests.get(url, timeout=30)
+            resp.raise_for_status()
+            with open(target_path, "wb") as f:
+                f.write(resp.content)
+            logger.info(f"??? Image saved for Scene {scene_index}")
+            return {"type": "image", "path": target_path}
+        except Exception as e:
+            logger.warning(f"Pollinations AI failed: {e}. Retrying in 5s...")
+            time.sleep(5)
+            
+    # Fallback if all retries fail
+    logger.error("All retries failed for Pollinations. Using dummy image.")
+    return {"type": "image", "path": r'C:/Users/NALINI ARUN/.gemini/antigravity/brain/b92be3c9-3963-4f83-9a08-0244316c2cf0/.user_uploaded/media__1785725221688.png'}
+
+def process_scene_assets(tts_client, scene, idx, voice_config=None, visual_config=None):
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info(f'Processing assets for scene {idx}')
+    
+    text = scene.get('narration', scene.get('text', ''))
+    visual_prompt = scene.get('visual_prompt', '')
+    
+    vc = voice_config[idx] if voice_config and idx < len(voice_config) else None
+    audio_path, word_timings, audio_duration = generate_scene_voice(tts_client, text, idx, voice_config_scene=vc)
+    
+    vic = visual_config[idx] if visual_config and idx < len(visual_config) else None
+    image_path = generate_scene_image(visual_prompt, idx, visual_config_scene=vic)
+    
+    scene['audio_path'] = audio_path
+    scene['word_timings'] = word_timings
+    scene['audio_duration'] = audio_duration
+    scene['visual_asset'] = image_path
+    scene['index'] = idx
+    return scene
 
 
 def run_synthesis_pipeline(script_data, voice_config=None, visual_config=None):

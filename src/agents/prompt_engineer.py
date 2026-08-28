@@ -444,6 +444,47 @@ class PromptEngineerAgent:
     #  SECTION 3: VOICE ENGINEERING
     # ──────────────────────────────────────────────
 
+
+
+
+    def generate_all(self, topic):
+        from src.limiter import rate_limiter
+        rate_limiter.wait()
+        
+        system_prompt = FRAMEWORK_RULES + "\n\nYou must output ONE unified JSON object containing the script, voice config, visual prompts, subtitles, and metadata. Strictly follow this schema shape:\n{\"script\": {\"title\": \"...\", \"scenes\": [{\"scene_number\": 1, \"narration\": \"...\"}]}, \"voice_config\": [{\"type\": \"male\"}], \"visual_config\": [{\"prompt\": \"...\", \"style\": \"...\"}], \"subtitle_style\": {\"font_name\": \"Arial\"}, \"metadata\": {\"title\": \"...\", \"description\": \"...\", \"tags\": [\"...\"]}}"
+        user_prompt = f"Topic: {topic}\nGenerate the complete unified JSON configuration."
+        
+        import json, re, logging
+        logger = logging.getLogger(__name__)
+        logger.info("?? Using Groq Unified Generation with gpt-oss-120b...")
+        
+        for attempt in range(3):
+            try:
+                import openai
+                client = openai.OpenAI(base_url="https://api.groq.com/openai/v1", api_key=self.groq_key)
+                response = client.chat.completions.create(
+                    model="openai/gpt-oss-120b",
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt}
+                    ],
+                    temperature=0.8
+                )
+                content_str = response.choices[0].message.content
+                match = re.search(r"`(?:json)?\s*(.*?)\s*`", content_str, re.DOTALL)
+                if match:
+                    content_str = match.group(1)
+                start = content_str.find('{')
+                end = content_str.rfind('}')
+                if start != -1 and end != -1:
+                    content_str = content_str[start:end+1]
+                return json.loads(content_str)
+            except Exception as e:
+                logger.error(f"Unified Groq call failed on attempt {attempt+1}: {e}")
+                import time; time.sleep(3)
+                
+        raise Exception("Failed to generate with Groq after 3 attempts")
+
     def engineer_voice_config(self, script):
         """Engineers optimal voice/SSML configuration for each scene."""
         logger.info("🎙️ PE Agent [VOICE]: Engineering voice config...")
