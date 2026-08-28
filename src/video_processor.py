@@ -172,10 +172,16 @@ def process_single_scene_media(scene, assembly_config=None):
     logger.info(f"🎬 Processing Scene {idx} (duration: {dur}s, fps: {fps})")
 
     # ── Step 1: Render Full-Bleed B-Roll ───────────
+
     asset = scene.get("visual_asset")
-    
-    if asset and asset.get("path") and os.path.exists(asset.get("path")):
+    asset_path = None
+    if isinstance(asset, str):
+        asset_path = asset
+    elif isinstance(asset, dict) and asset.get("path"):
         asset_path = asset.get("path")
+        
+    if asset_path and os.path.exists(asset_path):
+
         
         if asset_path.lower().endswith(('.mp4', '.mov', '.webm', '.avi')):
             # It's a video. Scale and crop to 1080x1920 to fill the entire screen (Full-Bleed)

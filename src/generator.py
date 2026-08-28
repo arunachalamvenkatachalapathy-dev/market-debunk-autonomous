@@ -328,7 +328,63 @@ def generate_scene_voice(tts_client, text, scene_index, voice_config_scene=None,
     return audio_path, word_timings, audio_duration
 
 
+
+def fetch_pexels_video(query, scene_index, min_duration=3):
+    import os
+    import requests
+    import logging
+    import random
+    import urllib.parse
+    logger = logging.getLogger(__name__)
+    
+    OUTPUT_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "output")
+    target_path = os.path.join(OUTPUT_DIR, f"scene_{scene_index}.mp4")
+    
+    api_key = os.environ.get("PEXELS_API_KEY")
+    if not api_key:
+        logger.warning("No PEXELS_API_KEY found, falling back to Pollinations image")
+        return generate_scene_image(query, scene_index)
+        
+    # Take first 2-3 words of prompt for better search results
+    import re as regex
+    clean_query = " ".join(regex.sub(r'[^a-zA-Z0-9 ]', '', query).split()[:3])
+    url = f"https://api.pexels.com/videos/search?query={urllib.parse.quote(clean_query)}&orientation=portrait&size=medium&per_page=15"
+    
+    try:
+        headers = {"Authorization": api_key}
+        res = requests.get(url, headers=headers, timeout=10)
+        res.raise_for_status()
+        data = res.json()
+        
+        videos = [v for v in data.get("videos", []) if v.get("duration", 0) >= min_duration]
+        if not videos:
+            logger.warning(f"No valid Pexels videos found for '{clean_query}'. Falling back to Pollinations image.")
+            return generate_scene_image(query, scene_index)
+            
+        selected_video = random.choice(videos)
+        video_files = selected_video.get("video_files", [])
+        
+        # Prefer HD vertical
+        hd_files = [f for f in video_files if f.get("quality") == "hd" and f.get("width", 0) < f.get("height", 0)]
+        if hd_files:
+            video_url = hd_files[0].get("link")
+        else:
+            video_url = video_files[0].get("link")
+            
+        # Download video
+        logger.info(f"Downloading Pexels video for scene {scene_index}...")
+        vid_res = requests.get(video_url, stream=True, timeout=30)
+        vid_res.raise_for_status()
+        with open(target_path, 'wb') as f:
+            for chunk in vid_res.iter_content(chunk_size=8192):
+                f.write(chunk)
+        return target_path
+    except Exception as e:
+        logger.error(f"Pexels fetch failed: {e}. Falling back to Pollinations.")
+        return generate_scene_image(query, scene_index)
+
 def generate_scene_image(visual_prompt, scene_index, visual_config_scene=None):
+
     import urllib.parse
     import requests
     import os
@@ -377,7 +433,10 @@ def process_scene_assets(tts_client, scene, idx, voice_config=None, visual_confi
     audio_path, word_timings, audio_duration = generate_scene_voice(tts_client, text, idx, voice_config_scene=vc)
     
     vic = visual_config[idx] if visual_config and idx < len(visual_config) else None
-    image_path = generate_scene_image(visual_prompt, idx, visual_config_scene=vic)
+    
+    # MPT Methodology: Try Pexels Video first
+    image_path = fetch_pexels_video(visual_prompt, idx)
+
     
     scene['audio_path'] = audio_path
     scene['word_timings'] = word_timings
