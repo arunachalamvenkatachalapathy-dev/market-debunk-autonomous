@@ -103,7 +103,7 @@ def generate_image(prompt: str, output_path: Path, scene_id: int = 0) -> bool:
             api_url = "https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell"
             headers = {"Authorization": f"Bearer {hf_token}"}
             
-            # Simple retry loop for API cold starts
+            # Simple retry loop for API cold starts with exponential backoff
             for attempt in range(5):
                 response = requests.post(api_url, headers=headers, json={"inputs": enhanced_prompt}, timeout=120)
                 if response.status_code == 200:
@@ -113,8 +113,9 @@ def generate_image(prompt: str, output_path: Path, scene_id: int = 0) -> bool:
                     log.info(f"Scene {scene_id} image saved successfully (HF API).")
                     return True
                 elif "currently loading" in response.text.lower() or response.status_code == 503:
-                    log.warning(f"Model loading (Attempt {attempt+1}/5). Waiting 10 seconds...")
-                    time.sleep(10)
+                    backoff = 2 ** attempt * 5  # 5, 10, 20, 40, 80 seconds
+                    log.warning(f"Model loading (Attempt {attempt+1}/5). Waiting {backoff} seconds...")
+                    time.sleep(backoff)
                 else:
                     log.error(f"HF API returned unexpected status {response.status_code}: {response.text[:100]}")
                     break
@@ -140,8 +141,9 @@ def generate_image(prompt: str, output_path: Path, scene_id: int = 0) -> bool:
                     log.info(f"Scene {scene_id} image saved successfully.")
                     return True
                 elif r.status_code == 429:
-                    log.warning(f"Queue full (429). Retrying in 10 seconds...")
-                    time.sleep(10)
+                    backoff = min(60, 2 ** attempt * 5)  # Cap backoff at 60 seconds
+                    log.warning(f"Queue full (429). Retrying in {backoff} seconds...")
+                    time.sleep(backoff)
                 else:
                     log.error(f"FLUX returned unexpected status for scene {scene_id}: {r.status_code} - {r.text[:100]}")
                     return False
