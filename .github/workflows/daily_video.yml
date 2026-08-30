@@ -1,103 +1,65 @@
-name: Autonomous Market Debunk Pipeline
+name: Daily Autonomous Video Pipeline
 
 on:
   schedule:
-    # Peak viral Indian viewer slots: 8:30 AM IST (03:00 UTC) and 7:15 PM IST (13:45 UTC) every day
-    - cron: '0 3,13 * * *'
-  workflow_dispatch: # Allows manual triggering from the GitHub UI
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+    # 8:30 AM IST (03:00 UTC) and 2:30 PM IST (09:00 UTC)
+    - cron: '0 3 * * *'
+    - cron: '0 9 * * *'
+  workflow_dispatch: # Allow manual trigger from GitHub UI
 
 jobs:
-  generate-and-publish:
+  run-pipeline:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
-    
-    # Required permissions to commit the used_topics.json back to the repo
     permissions:
-      contents: write
+      contents: write # Needed to commit dedup history back to repo
 
     steps:
-      - name: Checkout Code Repository
+      - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup Python 3.12
+      - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
-          cache: 'pip' # Automatically caches pip dependencies
+          python-version: '3.11'
+          cache: 'pip'
 
-      - name: Setup FFmpeg & Espeak-NG
-        run: sudo apt-get update && sudo apt-get install -y ffmpeg espeak-ng
-          
-      - name: Install Python Dependencies
-        run: pip install -r requirements.txt yt-dlp pydub
-        
-      - name: Cache Premium Audio & SFX
-        id: cache-audio
-        uses: actions/cache@v4
-        with:
-          path: assets/audio
-          key: premium-audio-${{ hashFiles('scripts/download_premium_audio.py') }}
-          
-      - name: Download Premium Audio & SFX
-        if: steps.cache-audio.outputs.cache-hit != 'true'
-        run: python scripts/download_premium_audio.py
-        
-      - name: Run Autonomous Pipeline
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Install Dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Pipeline (Manager Agent)
         env:
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
-          GEMINI_TTS_API_KEY: ${{ secrets.GEMINI_TTS_API_KEY }}
-          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
-          LLM_API_KEYS: ${{ secrets.LLM_API_KEYS }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          FAL_KEY: ${{ secrets.FAL_KEY }}
-          HF_API_KEY: ${{ secrets.HF_API_KEY }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          GEMINI_SCRIPT_API_KEY: ${{ secrets.GEMINI_SCRIPT_API_KEY }}
+          GEMINI_IMAGE_API_KEY: ${{ secrets.GEMINI_IMAGE_API_KEY }}
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
           YT_API_KEY: ${{ secrets.YT_API_KEY }}
+          ENABLE_YT_UPLOAD: ${{ secrets.ENABLE_YT_UPLOAD }}
           YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
           YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
           YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+          ENABLE_TELEGRAM: ${{ secrets.ENABLE_TELEGRAM }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
-          FISH_AUDIO_API_KEY: ${{ secrets.FISH_AUDIO_API_KEY }}
-          TWITTER_API_KEY: ${{ secrets.TWITTER_API_KEY }}
-          TWITTER_API_SECRET: ${{ secrets.TWITTER_API_SECRET }}
-          TWITTER_ACCESS_TOKEN: ${{ secrets.TWITTER_ACCESS_TOKEN }}
-          TWITTER_ACCESS_TOKEN_SECRET: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          python github_action_run.py
-
-
-      - name: Persist AI Memory (Commit used_topics.json)
-        # Always run this step even if publishing fails, so we don't repeat topics!
-        if: always()
-        continue-on-error: true
-        run: |
-          git config --global user.name "MarketDebunk-AI-Bot"
-          git config --global user.email "bot@marketdebunk.com"
-          
-          # Only commit if used_topics.json actually changed
-          if git diff --quiet used_topics.json; then
-            echo "No new topics used today. Nothing to commit."
-          else
-            git add used_topics.json
-            git commit -m "chore: persist AI memory to avoid topic repetition"
-            git pull --rebase --autostash
-            git push
-            echo "Successfully committed used_topics.json memory!"
-          fi
+        run: python -m src.agents.manager
 
       - name: Upload Video Artifact
-        if: always()
         uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: final-video
-          path: "**/*.mp4"
+          name: generated-shorts
+          path: output/**/distribution_ready.mp4
+          retention-days: 7
+
+      - name: Commit Deduplication Data
+        if: success()
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add data/used_topics.json data/channel_ids.json
+          # Only commit if there are changes
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: update topic dedup history [skip ci]" && git push)
