@@ -58,7 +58,8 @@ def run_pipeline():
 
         # ── Phase 1.5: Dedup Gate ─────────────────────────────────────────
         with PhaseTimer("Phase 1.5: Dedup Gate"):
-            if evaluator.is_duplicate(thesis):
+            is_dup, score, match = evaluator.is_duplicate(thesis)
+            if is_dup:
                 log.warning("🛑 Topic is too similar to a recent video. Halting pipeline.")
                 sys.exit(0)
             log.info("Topic passed uniqueness check.")
