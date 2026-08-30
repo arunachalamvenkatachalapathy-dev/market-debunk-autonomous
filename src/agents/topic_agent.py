@@ -239,12 +239,14 @@ def _download_transcript_ytdlp(video_id: str) -> str:
     import subprocess
     import tempfile
 
+    import sys
+
     url = f"https://www.youtube.com/watch?v={video_id}"
     with tempfile.TemporaryDirectory() as tmpdir:
         try:
             result = subprocess.run(
                 [
-                    "yt-dlp",
+                    sys.executable, "-m", "yt_dlp",
                     "--write-auto-sub",
                     "--sub-lang", "ta,hi,en",
                     "--skip-download",
