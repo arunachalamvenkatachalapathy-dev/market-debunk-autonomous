@@ -204,7 +204,8 @@ def download_transcript(video_id: str) -> str:
     lang_priority = ["ta", "hi", "en-IN", "en"]
 
     try:
-        transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
+        ytt_api = YouTubeTranscriptApi()
+        transcript_list = ytt_api.list(video_id)
 
         for lang in lang_priority:
             try:
