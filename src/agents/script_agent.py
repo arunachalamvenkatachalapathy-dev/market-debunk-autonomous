@@ -30,7 +30,6 @@ from typing import Optional
 
 from pydantic import BaseModel, Field, field_validator
 from tenacity import retry, stop_after_attempt, wait_exponential
-import google.generativeai as genai
 
 from src.utils.config import settings
 from src.utils.logger import get_logger
@@ -163,21 +162,22 @@ def _extract_json(text: str) -> dict:
 #  Gemma via Google AI Studio
 # ──────────────────────────────────────────────────────────────────────────────
 
-# Available Gemma models (heavyweight first)
+# Available Gemini models on Vertex AI
 _GEMMA_MODELS = [
-    "gemma-4-31b-it",    # Gemma 4 Heavyweight
-    "gemini-2.5-pro",    # Gemini Pro Heavyweight
-    "gemini-3.5-flash",  # Fast and good quality fallback
+    "gemini-1.5-pro-002",
+    "gemini-1.5-flash-002",
 ]
 
 
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=2, min=3, max=20))
-def _call_gemma(thesis: str, channel_name: str, model: str) -> str:
-    """Call Gemma via Google AI Studio API and return raw response."""
-    genai.configure(api_key=settings.GEMINI_SCRIPT_API_KEY)
+def _call_gemma(thesis: str, channel_name: str, model_name: str) -> str:
+    """Call Gemini via Vertex AI and return raw response."""
+    import vertexai
+    from vertexai.generative_models import GenerativeModel, GenerationConfig
+    vertexai.init(project="exalted-shape-502013-q5", location="us-central1")
 
-    gemma_model = genai.GenerativeModel(
-        model_name=model,
+    model = GenerativeModel(
+        model_name=model_name,
         system_instruction=_SYSTEM_PROMPT,
     )
 
@@ -186,9 +186,9 @@ Core financial thesis to script: "{thesis}"
 
 Now generate the complete 8-scene YouTube Short script JSON."""
 
-    response = gemma_model.generate_content(
+    response = model.generate_content(
         user_prompt,
-        generation_config=genai.types.GenerationConfig(
+        generation_config=GenerationConfig(
             temperature=0.8,
             max_output_tokens=4000,
             response_mime_type="application/json",

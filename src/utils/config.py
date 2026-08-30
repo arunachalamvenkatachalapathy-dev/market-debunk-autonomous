@@ -42,6 +42,10 @@ class Settings:
     # ── Gemini Image (Cloud GCP — image generation ONLY) ──────────
     GEMINI_IMAGE_API_KEY: str = _get("GEMINI_IMAGE_API_KEY", required=False) or ""
 
+    # Groq Fallback
+    GROQ_API_KEY: str = _get("GROQ_API_KEY", required=False) or ""
+    GROQ_FALLBACK_MODEL: str = _get("GROQ_FALLBACK_MODEL", required=False) or "llama3-8b-8192"
+
     # ── Pexels (Background Footage) ───────────────────────────────
     PEXELS_API_KEY: str = _get("PEXELS_API_KEY", required=False) or ""
 

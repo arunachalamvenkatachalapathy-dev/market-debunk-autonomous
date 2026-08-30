@@ -308,19 +308,18 @@ Your task:
 Output ONLY the thesis sentence. No explanation, no preamble, no quotes.
 """
 
-    # Try Gemini (image key — used here for text summarization, which is acceptable
-    # as the user's restriction is about video/voice generation, not text)
-    if settings.GEMINI_IMAGE_API_KEY:
-        try:
-            import google.generativeai as genai
-            genai.configure(api_key=settings.GEMINI_IMAGE_API_KEY)
-            model = genai.GenerativeModel("gemini-1.5-flash")
-            response = model.generate_content(prompt)
-            thesis = response.text.strip().strip('"').strip("'")
-            log.info("Gemini thesis: %s", thesis)
-            return thesis
-        except Exception as exc:
-            log.warning("Gemini summarization failed, falling back to Groq: %s", exc)
+    # Try Gemini (via Vertex AI)
+    try:
+        import vertexai
+        from vertexai.generative_models import GenerativeModel
+        vertexai.init(project="exalted-shape-502013-q5", location="us-central1")
+        model = GenerativeModel("gemini-1.5-flash")
+        response = model.generate_content(prompt)
+        thesis = response.text.strip().strip('"').strip("'")
+        log.info("Gemini thesis: %s", thesis)
+        return thesis
+    except Exception as exc:
+        log.warning("Gemini summarization failed, falling back to Groq: %s", exc)
 
     # Groq fallback
     if settings.GROQ_API_KEY:
