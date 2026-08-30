@@ -61,9 +61,9 @@ def get_logger(name: str, phase: str = "pipeline") -> logging.Logger:
 class PhaseTimer:
     """Context manager that logs the wall-clock time of a pipeline phase."""
 
-    def __init__(self, phase_name: str, logger: logging.Logger) -> None:
+    def __init__(self, phase_name: str, logger: logging.Logger = None) -> None:
         self.phase_name = phase_name
-        self.logger = logger
+        self.logger = logger or logging.getLogger(__name__)
         self._start: float = 0.0
 
     def __enter__(self) -> "PhaseTimer":
