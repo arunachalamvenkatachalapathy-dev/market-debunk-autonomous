@@ -49,7 +49,10 @@ def run_pipeline():
     try:
         # ── Phase 1: Topic Discovery ──────────────────────────────────────
         with PhaseTimer("Phase 1: Topic Discovery"):
-            channel, video_id, thesis = topic_agent.discover_topic()
+            topic_data = topic_agent.discover_topic()
+            channel = topic_data["channel"]
+            video_id = topic_data["video_id"]
+            thesis = topic_data["thesis"]
             log.info("Chosen channel: %s", channel)
             log.info("Core thesis: %s", thesis)
 
