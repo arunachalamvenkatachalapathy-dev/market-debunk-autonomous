@@ -310,11 +310,12 @@ Output ONLY the thesis sentence. No explanation, no preamble, no quotes.
 
     # Try Gemini (via Vertex AI)
     try:
-        import vertexai
-        from vertexai.generative_models import GenerativeModel
-        vertexai.init(project="exalted-shape-502013-q5", location="us-central1")
-        model = GenerativeModel("gemini-1.5-flash")
-        response = model.generate_content(prompt)
+        from google import genai
+        client = genai.Client(vertexai=True, project="exalted-shape-502013-q5", location="us-central1")
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=prompt
+        )
         thesis = response.text.strip().strip('"').strip("'")
         log.info("Gemini thesis: %s", thesis)
         return thesis

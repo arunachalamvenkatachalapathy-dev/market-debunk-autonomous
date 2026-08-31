@@ -164,35 +164,31 @@ def _extract_json(text: str) -> dict:
 
 # Available Gemini models on Vertex AI
 _GEMMA_MODELS = [
-    "gemini-1.5-pro-002",
-    "gemini-1.5-flash-002",
+    "gemini-2.5-flash",
 ]
 
 
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=2, min=3, max=20))
 def _call_gemma(thesis: str, channel_name: str, model_name: str) -> str:
     """Call Gemini via Vertex AI and return raw response."""
-    import vertexai
-    from vertexai.generative_models import GenerativeModel, GenerationConfig
-    vertexai.init(project="exalted-shape-502013-q5", location="us-central1")
-
-    model = GenerativeModel(
-        model_name=model_name,
-        system_instruction=_SYSTEM_PROMPT,
-    )
+    from google import genai
+    from google.genai import types
+    client = genai.Client(vertexai=True, project="exalted-shape-502013-q5", location="us-central1")
 
     user_prompt = f"""Channel context: {channel_name} (Indian Tamil finance YouTube channel)
 Core financial thesis to script: "{thesis}"
 
 Now generate the complete 8-scene YouTube Short script JSON."""
 
-    response = model.generate_content(
-        user_prompt,
-        generation_config=GenerationConfig(
+    response = client.models.generate_content(
+        model=model_name,
+        contents=user_prompt,
+        config=types.GenerateContentConfig(
+            system_instruction=_SYSTEM_PROMPT,
             temperature=0.8,
             max_output_tokens=4000,
             response_mime_type="application/json",
-        ),
+        )
     )
     return response.text
 
