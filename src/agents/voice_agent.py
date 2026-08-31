@@ -20,7 +20,7 @@ from src.utils.logger import get_logger
 
 log = get_logger(__name__, phase="voice_synthesis")
 
-DEFAULT_VOICE = "en-US-Journey-D"  # Natural male voice from Google TTS
+DEFAULT_VOICE = "en-US-Studio-O"  # Natural male voice from Google TTS
 
 
 def get_audio_duration(mp3_path: Path) -> float:
