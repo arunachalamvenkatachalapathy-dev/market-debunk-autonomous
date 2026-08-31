@@ -49,15 +49,15 @@ def _ass_header(
     MarginV=160 = keeps text well above bottom edge on 9:16 vertical.
     """
     font = "Arial Black"
-    font_size = 95         # Large — readable on mobile in 9:16
-    primary_color = "&H00FFFFFF"   # White text
+    font_size = 110        # Larger — readable on mobile in 9:16
+    primary_color = "&H0000FFFF"   # Yellow text (BGR format in ASS)
     outline_color = "&H00000000"   # Black outline
     back_color = "&H00000000"      # Shadow color (black, mostly transparent)
     bold = -1              # Bold on
-    outline_px = 5         # Very thick black border
-    shadow_px = 2          # Subtle drop shadow
+    outline_px = 6         # Very thick black border
+    shadow_px = 3          # Substantial drop shadow
     alignment = 2          # Bottom-center
-    margin_v = 160         # Pixels from bottom edge
+    margin_v = 180         # Pixels from bottom edge
 
     return f"""[Script Info]
 ScriptType: v4.00+
@@ -96,7 +96,7 @@ def _fmt_time(seconds: float) -> str:
 def _build_dialogue_lines(
     word_timings: list[dict],
     scene_audio_offset: float = 0.0,
-    max_words_per_line: int = 3,
+    max_words_per_line: int = 2,
 ) -> list[str]:
     """
     Groups word timings into subtitle lines (max N words per line).

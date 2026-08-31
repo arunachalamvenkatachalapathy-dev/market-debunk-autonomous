@@ -230,7 +230,7 @@ def mix_bgm(
     video_path: Path,
     bgm_path: Optional[Path],
     output_path: Path,
-    bgm_volume_db: float = -18.0,
+    bgm_volume_db: float = -12.0,
 ) -> Path:
     """
     Layer BGM under the voiceover and normalise the mix.

@@ -74,17 +74,26 @@ def synthesize_scene(
     
     duration = get_audio_duration(mp3_path)
     
-    # Generate approximate word timings for subtitles
+    # Generate approximate word timings for subtitles based on character length
     words = narration.split()
-    word_duration = duration / max(len(words), 1)
+    # Strip punctuation for length calculation to be more accurate
+    clean_words = ["".join(c for c in w if c.isalnum()) for w in words]
+    total_chars = sum(len(w) for w in clean_words)
+    
     word_timings = []
+    current_time = 0.0
     
     for i, w in enumerate(words):
+        # Give each word a duration proportional to its letter count (plus a tiny baseline)
+        c_len = max(len(clean_words[i]), 1)
+        word_duration = duration * (c_len / max(total_chars, 1))
+        
         word_timings.append({
             "word": w,
-            "start": i * word_duration,
-            "end": (i + 1) * word_duration
+            "start": current_time,
+            "end": current_time + word_duration
         })
+        current_time += word_duration
         
     timings_path.write_text(json.dumps(word_timings, indent=2, ensure_ascii=False), encoding="utf-8")
 
