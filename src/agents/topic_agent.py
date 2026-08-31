@@ -380,34 +380,70 @@ def _fallback_story_seed(video_title: str) -> dict:
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-#  Main Entry Point
+#  Main Entry Point with Cascading Scan
 # ──────────────────────────────────────────────────────────────────────────────
 
 def discover_topic(day_override: Optional[int] = None) -> dict:
     """
-    Full topic discovery pipeline.
-    Returns dict with keys: channel, video_id, video_title, thesis, story_seed, transcript_length
+    Full topic discovery pipeline with cascading fallback across 7 Indian finance channels:
+      0. Monday:    MONEY PECHU
+      1. Tuesday:   PR SUNDAR
+      2. Wednesday: MONEY PURSE
+      3. Thursday:  TRADE ACHIEVERS
+      4. Friday:    MARKET DRIVER
+      5. Saturday:  TAMIL NIFTY ANALYSIS
+      6. Sunday:    ZERO1 BY ZERODHA
+
+    Starts at today's scheduled channel. If no video is found or transcript
+    extraction fails, automatically cascades to the next channel in the rotation
+    until a valid topic & transcript are found.
     """
-    channel_name = rotate_channel(day_override)
-    video_meta = fetch_latest_video(channel_name)
+    start_day = day_override if day_override is not None else datetime.now().weekday()
+    num_channels = len(settings.CHANNEL_REGISTRY)
+    attempted_channels = []
 
-    if not video_meta:
-        raise RuntimeError(f"Could not fetch any video from channel: {channel_name}")
+    for offset in range(num_channels):
+        current_day = (start_day + offset) % num_channels
+        channel_name = settings.CHANNEL_REGISTRY[current_day]
+        attempted_channels.append(channel_name)
 
-    video_id = video_meta["video_id"]
-    video_title = video_meta["title"]
+        if offset == 0:
+            log.info("🎯 Primary scheduled channel (Day %d): %s", current_day, channel_name)
+        else:
+            log.warning("🔄 Cascading to fallback channel %d/%d (Day %d): %s", offset + 1, num_channels, current_day, channel_name)
 
-    transcript = download_transcript(video_id)
-    seed_data = summarize_to_story_seed(transcript, video_title)
+        video_meta = fetch_latest_video(channel_name)
+        if not video_meta:
+            log.warning("⚠️ No latest video found for '%s' — cascading...", channel_name)
+            continue
 
-    thesis = seed_data.get("thesis", video_title)
-    story_seed = seed_data.get("story_seed", {})
+        video_id = video_meta.get("video_id")
+        video_title = video_meta.get("title", "")
 
-    return {
-        "channel": channel_name,
-        "video_id": video_id,
-        "video_title": video_title,
-        "thesis": thesis,
-        "story_seed": story_seed,
-        "transcript_length": len(transcript),
-    }
+        if not video_id:
+            log.warning("⚠️ Invalid video metadata for '%s' — cascading...", channel_name)
+            continue
+
+        transcript = download_transcript(video_id)
+        if not transcript or not transcript.strip():
+            log.warning("⚠️ Empty transcript for [%s] '%s' on '%s' — cascading...", video_id, video_title, channel_name)
+            continue
+
+        seed_data = summarize_to_story_seed(transcript, video_title)
+        thesis = seed_data.get("thesis", video_title)
+        story_seed = seed_data.get("story_seed", {})
+
+        log.info("✅ Successfully discovered topic & story seed from '%s' (Video: %s)", channel_name, video_id)
+        return {
+            "channel": channel_name,
+            "video_id": video_id,
+            "video_title": video_title,
+            "thesis": thesis,
+            "story_seed": story_seed,
+            "transcript_length": len(transcript),
+        }
+
+    raise RuntimeError(
+        f"All 7 channels failed in cascading scan. Attempted: {', '.join(attempted_channels)}"
+    )
+
