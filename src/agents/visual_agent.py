@@ -12,69 +12,79 @@ client = genai.Client(vertexai=True, project="exalted-shape-502013-q5", location
 log = get_logger(__name__, phase="video_assembly")
 
 # ──────────────────────────────────────────────────────────────────────────────
-#  Visual Bible — Premium Corporate Aesthetic
+#  Visual Bible — Netflix India Premium Drama (consistent across ALL scenes)
 # ──────────────────────────────────────────────────────────────────────────────
 
 _STYLE_PREFIX = (
-    "Cinematic 9:16 vertical frame, premium corporate aesthetic, minimalist, clean lines, "
-    "soft warm studio lighting, deep navy and amber color palette, highly consistent, "
-    "film still quality, no text, no watermarks, no logos, no captions, "
+    "Cinematic 9:16 vertical frame, shot on RED camera, shallow depth of field bokeh, "
+    "warm teal-orange color grade (teal shadows, warm amber skin tones), "
+    "premium Indian corporate setting (Chennai — glass office / modern home office / "
+    "upscale apartment living room), photorealistic, film still quality, "
+    "no text, no watermarks, no logos, no captions, "
 )
 
-# Priya - fixed character bible (Scenes 1-5)
+# Arjun — fixed character bible (same man in every scene)
+_ARJUN_BIBLE = (
+    "Arjun: Indian male protagonist, 35 years old, sharp angular features, "
+    "neatly combed dark black hair, warm medium-brown skin, "
+    "wearing a crisp light blue formal shirt, slim medium build, "
+    "photorealistic, same man in every scene, "
+)
+
+# Priya — fixed character bible (same woman in every scene)
 _PRIYA_BIBLE = (
-    "Priya: Indian female corporate professional, 30 years old, sharp features, "
-    "wearing a sleek navy-blue blazer over a white blouse, highly consistent, "
-    "photorealistic, same woman in every scene, "
-)
-
-# News Anchor - 4th-wall revealer (Scenes 7-8)
-_NEWS_ANCHOR_BIBLE = (
-    "Financial News Anchor: Professional Indian male news broadcaster, late 30s, "
-    "sharp tailored charcoal-grey blazer, crisp white dress shirt, neatly groomed hair, "
-    "seated at a sleek high-tech glass broadcast news desk, glowing abstract stock market charts "
-    "and tickers visible in soft background bokeh, studio key lighting, authoritative broadcast presence, "
-    "direct eye contact with the camera lens, photorealistic, "
+    "Priya: Indian female, 33 years old, calm and confident, "
+    "professional navy-blue kurta or formal attire, dark hair tied back, "
+    "slight knowing smile, warm intelligent eyes, same woman in every scene, "
+    "photorealistic, "
 )
 
 
 def _build_enhanced_prompt(raw_prompt: str, scene_id: int) -> str:
     """
-    Enforces the consistent visual bible on every scene prompt:
-    - Scenes 1-5: Priya in corporate / home office setting
-    - Scene 6: Real-world market background / data visual
-    - Scenes 7-8: News Anchor in broadcast studio breaking the 4th wall
+    Enforces the consistent visual bible on every scene prompt.
+    - Scenes 1-4: Arjun only
+    - Scene 5+: Both Arjun and Priya may appear
+    - Scene 8: Priya facing camera (4th wall)
     """
     prompt = raw_prompt.strip()
 
-    if scene_id in (7, 8):
-        if scene_id == 8:
-            enhanced = (
-                _STYLE_PREFIX
-                + _NEWS_ANCHOR_BIBLE
-                + "News Anchor leaning forward slightly at the glass broadcast desk, looking dead into the camera lens with intense conviction, "
-                "speaking directly to the viewer, breaking the fourth wall, broadcast television studio lighting with deep teal and warm amber backlights, "
-                "close-up shot, 9:16 vertical, premium corporate aesthetic, cinematic, no text"
-            )
-        else:
-            enhanced = (
-                _STYLE_PREFIX
-                + _NEWS_ANCHOR_BIBLE
-                + prompt
-                + ", 9:16 vertical, premium corporate aesthetic, cinematic, no text"
-            )
-    elif scene_id == 6:
+    # Check which characters are needed
+    priya_keywords = ["priya", "wife", "her ", "she ", "woman", "camera", "viewer"]
+    arjun_keywords = ["arjun", "man", "businessman", "investor", "he ", "him ", "his "]
+
+    needs_priya = any(kw in prompt.lower() for kw in priya_keywords)
+    needs_arjun = any(kw in prompt.lower() for kw in arjun_keywords)
+
+    # Build character context (avoid mixing both if possible to prevent AI morphing)
+    char_context = ""
+    if scene_id == 8:
+        # Scene 8 is strictly Priya facing the camera
+        needs_priya = True
+        needs_arjun = False
+        
+    if needs_arjun and needs_priya:
+        # If both are in prompt, just use Arjun's bible but mention Priya is there
+        char_context = _ARJUN_BIBLE + "Priya is also present in the scene, "
+    elif needs_priya:
+        char_context = _PRIYA_BIBLE
+    else:
+        char_context = _ARJUN_BIBLE # Default to Arjun for most of the story
+
+    # Special handling: scene 8 is always Priya facing camera
+    if scene_id == 8:
         enhanced = (
             _STYLE_PREFIX
-            + "Cinematic shot of Dalal Street / Indian financial district skyscrapers, glass facades reflecting stock market exchange data, "
-            + prompt
-            + ", 9:16 vertical, premium corporate aesthetic, cinematic, no text"
+            + _PRIYA_BIBLE
+            + "Priya standing in a warm-lit home office, facing directly into camera with a calm confident smile, "
+            "slight over-the-shoulder composition, direct eye contact with camera, empowering moment, "
+            "9:16 vertical, Netflix India color grade, cinematic, no text"
         )
     else:
-        # Scenes 1-5: Priya
-        enhanced = _STYLE_PREFIX + _PRIYA_BIBLE + prompt
+        enhanced = _STYLE_PREFIX + char_context + prompt
+        # Enforce no text and ensure correct ratio
         if "9:16" not in enhanced:
-            enhanced += ", 9:16 vertical, premium corporate aesthetic, cinematic, no text"
+            enhanced += ", 9:16 vertical, Netflix India color grade, cinematic, no text"
 
     log.info("Scene %d enhanced prompt: '%s...'", scene_id, enhanced[:120])
     return enhanced
@@ -107,20 +117,13 @@ def generate_image(prompt: str, output_path: Path, scene_id: int = 0) -> bool:
         )
         try:
             # Safe fallback: generic corporate finance visual, still on-brand
-            if scene_id in (7, 8):
-                safe_prompt = (
-                    _STYLE_PREFIX
-                    + _NEWS_ANCHOR_BIBLE
-                    + "News anchor in broadcast studio looking directly into camera, 9:16 vertical, cinematic, no text"
-                )
-            else:
-                safe_prompt = (
-                    _STYLE_PREFIX
-                    + "Abstract cinematic shot of a glass-walled Chennai corporate office at dusk, "
-                    "stock market data visible on a monitor in soft bokeh, "
-                    "teal-orange color grade, atmospheric, "
-                    "9:16 vertical, premium corporate aesthetic, cinematic, no text"
-                )
+            safe_prompt = (
+                _STYLE_PREFIX
+                + "Abstract cinematic shot of a glass-walled Chennai office at dusk, "
+                "stock market data visible on a monitor in soft bokeh, "
+                "teal-orange color grade, no people, atmospheric, "
+                "9:16 vertical, Netflix India color grade, cinematic, no text"
+            )
             _call_imagen(safe_prompt, output_path)
             log.info("Scene %d safe fallback image saved successfully.", scene_id)
             return True

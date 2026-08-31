@@ -1,19 +1,29 @@
 """
 src/rendering/subtitles.py
 
-Clean, CapCut-Style Viral Captions
+ASS Subtitle Generator
 
-Generates Advanced SubStation Alpha (.ass) subtitles designed for high-retention:
-  - Font: Inter / Montserrat / Arial (Bold, modern, aesthetic)
-  - Color: Clean crisp White text with subtle black outline and drop shadow
-  - Placement: Middle-Bottom (MarginV = 380px) to stay above platform overlay UI
-  - Stability: 1 anchored, balanced block per scene - ZERO vertical jumping
-  - Animation: The *currently spoken word* pops in Yellow with a slight scale bump (CapCut Viral Style)
+Converts word-level timing data (from edge-tts) into an Advanced SubStation
+Alpha (.ass) subtitle file with high-retention styling.
+
+Subtitle Style Spec:
+  - Font: Arial Bold
+  - Size: 112pt
+  - Color: White with black outline (high contrast)
+  - Position: Bottom-third (Margin V = 120px from bottom)
+  - Alignment: Centered (horizontal)
+  - Word highlighting: Each word appears as it is spoken (karaoke-style)
+
+Why .ass over .srt?
+  .ass supports per-word timing, custom fonts, outlines, and exact positioning —
+  essential for the High-Retention shorts look.
 """
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
+from typing import Optional
 
 from src.utils.config import settings
 from src.utils.logger import get_logger
@@ -30,25 +40,25 @@ def _ass_header(
     video_height: int = settings.VIDEO_HEIGHT,
 ) -> str:
     """
-    Returns the ASS header for clean, modern social video captions.
+    Returns the ASS file header with corporate Market Debunk subtitle definition.
 
-    Style Spec:
-      - Font: Inter (clean, aesthetic, highly legible)
-      - Font size: 76pt (perfect balance for 9:16 mobile viewing)
-      - Colors: White text (&H00FFFFFF), sharp outline (&H00000000), subtle shadow (&H80000000)
-      - Position: Alignment=2 (Bottom-Center), MarginV=380 (Middle-Bottom above platform UI)
-      - BorderStyle=1: Text outline with shadow
+    Style: Futura Bold white text on a semi-transparent dark background box.
+    Clean, premium, readable — Bloomberg / Netflix lower-third aesthetic.
+    Alignment=2 = bottom-center.
+    BorderStyle=4 = opaque box background (the dark pill).
+    MarginV=160 = keeps text well above bottom edge on 9:16 vertical.
     """
-    font = "Inter, Montserrat, Arial"
-    font_size = 76
-    primary_color = "&H00FFFFFF"   # Crisp white (BGR format in ASS)
-    outline_color = "&H00000000"   # Black outline
-    back_color = "&H80000000"      # Semi-transparent dark shadow
-    bold = -1                      # Bold on
-    outline_px = 3                 # Clean 3px border
-    shadow_px = 2                  # Subtle 2px drop shadow
-    alignment = 2                  # Bottom-center
-    margin_v = 380                 # Middle-bottom: 380px from bottom edge
+    font = "Arial"
+    font_size = 88           # Slightly smaller for the corporate pill style
+    primary_color = "&H00FFFFFF"   # Pure white text (BGR format in ASS)
+    outline_color = "&H00000000"   # Black border (thin)
+    back_color = "&HAA000000"      # Semi-transparent dark background box (alpha AA = ~67%)
+    bold = -1                # Bold on
+    outline_px = 2           # Thin clean border
+    shadow_px = 0            # No drop shadow — the box handles readability
+    alignment = 2            # Bottom-center
+    margin_v = 160           # Pixels from bottom edge
+    border_style = 4         # Opaque box (pill background)
 
     return f"""[Script Info]
 ScriptType: v4.00+
@@ -59,11 +69,12 @@ YCbCr Matrix: TV.709
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Default,{font},{font_size},{primary_color},&H00FFFFFF,{outline_color},{back_color},{bold},0,0,0,100,100,1,0,1,{outline_px},{shadow_px},{alignment},70,70,{margin_v},1
+Style: Default,{font},{font_size},{primary_color},&H00FFFFFF,{outline_color},{back_color},{bold},0,0,0,100,100,2,0,{border_style},{outline_px},{shadow_px},{alignment},60,60,{margin_v},1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 """
+
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -81,6 +92,52 @@ def _fmt_time(seconds: float) -> str:
 
 
 # ──────────────────────────────────────────────────────────────────────────────
+#  Dialogue Line Builder
+# ──────────────────────────────────────────────────────────────────────────────
+
+def _build_dialogue_lines(
+    word_timings: list[dict],
+    scene_audio_offset: float = 0.0,
+    max_words_per_line: int = 3,
+) -> list[str]:
+    """
+    Groups word timings into subtitle lines (max N words per line).
+    Each line is a single ASS Dialogue event.
+
+    Args:
+        word_timings: list of {"word": str, "start": float, "end": float}
+        scene_audio_offset: the audio start time (seconds) of this scene in the full video
+        max_words_per_line: how many words appear per subtitle card
+    """
+    if not word_timings:
+        return []
+
+    lines = []
+    chunks = [
+        word_timings[i : i + max_words_per_line]
+        for i in range(0, len(word_timings), max_words_per_line)
+    ]
+
+    for chunk in chunks:
+        start = scene_audio_offset + chunk[0]["start"]
+        end = scene_audio_offset + chunk[-1]["end"]
+        # Add a small gap so adjacent lines don't bleed into each other
+        end = min(end + 0.05, start + 4.0)
+
+        # Title case — corporate style (not ALL CAPS)
+        text = " ".join(w["word"] for w in chunk)
+
+        line = (
+            f"Dialogue: 0,{_fmt_time(start)},{_fmt_time(end)},"
+            f"Default,,0,0,0,,{text}"
+        )
+        lines.append(line)
+
+    return lines
+
+
+
+# ──────────────────────────────────────────────────────────────────────────────
 #  Public API
 # ──────────────────────────────────────────────────────────────────────────────
 
@@ -89,76 +146,31 @@ def generate_ass_file(
     output_path: Path,
 ) -> Path:
     """
-    Generate CapCut-style viral subtitles.
-    The sentence stays completely locked in place (no jumping).
-    Overlapping Dialogue events highlight the currently spoken word in Yellow and scale it up.
+    Generate the full .ass subtitle file from all scene voice results.
+
+    Args:
+        voice_results: output of voice_agent.synthesize_all_scenes()
+                       Each item has: scene_id, duration, word_timings
+        output_path: where to write the .ass file
+
+    Returns:
+        The output_path (for chaining)
     """
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
+    # Build the full ASS file
     lines: list[str] = [_ass_header()]
 
     cumulative_offset = 0.0
     for result in voice_results:
-        duration = result.get("duration", 0.0)
         word_timings = result.get("word_timings", [])
+        duration = result.get("duration", 0.0)
 
-        if word_timings:
-            scene_start = max(0.0, cumulative_offset + 0.15)
-            scene_end = max(scene_start + 0.5, cumulative_offset + duration - 0.15)
-            
-            # Format the sentence with \N if it's too long, but for exact word mapping
-            # we must find the midpoint word to insert the \N correctly.
-            total_chars = sum(len(w['word']) for w in word_timings)
-            half_chars = total_chars // 2
-            
-            best_split_idx = -1
-            if total_chars > 34:
-                min_diff = 9999
-                cur = 0
-                for i, w in enumerate(word_timings[:-1]):
-                    cur += len(w['word']) + 1
-                    diff = abs(cur - half_chars)
-                    if diff < min_diff:
-                        min_diff = diff
-                        best_split_idx = i
-            
-            # Generate one Dialogue event for each spoken word
-            for i, active_w in enumerate(word_timings):
-                # The word event starts when the word starts, and ends when the next word starts
-                # (or when the scene ends, for the last word)
-                start_t = cumulative_offset + active_w['start']
-                if i + 1 < len(word_timings):
-                    end_t = cumulative_offset + word_timings[i+1]['start']
-                else:
-                    end_t = scene_end
-                    
-                # Constrain to scene bounds
-                start_t = max(scene_start, min(start_t, scene_end))
-                end_t = max(start_t + 0.01, min(end_t, scene_end))
-                
-                text_parts = []
-                for j, render_w in enumerate(word_timings):
-                    w_text = render_w['word']
-                    prefix = ""
-                    if j > 0:
-                        if j - 1 == best_split_idx:
-                            prefix = "\\N"
-                        else:
-                            prefix = " "
-                    
-                    if j == i:
-                        # Highlight active word (Yellow, 115% scale)
-                        text_parts.append(f"{prefix}{{\\c&H00FFFF&}}{{\\fscx115\\fscy115}}{w_text}{{\\rDefault}}")
-                    else:
-                        text_parts.append(f"{prefix}{w_text}")
-                
-                full_text = "".join(text_parts)
-                line = (
-                    f"Dialogue: 0,{_fmt_time(start_t)},{_fmt_time(end_t)},"
-                    f"Default,,0,0,0,,{full_text}"
-                )
-                lines.append(line)
-
+        dialogue_lines = _build_dialogue_lines(
+            word_timings=word_timings,
+            scene_audio_offset=cumulative_offset,
+        )
+        lines.extend(dialogue_lines)
         cumulative_offset += duration
 
     ass_content = "\n".join(lines)
@@ -166,7 +178,7 @@ def generate_ass_file(
 
     total_lines = len([l for l in lines if l.startswith("Dialogue:")])
     log.info(
-        "Generated CapCut-style subtitles: %s (%d highlight events, total duration: %.1fs)",
+        "Generated subtitle file: %s (%d dialogue events, total duration: %.1fs)",
         output_path.name, total_lines, cumulative_offset
     )
     return output_path
@@ -179,6 +191,7 @@ def generate_ass_from_timings_files(
 ) -> Path:
     """
     Alternative: generate .ass by loading per-scene timing JSON files from disk.
+    Useful if voice synthesis was run separately.
     """
     all_results = []
     for i, duration in enumerate(scene_durations, start=1):
