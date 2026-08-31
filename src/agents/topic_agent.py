@@ -1,3 +1,4 @@
+import os
 """
 src/agents/topic_agent.py
 
