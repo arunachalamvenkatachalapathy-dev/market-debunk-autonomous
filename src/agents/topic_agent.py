@@ -23,6 +23,7 @@ import json
 import re
 import time
 import xml.etree.ElementTree as ET
+import http.cookiejar
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
@@ -210,11 +211,14 @@ def download_transcript(video_id: str) -> str:
     lang_priority = ["ta", "hi", "en-IN", "en"]
 
     try:
-        kwargs = {}
+        session = requests.Session()
         if has_cookies:
-            kwargs["cookies"] = cookies_path
+            cj = http.cookiejar.MozillaCookieJar(cookies_path)
+            cj.load(ignore_discard=True, ignore_expires=True)
+            session.cookies.update(cj)
             
-        transcript_list = YouTubeTranscriptApi.list_transcripts(video_id, **kwargs)
+        ytt_api = YouTubeTranscriptApi(http_client=session)
+        transcript_list = ytt_api.list(video_id)
 
         for lang in lang_priority:
             try:
