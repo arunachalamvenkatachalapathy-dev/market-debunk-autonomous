@@ -271,7 +271,6 @@ def mix_bgm(
         "-c:v", "copy",
         "-c:a", "aac",
         "-b:a", "192k",
-        "-shortest",
         str(output_path),
         description="BGM mix + loudness normalisation"
     )

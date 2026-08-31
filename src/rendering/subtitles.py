@@ -49,16 +49,16 @@ def _ass_header(
     MarginV=160 = keeps text well above bottom edge on 9:16 vertical.
     """
     font = "Arial"
-    font_size = 88           # Slightly smaller for the corporate pill style
-    primary_color = "&H00FFFFFF"   # Pure white text (BGR format in ASS)
-    outline_color = "&H00000000"   # Black border (thin)
-    back_color = "&HAA000000"      # Semi-transparent dark background box (alpha AA = ~67%)
-    bold = -1                # Bold on
-    outline_px = 2           # Thin clean border
-    shadow_px = 0            # No drop shadow — the box handles readability
-    alignment = 2            # Bottom-center
-    margin_v = 160           # Pixels from bottom edge
-    border_style = 4         # Opaque box (pill background)
+    font_size = 88
+    primary_color = "&H00FFFFFF"   # Pure white text
+    outline_color = "&H00000000"   # Black border
+    back_color = "&HAA000000"      # Shadow color (semi-transparent black)
+    bold = -1
+    outline_px = 3                 # Thicker outline for readability
+    shadow_px = 5                  # Drop shadow instead of pill box
+    alignment = 2                  # Bottom-center
+    margin_v = 160                 # Pixels from bottom edge
+    border_style = 1               # 1 = Outline + Shadow (replaces the jumping 4 = opaque box)
 
     return f"""[Script Info]
 ScriptType: v4.00+
@@ -101,37 +101,45 @@ def _build_dialogue_lines(
     max_words_per_line: int = 3,
 ) -> list[str]:
     """
-    Groups word timings into subtitle lines (max N words per line).
-    Each line is a single ASS Dialogue event.
-
-    Args:
-        word_timings: list of {"word": str, "start": float, "end": float}
-        scene_audio_offset: the audio start time (seconds) of this scene in the full video
-        max_words_per_line: how many words appear per subtitle card
+    Groups word timings into subtitle chunks and creates dynamic word-by-word highlighting.
+    Creates multiple ASS Dialogue lines for the same chunk, shifting the highlight color
+    to the actively spoken word.
     """
     if not word_timings:
         return []
 
     lines = []
+    # Break total words into chunks
     chunks = [
         word_timings[i : i + max_words_per_line]
         for i in range(0, len(word_timings), max_words_per_line)
     ]
 
+    highlight_color = "{\\c&H55A8E8&}"  # Amber gold in BGR
+    reset_color = "{\\c}"
+
     for chunk in chunks:
-        start = scene_audio_offset + chunk[0]["start"]
-        end = scene_audio_offset + chunk[-1]["end"]
-        # Add a small gap so adjacent lines don't bleed into each other
-        end = min(end + 0.05, start + 4.0)
+        # For each word in the chunk, we create a dialogue line 
+        # that lasts exactly for that word's duration.
+        for i, active_word_data in enumerate(chunk):
+            start = scene_audio_offset + active_word_data["start"]
+            end = scene_audio_offset + active_word_data["end"]
+            
+            # Construct the line text with the active word highlighted
+            formatted_words = []
+            for j, w in enumerate(chunk):
+                if i == j:
+                    formatted_words.append(f"{highlight_color}{w['word']}{reset_color}")
+                else:
+                    formatted_words.append(w["word"])
+            
+            text = " ".join(formatted_words)
 
-        # Title case — corporate style (not ALL CAPS)
-        text = " ".join(w["word"] for w in chunk)
-
-        line = (
-            f"Dialogue: 0,{_fmt_time(start)},{_fmt_time(end)},"
-            f"Default,,0,0,0,,{text}"
-        )
-        lines.append(line)
+            line = (
+                f"Dialogue: 0,{_fmt_time(start)},{_fmt_time(end)},"
+                f"Default,,0,0,0,,{text}"
+            )
+            lines.append(line)
 
     return lines
 

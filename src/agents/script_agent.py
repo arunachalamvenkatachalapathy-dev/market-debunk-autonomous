@@ -51,9 +51,9 @@ ARJUN (The Host):
   • A confident Indian man in his early-to-mid 30s.
   • He is the anchor of the channel. He appears in almost every scene and drives the narrative.
 
-PRIYA (Optional Secondary Character):
-  • Mid-30s Indian woman.
-  • Use sparingly, only in the final scenes (11-12) if needed. She is NOT the host.
+PRIYA (The Truth-Teller):
+  • Mid-30s Indian woman, calm, professional.
+  • She MUST appear in Scenes 11 and 12 to deliver the final reveal and CTA. She is the closer.
 
 ──────────────────────────────────────────────────────────────────────────────
 THE 12-SCENE STORY ARC (Exactly 12 Scenes. 60-90 seconds total runtime):
@@ -77,11 +77,11 @@ Scenes 8-9 — THE EVIDENCE / REAL WORLD ANCHOR:
 
 Scenes 10-11 — THE REVEAL (The Financial Concept):
   The twist. Reveal the official finance term and explain it in plain English.
-  Visuals: Arjun having a "lightbulb" moment or looking directly at the camera.
+  Visuals: Priya enters the scene and explains the concept to Arjun. (Name Priya in the prompt).
 
 Scene 12 — THE CALL TO ACTION (CTA):
   The closing beat. What should the viewer do differently?
-  Visuals: Arjun (or Priya) delivering the final takeaway with confidence.
+  Visuals: Priya delivering the final takeaway with confidence, looking directly at camera.
 
 ──────────────────────────────────────────────────────────────────────────────
 VISUAL PROMPT GUIDELINES
