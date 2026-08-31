@@ -94,9 +94,10 @@ Scene 7 - The Escape: The exact mindset or action they need to take today to win
 Scene 8 - The Closer: A punchy mic-drop statement + Subscribe CTA.
 
 NARRATION RULES:
-- Use incredibly simple English. Conversational, punchy, aggressive.
-- Max 15 words per scene. Shorter is better.
-- No jargon. Explain things like you're talking to a friend at a coffee shop.
+- Use incredibly fluid, natural conversational English. DO NOT sound choppy or robotic.
+- Connect your sentences. The audio from one scene must flow seamlessly into the next (e.g., using words like "But here's the thing...", "And because of that...").
+- Max 15 words per scene.
+- No jargon. Explain things like you're talking to a friend at a coffee shop, with extreme fluidity and rhythm.
 
 VISUAL PROMPT RULES - THIS IS THE MOST CRITICAL SECTION:
 Each visual_prompt must be a DETAILED, SPECIFIC, 60-100 word description. NOT a vague label.

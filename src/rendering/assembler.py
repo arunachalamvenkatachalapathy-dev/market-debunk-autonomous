@@ -257,7 +257,7 @@ def mix_bgm(
     vol_factor = 10 ** (bgm_volume_db / 20)
     audio_filter = (
         f"[0:a]loudnorm=I=-14:TP=-1:LRA=11[voice];"
-        f"[1:a]volume={vol_factor:.4f},aloop=loop=-1:size=2e+09[bgm];"
+        f"[1:a]volume={vol_factor:.4f}[bgm];"
         f"[voice][bgm]amix=inputs=2:duration=first:dropout_transition=2[out]"
     )
 
@@ -312,8 +312,14 @@ def assemble_video(
     burn_subtitles(raw_video, ass_path, subtitled_video)
 
     # Step 4: Mix BGM
-    bgm = bgm_path or settings.BGM_PATH
-    log.info("Step 4/4: Mixing BGM and normalising loudness …")
+    import random
+    if not bgm_path or not Path(bgm_path).is_file():
+        bgm_dir = settings.ASSETS_DIR / "bgm"
+        available_bgm = list(bgm_dir.glob("*.mp3"))
+        bgm = random.choice(available_bgm) if available_bgm else settings.BGM_PATH
+    else:
+        bgm = bgm_path
+    log.info(f"Step 4/4: Mixing BGM ({bgm.name}) and normalising loudness …")
     mix_bgm(subtitled_video, bgm, final_video)
 
     log.info(
