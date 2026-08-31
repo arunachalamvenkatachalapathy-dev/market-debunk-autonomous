@@ -227,8 +227,8 @@ def download_transcript(video_id: str) -> str:
             except Exception:
                 continue
 
-    except NoTranscriptFound:
-        log.warning("No transcript found for %s — trying yt-dlp fallback", video_id)
+    except Exception as exc:
+        log.warning("youtube_transcript_api failed (%s) — trying yt-dlp fallback", exc)
 
     # yt-dlp fallback
     return _download_transcript_ytdlp(video_id)
