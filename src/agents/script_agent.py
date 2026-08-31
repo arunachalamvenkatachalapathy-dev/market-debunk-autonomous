@@ -56,7 +56,7 @@ class Scene(BaseModel):
 class ScriptPayload(BaseModel):
     title: str = Field(min_length=5, max_length=100)
     description: str = Field(min_length=20, max_length=5000)
-    hashtags: list[str] = Field(min_length=5, max_length=15)
+    hashtags: list[str] = Field(min_length=3, max_length=15)
     scenes: list[Scene] = Field(min_length=8, max_length=8)
 
     @field_validator("scenes")
@@ -114,7 +114,7 @@ OUTPUT FORMAT - Return ONLY valid JSON, nothing else, no markdown fences:
 {
   "title": "Short punchy title max 60 chars",
   "description": "SEO description 150-300 chars with core thesis",
-  "hashtags": ["StockMarket", "InvestingIndia", "FinanceShorts"],
+  "hashtags": ["StockMarket", "InvestingIndia", "FinanceShorts", "ViralShorts", "Money"],
   "scenes": [
     {
       "scene_id": 1,
