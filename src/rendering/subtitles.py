@@ -40,24 +40,25 @@ def _ass_header(
     video_height: int = settings.VIDEO_HEIGHT,
 ) -> str:
     """
-    Returns the ASS file header with City-of-Finance style subtitle definition.
+    Returns the ASS file header with corporate Market Debunk subtitle definition.
 
-    Style: Bold white text, thick black border, bottom-centered, 3-word chunks.
-    Alignment=2 = bottom-center (standard bottom subtitles).
-    Outline=5 = very thick black stroke for mobile readability.
-    Shadow=2 = subtle drop shadow for depth.
+    Style: Futura Bold white text on a semi-transparent dark background box.
+    Clean, premium, readable — Bloomberg / Netflix lower-third aesthetic.
+    Alignment=2 = bottom-center.
+    BorderStyle=4 = opaque box background (the dark pill).
     MarginV=160 = keeps text well above bottom edge on 9:16 vertical.
     """
-    font = "Arial Black"
-    font_size = 110        # Larger — readable on mobile in 9:16
-    primary_color = "&H0000FFFF"   # Yellow text (BGR format in ASS)
-    outline_color = "&H00000000"   # Black outline
-    back_color = "&H00000000"      # Shadow color (black, mostly transparent)
-    bold = -1              # Bold on
-    outline_px = 6         # Very thick black border
-    shadow_px = 3          # Substantial drop shadow
-    alignment = 2          # Bottom-center
-    margin_v = 180         # Pixels from bottom edge
+    font = "Futura"
+    font_size = 88           # Slightly smaller for the corporate pill style
+    primary_color = "&H00FFFFFF"   # Pure white text (BGR format in ASS)
+    outline_color = "&H00000000"   # Black border (thin)
+    back_color = "&HAA000000"      # Semi-transparent dark background box (alpha AA = ~67%)
+    bold = -1                # Bold on
+    outline_px = 2           # Thin clean border
+    shadow_px = 0            # No drop shadow — the box handles readability
+    alignment = 2            # Bottom-center
+    margin_v = 160           # Pixels from bottom edge
+    border_style = 4         # Opaque box (pill background)
 
     return f"""[Script Info]
 ScriptType: v4.00+
@@ -68,11 +69,12 @@ YCbCr Matrix: TV.709
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Default,{font},{font_size},{primary_color},&H00FFFFFF,{outline_color},{back_color},{bold},0,0,0,100,100,1,0,1,{outline_px},{shadow_px},{alignment},80,80,{margin_v},1
+Style: Default,{font},{font_size},{primary_color},&H00FFFFFF,{outline_color},{back_color},{bold},0,0,0,100,100,2,0,{border_style},{outline_px},{shadow_px},{alignment},60,60,{margin_v},1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 """
+
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -96,7 +98,7 @@ def _fmt_time(seconds: float) -> str:
 def _build_dialogue_lines(
     word_timings: list[dict],
     scene_audio_offset: float = 0.0,
-    max_words_per_line: int = 2,
+    max_words_per_line: int = 3,
 ) -> list[str]:
     """
     Groups word timings into subtitle lines (max N words per line).
@@ -122,8 +124,8 @@ def _build_dialogue_lines(
         # Add a small gap so adjacent lines don't bleed into each other
         end = min(end + 0.05, start + 4.0)
 
+        # Title case — corporate style (not ALL CAPS)
         text = " ".join(w["word"] for w in chunk)
-        text = text.upper()  # high-retention style: all caps
 
         line = (
             f"Dialogue: 0,{_fmt_time(start)},{_fmt_time(end)},"
@@ -132,6 +134,7 @@ def _build_dialogue_lines(
         lines.append(line)
 
     return lines
+
 
 
 # ──────────────────────────────────────────────────────────────────────────────

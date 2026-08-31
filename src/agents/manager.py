@@ -53,8 +53,10 @@ def run_pipeline():
             channel = topic_data["channel"]
             video_id = topic_data["video_id"]
             thesis = topic_data["thesis"]
+            story_seed = topic_data.get("story_seed", {})
             log.info("Chosen channel: %s", channel)
             log.info("Core thesis: %s", thesis)
+            log.info("Story seed concept: %s", story_seed.get("concept_name", "N/A"))
 
         # ── Phase 1.5: Dedup Gate ─────────────────────────────────────────
         with PhaseTimer("Phase 1.5: Dedup Gate"):
@@ -66,13 +68,14 @@ def run_pipeline():
 
         # ── Phase 2: Script Generation ────────────────────────────────────
         with PhaseTimer("Phase 2: Script Generation"):
-            script = script_agent.generate_script(thesis, channel)
+            script = script_agent.generate_script(thesis, channel, story_seed=story_seed)
             script_dict = script_agent.script_to_dict(script)
             
             # Save script to output for debugging
             script_path = run_dir / "script.json"
             import json
             script_path.write_text(json.dumps(script_dict, indent=2), encoding="utf-8")
+
 
         # ── Phase 3: Voice Synthesis ──────────────────────────────────────
         with PhaseTimer("Phase 3: Voice Synthesis"):

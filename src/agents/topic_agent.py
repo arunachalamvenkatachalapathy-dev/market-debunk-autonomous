@@ -5,7 +5,7 @@ Phase 1 — Topic Discovery
 
 Rotates through 7 Indian Financial YouTube channels by day of week,
 extracts the latest video, downloads its transcript (Tamil/Hinglish/mixed),
-and uses Gemini to distil a single controversial thesis in English.
+and uses Gemini to distil a story_seed object for the script agent.
 
 Channel schedule (0=Monday … 6=Sunday):
   Mon: MONEY PECHU       Tue: PR SUNDAR         Wed: MONEY PURSE
@@ -14,7 +14,7 @@ Channel schedule (0=Monday … 6=Sunday):
 
 Data flow:
   rotate_channel() → resolve_channel_id() → fetch_latest_video()
-    → download_transcript() → summarize_to_thesis()
+    → download_transcript() → summarize_to_story_seed()
 """
 from __future__ import annotations
 
@@ -279,34 +279,45 @@ def _download_transcript_ytdlp(video_id: str) -> str:
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-#  Thesis Extraction (Gemini Summarization)
+#  Story Seed Extraction (Gemini Summarization — NEW)
 # ──────────────────────────────────────────────────────────────────────────────
 
-def summarize_to_thesis(raw_transcript: str, video_title: str = "") -> str:
+def summarize_to_story_seed(raw_transcript: str, video_title: str = "") -> dict:
     """
     Pipes the raw (possibly Tamil/Hinglish) transcript through Gemini
-    to extract a single, controversial English thesis sentence.
-    Falls back to a Groq-based summary if Gemini image key is unavailable.
+    to extract a rich story_seed object for the script agent.
+
+    Returns a dict with:
+        - thesis: single controversial English sentence
+        - story_seed: {inciting_event, protagonist_flaw, real_world_anchor,
+                       concept_name, concept_one_liner}
     """
     if not raw_transcript.strip():
-        return video_title or "Market trends and financial analysis"
+        return _fallback_story_seed(video_title)
 
-    prompt = f"""You are a financial content analyst specialising in Indian stock markets.
+    prompt = f"""You are a financial content analyst and creative storytwriter specialising in Indian stock markets.
 
 The following is a raw YouTube video transcript (may be in Tamil, Hindi, Hinglish, or a mix).
 Video title: "{video_title}"
 
 TRANSCRIPT:
-{raw_transcript[:4000]}
+{raw_transcript[:5000]}
 
-Your task:
-1. Identify the SINGLE most controversial or provocative financial thesis from this content.
-2. Translate it cleanly into English if it is in another language.
-3. Express it as ONE sentence (max 30 words) that will make viewers say "wait, really?!"
-4. Focus on stocks, sectors, indices, companies, or economic policies discussed.
+Your task: Extract a story seed to be turned into a cinematic short-form video about finance.
 
-Output ONLY the thesis sentence. No explanation, no preamble, no quotes.
-"""
+Output ONLY a valid JSON object with exactly these keys (all values in English):
+{{
+  "thesis": "One sentence (max 25 words): the most controversial or provocative financial claim from this content. Should make viewers say 'wait, really?!'",
+  "story_seed": {{
+    "inciting_event": "A specific, relatable everyday moment that sets up the story (e.g. 'Arjun checks his mutual fund app and his returns are 0% despite the Nifty being up 12%')",
+    "protagonist_flaw": "The common mistake most people make, which Arjun will also make (e.g. 'He trusted his fund manager blindly and never checked the expense ratio')",
+    "real_world_anchor": "The actual market fact, company name, or financial event from the transcript that this story is based on (e.g. 'HDFC AMC quietly raised its expense ratio from 1.05% to 1.35% this quarter')",
+    "concept_name": "The official finance term being explained (e.g. 'Expense Ratio Drag')",
+    "concept_one_liner": "One plain-English sentence explaining what this concept means (e.g. 'Even when markets go up, hidden fund fees quietly eat your profits every year')"
+  }}
+}}
+
+Output ONLY the JSON. No explanation, no preamble, no markdown fences."""
 
     # Try Gemini (via Vertex AI)
     try:
@@ -314,15 +325,23 @@ Output ONLY the thesis sentence. No explanation, no preamble, no quotes.
         client = genai.Client(vertexai=True, project="exalted-shape-502013-q5", location="us-central1")
         response = client.models.generate_content(
             model='gemini-2.5-flash',
-            contents=prompt
+            contents=prompt,
+            config={"response_mime_type": "application/json"}
         )
-        thesis = response.text.strip().strip('"').strip("'")
-        log.info("Gemini thesis: %s", thesis)
-        return thesis
+        raw_json = response.text.strip()
+        # Strip markdown if present
+        if "```" in raw_json:
+            raw_json = re.sub(r"^```(?:json)?\s*", "", raw_json, flags=re.MULTILINE)
+            raw_json = re.sub(r"\s*```\s*$", "", raw_json, flags=re.MULTILINE)
+        result = json.loads(raw_json)
+        log.info("Gemini story seed extracted | concept: %s | thesis: %s",
+                 result.get("story_seed", {}).get("concept_name", "?"),
+                 result.get("thesis", "?"))
+        return result
     except Exception as exc:
-        log.warning("Gemini summarization failed, falling back to Groq: %s", exc)
+        log.warning("Gemini story seed extraction failed, falling back to Groq: %s", exc)
 
-    # Groq fallback
+    # Groq fallback — simpler thesis only
     if settings.GROQ_API_KEY:
         try:
             from groq import Groq
@@ -330,16 +349,34 @@ Output ONLY the thesis sentence. No explanation, no preamble, no quotes.
             completion = client.chat.completions.create(
                 model=settings.GROQ_FALLBACK_MODEL,
                 messages=[{"role": "user", "content": prompt}],
-                max_tokens=100,
+                max_tokens=600,
                 temperature=0.7,
             )
-            thesis = completion.choices[0].message.content.strip()
-            log.info("Groq thesis: %s", thesis)
-            return thesis
+            raw_json = completion.choices[0].message.content.strip()
+            if "```" in raw_json:
+                raw_json = re.sub(r"^```(?:json)?\s*", "", raw_json, flags=re.MULTILINE)
+                raw_json = re.sub(r"\s*```\s*$", "", raw_json, flags=re.MULTILINE)
+            result = json.loads(raw_json)
+            log.info("Groq story seed: %s", result.get("thesis", "?"))
+            return result
         except Exception as exc:
-            log.error("Groq summarization also failed: %s", exc)
+            log.error("Groq story seed extraction also failed: %s", exc)
 
-    return video_title or "Indian market analysis and investment insights"
+    return _fallback_story_seed(video_title)
+
+
+def _fallback_story_seed(video_title: str) -> dict:
+    """Minimal fallback when all LLM calls fail."""
+    return {
+        "thesis": video_title or "Indian market analysis and investment insights",
+        "story_seed": {
+            "inciting_event": "Arjun checks his investment portfolio and finds his returns are far lower than expected",
+            "protagonist_flaw": "He trusted conventional advice without understanding the underlying mechanics",
+            "real_world_anchor": video_title or "Indian stock market recent movement",
+            "concept_name": "Market Mispricing",
+            "concept_one_liner": "When prices don't reflect real value, savvy investors profit while others lose"
+        }
+    }
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -349,7 +386,7 @@ Output ONLY the thesis sentence. No explanation, no preamble, no quotes.
 def discover_topic(day_override: Optional[int] = None) -> dict:
     """
     Full topic discovery pipeline.
-    Returns dict with keys: channel, video_id, video_title, thesis
+    Returns dict with keys: channel, video_id, video_title, thesis, story_seed, transcript_length
     """
     channel_name = rotate_channel(day_override)
     video_meta = fetch_latest_video(channel_name)
@@ -361,12 +398,16 @@ def discover_topic(day_override: Optional[int] = None) -> dict:
     video_title = video_meta["title"]
 
     transcript = download_transcript(video_id)
-    thesis = summarize_to_thesis(transcript, video_title)
+    seed_data = summarize_to_story_seed(transcript, video_title)
+
+    thesis = seed_data.get("thesis", video_title)
+    story_seed = seed_data.get("story_seed", {})
 
     return {
         "channel": channel_name,
         "video_id": video_id,
         "video_title": video_title,
         "thesis": thesis,
+        "story_seed": story_seed,
         "transcript_length": len(transcript),
     }

@@ -1,26 +1,26 @@
 """
 src/agents/script_agent.py
 
-Phase 2 — Script Generation (Gemma Heavy Weight via Google AI Studio)
+Phase 2 — Script Generation
 
-STYLE: Derived from deep analysis of "City of Finance" YouTube Shorts
-  - uo6HAxa_nnU: "Accidentally Generous Man" → Positive Externalities parable
-  - hIYPnRJ1ouA: "Two Merchants, One Market" → Second-Mover Advantage story
-  - OZRN4hczkKc: "Price of Escaping a Bad Service" → Exit Fee expose
+STYLE: Cinematic story-first narrative for "Market Debunk" English finance channel.
+
+Recurring Characters:
+  - ARJUN: 35-year-old software engineer from Chennai. Makes the classic mistake.
+           Represents the viewer. Same appearance every episode.
+  - PRIYA: Arjun's wife. Works in finance. Calm, confident, never lectures —
+           only asks questions that lead Arjun (and the viewer) to the truth.
+           Breaks the 4th wall in the final scene to speak directly to the audience.
 
 NARRATIVE STRUCTURE (8 scenes):
-  1. Hook: Relatable story/character/scenario (NOT a statistic)
-  2. Deepen: Raise the stakes of the story
-  3. Principle: Reveal the financial concept hidden in plain sight
-  4. Application: How this plays out in Indian markets specifically
-  5. Historical: Global or historical example that validates the thesis
-  6. Debunk/Twist: What most people get wrong (THE moment of surprise)
-  7. Implication: What this means for the viewer RIGHT NOW
-  8. Closer: CTA + thought-provoking final line
-
-API: Google AI Studio (GEMINI_SCRIPT_API_KEY)
-Model: gemma-3-27b-it (heavyweight)
-Fallback: gemma-3-12b-it
+  1. Hook:        Arjun in a relatable situation where something feels unfair with money
+  2. Escalate:    He makes the wrong (obvious) decision — what most people do
+  3. Consequence: It backfires. He's confused and angry.
+  4. Mystery:     A detail doesn't add up. The "why" is unclear.
+  5. Priya Enters: She asks ONE sharp question that reframes everything.
+  6. Real World:  Narrate the actual market event from the transcript.
+  7. Reveal:      Name the financial concept. Plain one-sentence definition.
+  8. 4th Wall:    Priya looks directly at camera, speaks to the viewer. CTA.
 """
 from __future__ import annotations
 
@@ -68,64 +68,116 @@ class ScriptPayload(BaseModel):
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-#  System Prompt (City of Finance style DNA baked in)
+#  System Prompt — Cinematic Story-First, Arjun & Priya, English Only
 # ──────────────────────────────────────────────────────────────────────────────
 
-_SYSTEM_PROMPT = """You are an elite short-form video scriptwriter (like Alex Hormozi or MrBeast). You specialize in creating ultra-viral, high-retention YouTube Shorts about finance.
+_SYSTEM_PROMPT = """You are an elite cinematic short-story scriptwriter for "Market Debunk", a premium English finance YouTube Shorts channel.
 
-YOUR PRIME DIRECTIVE: NO ROBOTIC TONE. NO DRY LECTURES.
-Write exactly how a fast-paced, high-energy YouTuber speaks. Use 5th-grade vocabulary. Extremely conversational, direct, and punchy.
+CHANNEL TONE: Sophisticated, engaging, cinematic. NOT preachy, NOT robotic, NOT a lecture.
+Think: Netflix India meets Bloomberg. Premium, visual, story-driven.
 
-VIRAL SHORTS BEST PRACTICES YOU MUST FOLLOW:
-1. THE 3-SECOND HOOK (Scene 1): You must start with an outrageous, contrarian, or emotionally charged statement. NEVER say "Did you know" or "Today we will talk about".
-2. DIRECT ADDRESS: Always say "You". Talk directly to the viewer through the screen.
-3. THE DEBUNK (Scene 5/6): Shatter a common myth. Make the viewer feel like they've been lied to by banks or the government.
-4. ULTRA-FAST PACING: Cut the fluff. Max 10-15 words per scene. No long sentences.
-5. THE PAYOFF (Scene 8): Give them exactly 1 actionable takeaway, then a ruthless CTA to subscribe.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+RECURRING CHARACTERS (use EVERY episode — this is the show's brand):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-YOUR 8-SCENE VIRAL ARC:
-Scene 1 - The Hook: A bold, shocking claim that challenges conventional wisdom.
-Scene 2 - The Problem: Why exactly the viewer is losing money or getting trapped right now.
-Scene 3 - The Enemy: Name the system, bank, or cognitive bias that is rigging the game against them.
-Scene 4 - The Mechanism: Explain exactly how the trap works in 1 simple sentence.
-Scene 5 - THE DEBUNK: The plot twist. Shatter the myth they always believed.
-Scene 6 - The Proof: One fast real-world Indian market example (e.g., Nifty, Zerodha, HDFC) proving it.
-Scene 7 - The Escape: The exact mindset or action they need to take today to win.
-Scene 8 - The Closer: A punchy mic-drop statement + Subscribe CTA.
+ARJUN — The Everyman:
+  • 35-year-old software engineer, Chennai
+  • Earns well, invests regularly, thinks he's financially smart
+  • Makes the SAME mistake that 90% of viewers make
+  • Frustrated, relatable, emotionally invested
 
+PRIYA — The Truth-Teller:
+  • Arjun's wife, works in finance
+  • Never condescending — she only asks questions
+  • Has a quiet confidence and a slight knowing smile
+  • In the final scene she BREAKS THE 4TH WALL and speaks directly to camera
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+THE 8-SCENE STORY ARC:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Scene 1 — THE HOOK (Arjun's inciting moment):
+  Arjun is doing something completely ordinary — checking his phone, talking to a colleague,
+  opening a statement — and something is WRONG. The hook is a vivid, specific, relatable scene.
+  Write it in present tense, like a film narrator. DO NOT start with a statistic or question.
+
+Scene 2 — THE WRONG MOVE (What most people do):
+  Arjun does what any reasonable person would do. This seems logical. This is the mistake.
+  The narration should make the viewer think "yes, I would do the same thing."
+
+Scene 3 — THE BACKFIRE (Consequences):
+  It doesn't work. Something unexpected happens. Arjun is confused and frustrated.
+  Lean into the emotion — this is the moment the viewer feels seen.
+
+Scene 4 — THE MYSTERY (The "why" that doesn't add up):
+  There's a specific detail or number that makes no sense. Arjun stares at it.
+  Something is being hidden. The viewer should feel curious and slightly unsettled.
+
+Scene 5 — PRIYA ENTERS (The reframe):
+  Priya appears. She doesn't explain — she asks ONE devastating question.
+  This question completely reframes everything the viewer just saw.
+  Example: "Did you ever look at the line that says 'Total Expense Ratio'?"
+
+Scene 6 — THE REAL WORLD ANCHOR (From the transcript):
+  Now step out of the story briefly. In one vivid sentence, reference the REAL market event,
+  company, or data from the transcript that mirrors exactly what just happened to Arjun.
+
+Scene 7 — THE CONCEPT REVEALED (The 4th wall begins):
+  Name the financial concept directly. Give it one plain-English definition.
+  The narration shifts to direct address: "This is called [X]. Here's what it means for you."
+
+Scene 8 — PRIYA TO CAMERA (Full 4th wall break — CTA):
+  Priya looks directly into the camera — past Arjun — and speaks to the viewer.
+  She delivers one action they can take RIGHT NOW, followed by a subscribe CTA.
+  This should feel personal, warm, and empowering. Not salesy.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 NARRATION RULES:
-- Use incredibly fluid, natural conversational English. DO NOT sound choppy or robotic.
-- Connect your sentences. The audio from one scene must flow seamlessly into the next (e.g., using words like "But here's the thing...", "And because of that...").
-- Max 15 words per scene.
-- No jargon. Explain things like you're talking to a friend at a coffee shop, with extreme fluidity and rhythm.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• Write in present tense like a film narrator. Fluid, vivid, cinematic.
+• Max 20 words per scene. Every word earns its place.
+• Scenes must FLOW into each other — no choppy restarts. Use connective tissue.
+  ("And just like that...", "But then...", "That's when...", "This is where it gets interesting.")
+• LANGUAGE: English ONLY. No Tamil, no Hindi, no code-switching. This is an English channel.
+• No jargon until Scene 7 where the concept is deliberately revealed.
+• Write Arjun and Priya as real people with specific emotions and body language.
 
-VISUAL PROMPT RULES - THIS IS THE MOST CRITICAL SECTION:
-Each visual_prompt must be a DETAILED, SPECIFIC, 60-100 word description. NOT a vague label.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+VISUAL PROMPT RULES:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+The visual style for ALL 8 scenes is STRICTLY:
+  Netflix India Premium Drama — warm interiors, shallow depth of field,
+  teal-orange color grade, corporate / Chennai home settings, photorealistic,
+  cinematic 9:16 vertical frame, no text, no logos.
 
-The visual style is ALWAYS: dark charcoal backgrounds, rich amber/gold lamp lighting, oil painting texture, chiaroscuro shadows, cinematic 9:16.
+ARJUN always looks the same: Indian male, 35, sharp features, neatly combed dark hair,
+light blue formal shirt, warm brown skin. Same man every scene.
 
-STRUCTURE FOR EVERY VISUAL PROMPT:
-[Specific scene action], [exact setting], [lighting], [one key symbolic object reinforcing narration], [atmospheric detail], dark charcoal and amber palette, oil painting texture, 9:16 vertical
+PRIYA always looks the same: Indian female, 33, professional attire (navy kurta or formal saree),
+calm confident expression, same woman every scene.
 
-EXAMPLE of a GOOD visual prompt:
-Close up of a stressed Indian man's hands gripping a cracked smartphone displaying a crashing red stock chart, sitting at a dim wooden desk, single amber lamp casting deep dramatic shadows, cigarette smoke floating in the air, dark charcoal and amber palette, oil painting texture, 9:16
+Each visual_prompt must describe:
+  [What Arjun/Priya is doing] + [exact setting] + [lighting] + [emotional detail] + [camera angle]
+  Always end with: "9:16 vertical, Netflix India color grade, cinematic, no text"
 
-OUTPUT FORMAT - Return ONLY valid JSON, nothing else, no markdown fences:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+OUTPUT FORMAT — Return ONLY valid JSON, nothing else, no markdown fences:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 {
-  "title": "Short punchy title max 60 chars",
-  "description": "SEO description 150-300 chars with core thesis",
-  "hashtags": ["StockMarket", "InvestingIndia", "FinanceShorts", "ViralShorts", "Money"],
+  "title": "Punchy English title max 60 chars — grabs attention immediately",
+  "description": "SEO description 150-300 chars — explains the finance concept revealed at the end",
+  "hashtags": ["StockMarket", "InvestingIndia", "FinanceShorts", "MarketDebunk", "MoneyTips"],
   "scenes": [
     {
       "scene_id": 1,
-      "narration": "Spoken words. Max 15 words. Conversational and punchy.",
-      "visual_prompt": "Specific AI image generation prompt for this scene",
-      "duration_hint": 5.0
+      "narration": "Present-tense cinematic narration. Max 20 words. Flows into next scene.",
+      "visual_prompt": "Arjun sitting at a home office desk late at night, light blue shirt, staring at a phone showing a red portfolio chart, warm amber lamp glow, shallow depth of field, concerned expression, close-up shot, 9:16 vertical, Netflix India color grade, cinematic, no text",
+      "duration_hint": 7.0
     }
   ]
 }
 
-CRITICAL: Exactly 8 scenes. Each narration max 15 words. Read smoothly when combined."""
+CRITICAL: Exactly 8 scenes. Use the story_seed facts provided. Arjun and Priya must appear by name in narrations. The concept is revealed ONLY in Scene 7. Scene 8 is Priya speaking directly to camera."""
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -147,33 +199,27 @@ def _extract_json(text: str) -> dict:
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-#  Gemma via Google AI Studio
+#  Gemini via Vertex AI
 # ──────────────────────────────────────────────────────────────────────────────
 
-# Available Gemini models on Vertex AI
-_GEMMA_MODELS = [
+_GEMINI_MODELS = [
     "gemini-2.5-flash",
 ]
 
 
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=2, min=3, max=20))
-def _call_gemma(thesis: str, channel_name: str, model_name: str) -> str:
+def _call_gemini(user_prompt: str, model_name: str) -> str:
     """Call Gemini via Vertex AI and return raw response."""
     from google import genai
     from google.genai import types
     client = genai.Client(vertexai=True, project="exalted-shape-502013-q5", location="us-central1")
-
-    user_prompt = f"""Channel context: {channel_name} (Indian Tamil finance YouTube channel)
-Core financial thesis to script: "{thesis}"
-
-Now generate the complete 8-scene YouTube Short script JSON."""
 
     response = client.models.generate_content(
         model=model_name,
         contents=user_prompt,
         config=types.GenerateContentConfig(
             system_instruction=_SYSTEM_PROMPT,
-            temperature=0.8,
+            temperature=0.85,
             max_output_tokens=4000,
             response_mime_type="application/json",
         )
@@ -181,20 +227,46 @@ Now generate the complete 8-scene YouTube Short script JSON."""
     return response.text
 
 
-def generate_script(thesis: str, channel_name: str) -> ScriptPayload:
+def generate_script(thesis: str, channel_name: str, story_seed: Optional[dict] = None) -> ScriptPayload:
     """
-    Generate a full 8-scene script for the given thesis.
-    Uses Gemma 27B (heavyweight) via Google AI Studio.
-    Falls back to smaller Gemma models on failure.
+    Generate a full 8-scene cinematic story script for the given thesis and story_seed.
+
+    Args:
+        thesis: The controversial financial claim (from topic_agent)
+        channel_name: The source YouTube channel name
+        story_seed: Rich story context extracted from transcript {
+            inciting_event, protagonist_flaw, real_world_anchor,
+            concept_name, concept_one_liner
+        }
 
     Returns a validated ScriptPayload object.
     """
     log.info("Generating script | thesis: '%s' | channel: %s", thesis, channel_name)
 
-    for model in _GEMMA_MODELS:
-        log.info("Trying Gemma model: %s", model)
+    # Build the user prompt with story_seed context
+    seed_context = ""
+    if story_seed:
+        seed_context = f"""
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STORY SEED (from transcript — use these facts to anchor the story):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Inciting Event (Scene 1 hook): {story_seed.get('inciting_event', '')}
+Protagonist's Flaw (Scene 2): {story_seed.get('protagonist_flaw', '')}
+Real World Anchor (Scene 6): {story_seed.get('real_world_anchor', '')}
+Finance Concept to Reveal (Scene 7): {story_seed.get('concept_name', '')}
+Plain Definition (Scene 7): {story_seed.get('concept_one_liner', '')}
+"""
+
+    user_prompt = f"""Source channel: {channel_name}
+Core financial thesis: "{thesis}"
+{seed_context}
+Now generate the complete 8-scene cinematic short-story script as JSON.
+Remember: Arjun makes the mistake. Priya reframes it. The concept is revealed in Scene 7. Priya breaks the 4th wall in Scene 8."""
+
+    for model in _GEMINI_MODELS:
+        log.info("Trying model: %s", model)
         try:
-            raw = _call_gemma(thesis, channel_name, model)
+            raw = _call_gemini(user_prompt, model)
             log.debug("Raw response: %d chars", len(raw))
 
             data = _extract_json(raw)
@@ -212,7 +284,7 @@ def generate_script(thesis: str, channel_name: str) -> ScriptPayload:
             continue
 
     raise RuntimeError(
-        f"All Gemma models failed to produce a valid 8-scene script for: '{thesis}'"
+        f"All Gemini models failed to produce a valid 8-scene script for: '{thesis}'"
     )
 
 
