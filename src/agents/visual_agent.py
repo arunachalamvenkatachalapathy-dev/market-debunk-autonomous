@@ -68,8 +68,20 @@ def generate_image(prompt: str, output_path: Path, scene_id: int = 0) -> bool:
         log.info("Scene %d image saved successfully (Vertex AI).", scene_id)
         return True
     except Exception as exc:
-        log.error("Vertex AI Image generation failed for scene %d: %s", scene_id, exc)
-        return False
+        log.warning("Vertex AI Image generation failed for scene %d: %s. Trying generic safe prompt...", scene_id, exc)
+        try:
+            safe_prompt = f"{_STYLE_PREFIX} A simple beautiful generic abstract stock market chart, cinematic lighting, safe for work, no people."
+            _call_imagen(safe_prompt, output_path)
+            log.info("Scene %d safe fallback image saved successfully.", scene_id)
+            return True
+        except Exception as exc2:
+            log.error("Safe fallback also failed for scene %d: %s. Copying placeholder.", scene_id, exc2)
+            import shutil
+            placeholder_path = Path("assets") / "host_original.png"
+            if placeholder_path.exists():
+                shutil.copy(placeholder_path, output_path)
+                return True
+            return False
 
 def source_all_visuals(scenes: list, output_dir: Path) -> list:
     if isinstance(output_dir, str):
