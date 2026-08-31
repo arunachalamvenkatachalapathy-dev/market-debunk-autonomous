@@ -4,7 +4,7 @@ src/agents/topic_agent.py
 Phase 1 — Topic Discovery
 
 Rotates through 7 Indian Financial YouTube channels by day of week,
-extracts the latest video, downloads its transcript (Tamil/Hinglish/mixed),
+extracts the latest video, attempts transcript extraction,
 and uses Gemini to distil a story_seed object for the script agent.
 
 Channel schedule (0=Monday … 6=Sunday):
@@ -196,11 +196,10 @@ def download_transcript(video_id: str) -> str:
     """
     Downloads the YouTube transcript (auto-generated or manual).
     Handles Tamil, Hindi, Hinglish, or mixed-language transcripts.
-    Returns the raw concatenated text.
+    Returns the raw concatenated text or empty string if blocked.
     """
     log.info("Downloading transcript for video: %s", video_id)
 
-    # Priority: Tamil → Hindi → English auto-generated
     lang_priority = ["ta", "hi", "en-IN", "en"]
 
     try:
@@ -217,7 +216,6 @@ def download_transcript(video_id: str) -> str:
             except Exception:
                 continue
 
-        # Try any available transcript
         for t in transcript_list:
             try:
                 entries = t.fetch()
@@ -230,7 +228,6 @@ def download_transcript(video_id: str) -> str:
     except Exception as exc:
         log.warning("youtube_transcript_api failed (%s) — trying yt-dlp fallback", exc)
 
-    # yt-dlp fallback
     return _download_transcript_ytdlp(video_id)
 
 
@@ -238,7 +235,6 @@ def _download_transcript_ytdlp(video_id: str) -> str:
     """Last-resort transcript extraction via yt-dlp."""
     import subprocess
     import tempfile
-
     import sys
 
     url = f"https://www.youtube.com/watch?v={video_id}"
@@ -258,11 +254,9 @@ def _download_transcript_ytdlp(video_id: str) -> str:
                 text=True,
                 timeout=60,
             )
-            # Find any .vtt file
             vtt_files = list(Path(tmpdir).glob("*.vtt"))
             if vtt_files:
                 raw = vtt_files[0].read_text(encoding="utf-8")
-                # Strip VTT formatting
                 lines = [
                     re.sub(r"<[^>]+>", "", line).strip()
                     for line in raw.split("\n")
@@ -279,12 +273,12 @@ def _download_transcript_ytdlp(video_id: str) -> str:
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-#  Story Seed Extraction (Gemini Summarization — NEW)
+#  Story Seed Extraction (Gemini Summarization)
 # ──────────────────────────────────────────────────────────────────────────────
 
 def summarize_to_story_seed(raw_transcript: str, video_title: str = "") -> dict:
     """
-    Pipes the raw (possibly Tamil/Hinglish) transcript through Gemini
+    Pipes the transcript and/or video title through Gemini
     to extract a rich story_seed object for the script agent.
 
     Returns a dict with:
@@ -292,28 +286,28 @@ def summarize_to_story_seed(raw_transcript: str, video_title: str = "") -> dict:
         - story_seed: {inciting_event, protagonist_flaw, real_world_anchor,
                        concept_name, concept_one_liner}
     """
-    if not raw_transcript.strip():
-        return _fallback_story_seed(video_title)
+    content_block = ""
+    if raw_transcript.strip():
+        content_block = f"TRANSCRIPT EXCERPT:\n{raw_transcript[:5000]}"
+    else:
+        content_block = f"NOTE: Full transcript unavailable due to IP restriction. Analyze the video topic title in depth."
 
-    prompt = f"""You are a financial content analyst and creative storytwriter specialising in Indian stock markets.
+    prompt = f"""You are a financial content analyst and creative storyteller specialising in Indian stock markets.
 
-The following is a raw YouTube video transcript (may be in Tamil, Hindi, Hinglish, or a mix).
-Video title: "{video_title}"
+Channel Video Title: "{video_title}"
+{content_block}
 
-TRANSCRIPT:
-{raw_transcript[:5000]}
-
-Your task: Extract a story seed to be turned into a cinematic short-form video about finance.
+Your task: Extract or formulate a compelling story seed based on this topic to be turned into a cinematic short-form video about finance.
 
 Output ONLY a valid JSON object with exactly these keys (all values in English):
 {{
-  "thesis": "One sentence (max 25 words): the most controversial or provocative financial claim from this content. Should make viewers say 'wait, really?!'",
+  "thesis": "One sentence (max 25 words): the most controversial or provocative financial claim from this topic. Should make viewers say 'wait, really?!'",
   "story_seed": {{
-    "inciting_event": "A specific, relatable everyday moment that sets up the story (e.g. 'Arjun checks his mutual fund app and his returns are 0% despite the Nifty being up 12%')",
-    "protagonist_flaw": "The common mistake most people make, which Arjun will also make (e.g. 'He trusted his fund manager blindly and never checked the expense ratio')",
-    "real_world_anchor": "The actual market fact, company name, or financial event from the transcript that this story is based on (e.g. 'HDFC AMC quietly raised its expense ratio from 1.05% to 1.35% this quarter')",
-    "concept_name": "The official finance term being explained (e.g. 'Expense Ratio Drag')",
-    "concept_one_liner": "One plain-English sentence explaining what this concept means (e.g. 'Even when markets go up, hidden fund fees quietly eat your profits every year')"
+    "inciting_event": "A specific, relatable everyday moment that sets up the story (e.g. 'Arjun checks his portfolio app and his returns are lower than expected despite market rise')",
+    "protagonist_flaw": "The common mistake most people make, which Arjun will also make (e.g. 'He followed herd momentum without checking underlying valuation')",
+    "real_world_anchor": "The actual market fact, company name, or financial phenomenon discussed in this video title (e.g. 'Nifty 50 volatility and swing trading risk in Indian equities')",
+    "concept_name": "The official finance term being explained (e.g. 'Swing Trading Volatility Drag')",
+    "concept_one_liner": "One plain-English sentence explaining what this concept means (e.g. 'Frequent short-term trading often erodes capital through slippage and timing errors')"
   }}
 }}
 
@@ -329,7 +323,6 @@ Output ONLY the JSON. No explanation, no preamble, no markdown fences."""
             config={"response_mime_type": "application/json"}
         )
         raw_json = response.text.strip()
-        # Strip markdown if present
         if "```" in raw_json:
             raw_json = re.sub(r"^```(?:json)?\s*", "", raw_json, flags=re.MULTILINE)
             raw_json = re.sub(r"\s*```\s*$", "", raw_json, flags=re.MULTILINE)
@@ -341,7 +334,7 @@ Output ONLY the JSON. No explanation, no preamble, no markdown fences."""
     except Exception as exc:
         log.warning("Gemini story seed extraction failed, falling back to Groq: %s", exc)
 
-    # Groq fallback — simpler thesis only
+    # Groq fallback
     if settings.GROQ_API_KEY:
         try:
             from groq import Groq
@@ -394,9 +387,9 @@ def discover_topic(day_override: Optional[int] = None) -> dict:
       5. Saturday:  TAMIL NIFTY ANALYSIS
       6. Sunday:    ZERO1 BY ZERODHA
 
-    Starts at today's scheduled channel. If no video is found or transcript
-    extraction fails, automatically cascades to the next channel in the rotation
-    until a valid topic & transcript are found.
+    Starts at today's scheduled channel. If no video is found, automatically
+    cascades to the next channel in rotation. If transcript extraction is blocked
+    by cloud IP restrictions, intelligently utilizes Gemini on the video title.
     """
     start_day = day_override if day_override is not None else datetime.now().weekday()
     num_channels = len(settings.CHANNEL_REGISTRY)
@@ -424,16 +417,16 @@ def discover_topic(day_override: Optional[int] = None) -> dict:
             log.warning("⚠️ Invalid video metadata for '%s' — cascading...", channel_name)
             continue
 
+        # Attempt transcript extraction
         transcript = download_transcript(video_id)
         if not transcript or not transcript.strip():
-            log.warning("⚠️ Empty transcript for [%s] '%s' on '%s' — cascading...", video_id, video_title, channel_name)
-            continue
+            log.info("ℹ️ Transcript empty/blocked for [%s] on '%s' — Gemini will analyze title directly.", video_id, channel_name)
 
         seed_data = summarize_to_story_seed(transcript, video_title)
         thesis = seed_data.get("thesis", video_title)
         story_seed = seed_data.get("story_seed", {})
 
-        log.info("✅ Successfully discovered topic & story seed from '%s' (Video: %s)", channel_name, video_id)
+        log.info("✅ Successfully discovered topic & story seed from '%s' (Video: %s | Title: '%s')", channel_name, video_id, video_title)
         return {
             "channel": channel_name,
             "video_id": video_id,
@@ -446,4 +439,3 @@ def discover_topic(day_override: Optional[int] = None) -> dict:
     raise RuntimeError(
         f"All 7 channels failed in cascading scan. Attempted: {', '.join(attempted_channels)}"
     )
-
