@@ -139,19 +139,19 @@ NARRATION RULES:
 • LANGUAGE: English ONLY. No Tamil, no Hindi, no code-switching. This is an English channel.
 • No jargon until Scene 7 where the concept is deliberately revealed by the News Anchor.
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-VISUAL PROMPT RULES:
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-The visual style for ALL scenes is STRICTLY:
-  Netflix India Premium Drama / Bloomberg Studio — warm interiors for Arjun, high-tech glass studio for the News Anchor,
-  shallow depth of field, teal-orange color grade, photorealistic, cinematic 9:16 vertical frame, no text, no logos.
+CRITICAL: This pipeline generates cinematic financial stories.
+You must return a JSON payload representing an 8-scene video script.
 
-ARJUN (Scenes 1-5): Indian male, 35, sharp features, neatly combed dark hair, light blue formal shirt.
+The visual style for ALL scenes is STRICTLY:
+  Premium Corporate Aesthetic — warm interiors for Priya, high-tech glass studio for the News Anchor,
+  shallow depth of field, cinematic 9:16 vertical frame, no text, no logos.
+
+PRIYA (Scenes 1-5): Indian female corporate professional, 30 years old, sharp features, sleek navy-blue blazer over a white blouse.
 NEWS ANCHOR (Scenes 7-8): Professional Indian financial news anchor, tailored charcoal blazer, seated at a high-tech broadcast news desk with glowing market charts in soft bokeh, looking directly into camera lens.
 
 Each visual_prompt must describe:
   [Character action] + [exact setting] + [lighting] + [emotional detail] + [camera angle]
-  Always end with: "9:16 vertical, Netflix India color grade, cinematic, no text"
+  Always end with: "9:16 vertical, premium corporate aesthetic, cinematic, no text"
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 OUTPUT FORMAT — Return ONLY valid JSON, nothing else, no markdown fences:
@@ -164,13 +164,13 @@ OUTPUT FORMAT — Return ONLY valid JSON, nothing else, no markdown fences:
     {
       "scene_id": 1,
       "narration": "Present-tense cinematic narration. Max 20 words. Flows into next scene.",
-      "visual_prompt": "Arjun sitting at a home office desk late at night, light blue shirt, staring at a phone showing a red portfolio chart, warm amber lamp glow, shallow depth of field, concerned expression, close-up shot, 9:16 vertical, Netflix India color grade, cinematic, no text",
+      "visual_prompt": "Priya sitting at a modern corporate desk late at night, navy-blue blazer, staring at a phone showing a red portfolio chart, warm amber lamp glow, shallow depth of field, concerned expression, close-up shot, 9:16 vertical, premium corporate aesthetic, cinematic, no text",
       "duration_hint": 7.0
     }
   ]
 }
 
-CRITICAL: Exactly 8 scenes. Use the story_seed facts provided. Arjun stars in Scenes 1-5. The News Anchor stars in Scenes 7-8 and breaks the 4th wall directly into camera."""
+CRITICAL: Exactly 8 scenes. Use the story_seed facts provided. Priya stars in Scenes 1-5. The News Anchor stars in Scenes 7-8 and breaks the 4th wall directly into camera."""
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -254,7 +254,7 @@ Plain Definition (Scene 7): {story_seed.get('concept_one_liner', '')}
 Core financial thesis: "{thesis}"
 {seed_context}
 Now generate the complete 8-scene cinematic short-story script as JSON.
-Remember: Arjun experiences the dilemma in Scenes 1-5. Scene 6 anchors the real market fact. In Scenes 7-8, the News Anchor cuts in to reveal the concept and breaks the 4th wall directly to camera."""
+Remember: Priya experiences the dilemma in Scenes 1-5. Scene 6 anchors the real market fact. In Scenes 7-8, the News Anchor cuts in to reveal the concept and breaks the 4th wall directly to camera."""
 
     for model in _GEMINI_MODELS:
         log.info("Trying model: %s", model)

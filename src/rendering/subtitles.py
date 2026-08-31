@@ -1,20 +1,19 @@
 """
 src/rendering/subtitles.py
 
-Clean, Stable Middle-Bottom Captions (YouTube Shorts & Instagram Reels Standard)
+Clean, CapCut-Style Viral Captions
 
 Generates Advanced SubStation Alpha (.ass) subtitles designed for high-retention:
   - Font: Inter / Montserrat / Arial (Bold, modern, aesthetic)
   - Color: Clean crisp White text with subtle black outline and drop shadow
   - Placement: Middle-Bottom (MarginV = 380px) to stay above platform overlay UI
-  - Stability: 1 anchored, balanced block per scene — ZERO vertical jumping or flashing
-  - Animation: Clean instant cut synchronized with natural speech
+  - Stability: 1 anchored, balanced block per scene - ZERO vertical jumping
+  - Animation: The *currently spoken word* pops in Yellow with a slight scale bump (CapCut Viral Style)
 """
 from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Optional
 
 from src.utils.config import settings
 from src.utils.logger import get_logger
@@ -82,42 +81,6 @@ def _fmt_time(seconds: float) -> str:
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-#  Balanced Caption Text Formatter
-# ──────────────────────────────────────────────────────────────────────────────
-
-def _format_caption_text(text: str, max_chars_per_line: int = 34) -> str:
-    """
-    Formats scene narration into 1 or 2 clean, balanced lines with an explicit \\N break.
-    This guarantees zero jumping because the text remains centered and symmetrical.
-    """
-    text = text.strip()
-    words = text.split()
-    if not words:
-        return ""
-
-    if len(text) <= max_chars_per_line:
-        return text
-
-    # Find the best whitespace split point closest to the exact middle
-    total_len = len(text)
-    half = total_len // 2
-    best_split = 1
-    min_diff = 9999
-
-    cur = 0
-    for i, w in enumerate(words[:-1]):
-        cur += len(w) + 1
-        diff = abs(cur - half)
-        if diff < min_diff:
-            min_diff = diff
-            best_split = i + 1
-
-    line1 = " ".join(words[:best_split])
-    line2 = " ".join(words[best_split:])
-    return f"{line1}\\N{line2}"
-
-
-# ──────────────────────────────────────────────────────────────────────────────
 #  Public API
 # ──────────────────────────────────────────────────────────────────────────────
 
@@ -126,8 +89,9 @@ def generate_ass_file(
     output_path: Path,
 ) -> Path:
     """
-    Generate clean, stable middle-bottom subtitles.
-    1 continuous, perfectly anchored subtitle event per scene — no jumping between words.
+    Generate CapCut-style viral subtitles.
+    The sentence stays completely locked in place (no jumping).
+    Overlapping Dialogue events highlight the currently spoken word in Yellow and scale it up.
     """
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -136,23 +100,64 @@ def generate_ass_file(
     cumulative_offset = 0.0
     for result in voice_results:
         duration = result.get("duration", 0.0)
-        narration = result.get("narration", "")
+        word_timings = result.get("word_timings", [])
 
-        # Fallback to word timings if narration key not present
-        if not narration and "word_timings" in result:
-            narration = " ".join(w["word"] for w in result["word_timings"])
-
-        if narration:
-            formatted_text = _format_caption_text(narration)
-            # Offset start slightly after pre-silence and end before trailing silence
-            start_time = max(0.0, cumulative_offset + 0.15)
-            end_time = max(start_time + 0.5, cumulative_offset + duration - 0.15)
-
-            line = (
-                f"Dialogue: 0,{_fmt_time(start_time)},{_fmt_time(end_time)},"
-                f"Default,,0,0,0,,{formatted_text}"
-            )
-            lines.append(line)
+        if word_timings:
+            scene_start = max(0.0, cumulative_offset + 0.15)
+            scene_end = max(scene_start + 0.5, cumulative_offset + duration - 0.15)
+            
+            # Format the sentence with \N if it's too long, but for exact word mapping
+            # we must find the midpoint word to insert the \N correctly.
+            total_chars = sum(len(w['word']) for w in word_timings)
+            half_chars = total_chars // 2
+            
+            best_split_idx = -1
+            if total_chars > 34:
+                min_diff = 9999
+                cur = 0
+                for i, w in enumerate(word_timings[:-1]):
+                    cur += len(w['word']) + 1
+                    diff = abs(cur - half_chars)
+                    if diff < min_diff:
+                        min_diff = diff
+                        best_split_idx = i
+            
+            # Generate one Dialogue event for each spoken word
+            for i, active_w in enumerate(word_timings):
+                # The word event starts when the word starts, and ends when the next word starts
+                # (or when the scene ends, for the last word)
+                start_t = cumulative_offset + active_w['start']
+                if i + 1 < len(word_timings):
+                    end_t = cumulative_offset + word_timings[i+1]['start']
+                else:
+                    end_t = scene_end
+                    
+                # Constrain to scene bounds
+                start_t = max(scene_start, min(start_t, scene_end))
+                end_t = max(start_t + 0.01, min(end_t, scene_end))
+                
+                text_parts = []
+                for j, render_w in enumerate(word_timings):
+                    w_text = render_w['word']
+                    prefix = ""
+                    if j > 0:
+                        if j - 1 == best_split_idx:
+                            prefix = "\\N"
+                        else:
+                            prefix = " "
+                    
+                    if j == i:
+                        # Highlight active word (Yellow, 115% scale)
+                        text_parts.append(f"{prefix}{{\\c&H00FFFF&}}{{\\fscx115\\fscy115}}{w_text}{{\\rDefault}}")
+                    else:
+                        text_parts.append(f"{prefix}{w_text}")
+                
+                full_text = "".join(text_parts)
+                line = (
+                    f"Dialogue: 0,{_fmt_time(start_t)},{_fmt_time(end_t)},"
+                    f"Default,,0,0,0,,{full_text}"
+                )
+                lines.append(line)
 
         cumulative_offset += duration
 
@@ -161,7 +166,7 @@ def generate_ass_file(
 
     total_lines = len([l for l in lines if l.startswith("Dialogue:")])
     log.info(
-        "Generated clean stable subtitles: %s (%d scene dialogue events, total duration: %.1fs)",
+        "Generated CapCut-style subtitles: %s (%d highlight events, total duration: %.1fs)",
         output_path.name, total_lines, cumulative_offset
     )
     return output_path
