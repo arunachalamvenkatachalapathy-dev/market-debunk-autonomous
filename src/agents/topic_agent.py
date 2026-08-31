@@ -1,4 +1,3 @@
-import os
 """
 src/agents/topic_agent.py
 
@@ -18,6 +17,7 @@ Data flow:
     → download_transcript() → summarize_to_story_seed()
 """
 from __future__ import annotations
+import os
 
 import json
 import re
