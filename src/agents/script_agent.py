@@ -91,7 +91,23 @@ Each visual_prompt should ONLY describe:
   
 DO NOT include character physical descriptions in the visual_prompt! The system will automatically inject the "Character Bible" paragraph later. Just write what they are doing.
 
-OUTPUT FORMAT — Return ONLY valid JSON, nothing else."""
+OUTPUT FORMAT — Return ONLY valid JSON, nothing else, no markdown fences:
+──────────────────────────────────────────────────────────────────────────────
+{
+  "title": "Punchy English title max 60 chars — grabs attention immediately",
+  "description": "SEO description 150-300 chars — explains the finance concept revealed at the end",
+  "hashtags": ["StockMarket", "InvestingIndia", "FinanceShorts", "MarketDebunk", "MoneyTips"],
+  "scenes": [
+    {
+      "scene_id": 1,
+      "narration": "Present-tense cinematic narration. Max 20 words. Flows into next scene.",
+      "visual_prompt": "Arjun sitting at a home office desk late at night, light blue shirt, staring at a phone showing a red portfolio chart, warm amber lamp glow, shallow depth of field, concerned expression, close-up shot",
+      "duration_hint": 7.0
+    }
+  ]
+}
+
+CRITICAL: Exactly 12 scenes. Use the story_seed facts provided. Arjun must appear by name in narrations."""
 
 # ──────────────────────────────────────────────────────────────────────────────
 #  JSON Extraction
