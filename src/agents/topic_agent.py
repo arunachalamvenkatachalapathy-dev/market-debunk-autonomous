@@ -196,56 +196,51 @@ def fetch_latest_video(channel_name: str) -> Optional[dict]:
 
 def download_transcript(video_id: str) -> str:
     """
-    Downloads the YouTube transcript (auto-generated or manual).
+    Downloads the YouTube transcript using the RapidAPI WEBVTT endpoint.
     Handles Tamil, Hindi, Hinglish, or mixed-language transcripts.
     Returns the raw concatenated text.
     """
-    log.info("Downloading transcript for video: %s", video_id)
+    log.info("Downloading transcript via RapidAPI for video: %s", video_id)
+
+    # Priority: Tamil -> Hindi -> English
+    lang_priority = ["ta", "hi", "en-IN", "en", "auto"]
     
-    cookies_path = "cookies.txt"
-    has_cookies = os.path.exists(cookies_path)
-    if has_cookies:
-        log.info("Found cookies.txt! Using cookies to bypass IP ban.")
+    headers = {
+        'X-RapidAPI-Key': '3ca9e1830emsh4fa6a4b01278502p132c7fjsn05a996617bc0',
+        'X-RapidAPI-Host': 'youtube-captions-transcript-subtitles-video-combiner.p.rapidapi.com'
+    }
+    
+    url = f"https://youtube-captions-transcript-subtitles-video-combiner.p.rapidapi.com/download-webvtt/{video_id}"
 
-    # Priority: Tamil -> Hindi -> English auto-generated
-    lang_priority = ["ta", "hi", "en-IN", "en"]
-
-    try:
-        session = requests.Session()
-        if has_cookies:
-            cj = http.cookiejar.MozillaCookieJar(cookies_path)
-            cj.load(ignore_discard=True, ignore_expires=True)
-            session.cookies.update(cj)
+    for lang in lang_priority:
+        try:
+            querystring = {"language": lang, "response_mode": "default"}
+            response = requests.get(url, headers=headers, params=querystring, timeout=15)
             
-        ytt_api = YouTubeTranscriptApi(http_client=session)
-        transcript_list = ytt_api.list(video_id)
+            if response.status_code == 200 and "WEBVTT" in response.text:
+                # Parse WEBVTT into raw text
+                lines = response.text.split('\n')
+                raw_text = []
+                for line in lines:
+                    line = line.strip()
+                    # Skip empty lines, timestamps, WEBVTT headers, and metadata
+                    if not line or '-->' in line or line == 'WEBVTT' or line.startswith('Kind:') or line.startswith('Language:') or line.startswith('Style:'):
+                        continue
+                    # Remove any inline styling like <c.color> or <b>
+                    line = re.sub(r'<[^>]+>', '', line)
+                    if line not in raw_text[-3:]: # Basic deduplication
+                        raw_text.append(line)
+                
+                final_text = " ".join(raw_text)
+                log.info("Downloaded transcript (%s) via RapidAPI: %d chars", lang, len(final_text))
+                if len(final_text) > 50:
+                    return final_text
+        except Exception as exc:
+            log.warning("RapidAPI failed for lang %s: %s", lang, exc)
+            continue
 
-        for lang in lang_priority:
-            try:
-                transcript = transcript_list.find_transcript([lang])
-                entries = transcript.fetch()
-                raw = " ".join(e["text"] for e in entries)
-                log.info("Downloaded transcript (%s): %d chars", lang, len(raw))
-                return raw
-            except Exception:
-                continue
-
-        # Try any available transcript
-        for t in transcript_list:
-            try:
-                entries = t.fetch()
-                raw = " ".join(e["text"] for e in entries)
-                log.info("Downloaded transcript (%s): %d chars", t.language_code, len(raw))
-                return raw
-            except Exception:
-                continue
-
-    except Exception as exc:
-        log.warning("youtube_transcript_api failed (%s) — trying yt-dlp fallback", exc)
-
-    # yt-dlp fallback
-    return _download_transcript_ytdlp(video_id, cookies_path if has_cookies else None)
-
+    log.error("RapidAPI exhausted all languages. Attempting ultimate yt-dlp fallback.")
+    return _download_transcript_ytdlp(video_id, "cookies.txt" if os.path.exists("cookies.txt") else None)
 
 def _download_transcript_ytdlp(video_id: str, cookies_path: Optional[str] = None) -> str:
     """Last-resort transcript extraction via yt-dlp."""
