@@ -93,6 +93,7 @@ def source_all_visuals(scenes: list, output_dir: Path) -> list:
                 "scene_id": scene_id,
                 "asset_type": "image",
                 "asset_path": str(filepath.resolve()),
+                "source": "vertex_ai"
             })
             log.info(" o  Scene %d visual sourced | type: image | source: vertex_ai", scene_id)
         else:
