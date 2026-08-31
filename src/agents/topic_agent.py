@@ -199,13 +199,21 @@ def download_transcript(video_id: str) -> str:
     Returns the raw concatenated text.
     """
     log.info("Downloading transcript for video: %s", video_id)
+    
+    cookies_path = "cookies.txt"
+    has_cookies = os.path.exists(cookies_path)
+    if has_cookies:
+        log.info("Found cookies.txt! Using cookies to bypass IP ban.")
 
-    # Priority: Tamil → Hindi → English auto-generated
+    # Priority: Tamil -> Hindi -> English auto-generated
     lang_priority = ["ta", "hi", "en-IN", "en"]
 
     try:
-        ytt_api = YouTubeTranscriptApi()
-        transcript_list = ytt_api.list(video_id)
+        kwargs = {}
+        if has_cookies:
+            kwargs["cookies"] = cookies_path
+            
+        transcript_list = YouTubeTranscriptApi.list_transcripts(video_id, **kwargs)
 
         for lang in lang_priority:
             try:
@@ -231,10 +239,10 @@ def download_transcript(video_id: str) -> str:
         log.warning("youtube_transcript_api failed (%s) — trying yt-dlp fallback", exc)
 
     # yt-dlp fallback
-    return _download_transcript_ytdlp(video_id)
+    return _download_transcript_ytdlp(video_id, cookies_path if has_cookies else None)
 
 
-def _download_transcript_ytdlp(video_id: str) -> str:
+def _download_transcript_ytdlp(video_id: str, cookies_path: Optional[str] = None) -> str:
     """Last-resort transcript extraction via yt-dlp."""
     import subprocess
     import tempfile

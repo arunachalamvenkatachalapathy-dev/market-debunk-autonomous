@@ -36,6 +36,17 @@ jobs:
       - name: Install Dependencies
         run: pip install -r requirements.txt
 
+      - name: Setup YouTube Cookies
+        env:
+          YT_COOKIES: ${{ secrets.YT_COOKIES }}
+        run: |
+          if [ -n "$YT_COOKIES" ]; then
+            echo "$YT_COOKIES" > cookies.txt
+            echo "Cookies file created successfully."
+          else
+            echo "No YT_COOKIES secret found. Proceeding without cookies."
+          fi
+
       - name: Run Pipeline (Manager Agent)
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
