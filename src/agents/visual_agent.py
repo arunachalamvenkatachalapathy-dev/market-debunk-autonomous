@@ -11,7 +11,11 @@ client = genai.Client(vertexai=True, project="exalted-shape-502013-q5", location
 
 log = get_logger(__name__, phase="video_assembly")
 
-# ─────────────────────────────────────────────────────────────────────────────_STYLE_PREFIX = (
+# ──────────────────────────────────────────────────────────────────────────────
+#  Visual Bible — Premium Corporate Aesthetic
+# ──────────────────────────────────────────────────────────────────────────────
+
+_STYLE_PREFIX = (
     "Cinematic 9:16 vertical frame, premium corporate aesthetic, minimalist, clean lines, "
     "soft warm studio lighting, deep navy and amber color palette, highly consistent, "
     "film still quality, no text, no watermarks, no logos, no captions, "
@@ -32,6 +36,7 @@ _NEWS_ANCHOR_BIBLE = (
     "and tickers visible in soft background bokeh, studio key lighting, authoritative broadcast presence, "
     "direct eye contact with the camera lens, photorealistic, "
 )
+
 
 def _build_enhanced_prompt(raw_prompt: str, scene_id: int) -> str:
     """
@@ -66,13 +71,6 @@ def _build_enhanced_prompt(raw_prompt: str, scene_id: int) -> str:
             + ", 9:16 vertical, premium corporate aesthetic, cinematic, no text"
         )
     else:
-        # Scenes 1-5: Priya
-        enhanced = _STYLE_PREFIX + _PRIYA_BIBLE + prompt
-        if "9:16" not in enhanced:
-            enhanced += ", 9:16 vertical, premium corporate aesthetic, cinematic, no text"
-
-    log.info("Scene %d enhanced prompt: '%s...'", scene_id, enhanced[:120])
-    return enhancedelse:
         # Scenes 1-5: Priya
         enhanced = _STYLE_PREFIX + _PRIYA_BIBLE + prompt
         if "9:16" not in enhanced:
