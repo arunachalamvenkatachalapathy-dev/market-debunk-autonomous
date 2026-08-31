@@ -56,18 +56,18 @@ def _build_scene_from_video(
 ) -> None:
     """
     Crop and loop a stock video to match audio duration, scale to 1080×1920.
-    Applies a subtle slow-zoom (1.02x) for visual energy.
+    Scale down to fit inside 1080x1920, pad with black, loop to match audio.
+    Applies a subtle slow-zoom (1.04x) for visual energy.
     """
     w, h = settings.VIDEO_WIDTH, settings.VIDEO_HEIGHT
     fps = settings.VIDEO_FPS
 
     # Video filter chain:
-    #   1. Scale maintaining AR (covers 1080×1920)
-    #   2. Crop to exact 1080×1920
-    #   3. Slow zoom for dynamism
+    #   1. Scale down to fit inside 1080x1920
+    #   2. Pad with black to exactly 1080x1920
     vf = (
-        f"scale='if(gte(iw/ih,{w}/{h}),{h}*iw/ih,{w})':'if(gte(iw/ih,{w}/{h}),{h},{w}*ih/iw)',"
-        f"crop={w}:{h},"
+        f"scale={w}:{h}:force_original_aspect_ratio=decrease,"
+        f"pad={w}:{h}:(ow-iw)/2:(oh-ih)/2:black,"
         f"setsar=1,"
         f"zoompan=z='min(zoom+0.0005,1.04)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d={int(duration*fps)}:s={w}x{h}:fps={fps}"
     )
@@ -98,16 +98,15 @@ def _build_scene_from_image(
     output_path: Path,
 ) -> None:
     """
-    Convert a static image to a video with Ken Burns slow zoom/pan.
-    Duration matches the voiceover audio exactly.
+    Scale image to fit, pad to 1080x1920, and apply a slow ken-burns zoom.
     """
     w, h = settings.VIDEO_WIDTH, settings.VIDEO_HEIGHT
     fps = settings.VIDEO_FPS
     n_frames = int(duration * fps)
 
     vf = (
-        f"scale='if(gte(iw/ih,{w}/{h}),{h}*iw/ih,{w})':'if(gte(iw/ih,{w}/{h}),{h},{w}*ih/iw)',"
-        f"crop={w}:{h},"
+        f"scale={w}:{h}:force_original_aspect_ratio=decrease,"
+        f"pad={w}:{h}:(ow-iw)/2:(oh-ih)/2:black,"
         f"setsar=1,"
         f"zoompan=z='min(zoom+0.0008,1.06)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d={n_frames}:s={w}x{h}:fps={fps}"
     )
