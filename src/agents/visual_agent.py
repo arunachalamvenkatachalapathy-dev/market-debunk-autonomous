@@ -1,15 +1,20 @@
 import os
+import hashlib
+import shutil
 import time
 from pathlib import Path
-from src.utils.logger import get_logger
-from tenacity import retry, stop_after_attempt, wait_exponential
 
 from google import genai
-from google.genai import types
+from google.genai import errors, types
+from src.utils.logger import get_logger
+from src.utils.config import settings
+from tenacity import retry, retry_if_exception, stop_after_attempt, wait_exponential
+
 
 client = genai.Client(vertexai=True, project="exalted-shape-502013-q5", location="us-central1")
 
 log = get_logger(__name__, phase="video_assembly")
+_CACHE_DIR = settings.OUTPUT_DIR / "visual_cache"
 
 # ──────────────────────────────────────────────────────────────────────────────
 #  Visual Bible — Fixed Aesthetics & Character Consistency
@@ -91,7 +96,22 @@ def _build_enhanced_prompt(raw_prompt: str, scene_id: int) -> str:
     return enhanced
 
 
-@retry(stop=stop_after_attempt(5), wait=wait_exponential(multiplier=1, min=2, max=60))
+def _is_quota_error(exc: BaseException) -> bool:
+    if isinstance(exc, errors.APIError):
+        return getattr(exc, "code", None) == 429 or "RESOURCE_EXHAUSTED" in str(exc)
+    return False
+
+
+def _retryable_image_error(exc: BaseException) -> bool:
+    return _is_quota_error(exc) or isinstance(exc, errors.ServerError)
+
+
+@retry(
+    retry=retry_if_exception(_retryable_image_error),
+    stop=stop_after_attempt(6),
+    wait=wait_exponential(multiplier=8, min=20, max=180),
+    reraise=True,
+)
 def _call_imagen(prompt: str, output_path: Path):
     r = client.models.generate_content(
         model='gemini-2.5-flash-image',
@@ -106,14 +126,40 @@ def _call_imagen(prompt: str, output_path: Path):
     return True
 
 
+def _cache_path_for_prompt(enhanced_prompt: str, scene_id: int) -> Path:
+    digest = hashlib.sha256(enhanced_prompt.encode("utf-8")).hexdigest()[:20]
+    return _CACHE_DIR / f"scene_{scene_id}_{digest}.jpg"
+
+
+def _copy_cached_image(cache_path: Path, output_path: Path, scene_id: int) -> bool:
+    if not cache_path.exists() or cache_path.stat().st_size == 0:
+        return False
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(cache_path, output_path)
+    log.info("Scene %d image reused from visual cache.", scene_id)
+    return True
+
+
 def generate_image(prompt: str, output_path: Path, scene_id: int = 0) -> bool:
     enhanced_prompt = _build_enhanced_prompt(prompt, scene_id)
+    cache_path = _cache_path_for_prompt(enhanced_prompt, scene_id)
+    if _copy_cached_image(cache_path, output_path, scene_id):
+        return True
+
     log.info("Generating image for scene %d via Vertex AI...", scene_id)
     try:
         _call_imagen(enhanced_prompt, output_path)
+        _CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(output_path, cache_path)
         log.info("Scene %d image saved successfully.", scene_id)
         return True
     except Exception as exc:
+        if _is_quota_error(exc):
+            log.error(
+                "Vertex AI quota exhausted while generating scene %d. "
+                "Billing can be active while per-minute or regional image quota is still exhausted.",
+                scene_id,
+            )
         log.error("Vertex AI Image generation FATAL ERROR for scene %d: %s", scene_id, exc)
         # Fail loudly to prevent the entire video from rendering with a single placeholder
         raise exc
@@ -142,6 +188,9 @@ def source_all_visuals(scenes: list, output_dir: Path) -> list:
                 "source": "vertex_ai"
             })
             log.info(" ✓ Scene %d visual sourced | type: image", scene_id)
+            delay = settings.VISUAL_GENERATION_DELAY_SECONDS
+            if delay > 0:
+                time.sleep(delay)
         else:
             raise RuntimeError(f"Failed to generate visual for scene {scene_id}.")
 

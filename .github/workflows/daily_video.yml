@@ -47,6 +47,14 @@ jobs:
             echo "No YT_COOKIES secret found. Proceeding without cookies."
           fi
 
+      - name: Restore visual generation cache
+        uses: actions/cache@v4
+        with:
+          path: output/visual_cache
+          key: visual-cache-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            visual-cache-${{ runner.os }}-
+
       - name: Run Pipeline (Manager Agent)
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
