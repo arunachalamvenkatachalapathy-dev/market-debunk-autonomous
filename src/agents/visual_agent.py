@@ -80,8 +80,7 @@ def _call_imagen(prompt: str, output_path: Path):
         model='gemini-2.5-flash-image',
         contents=prompt,
         config=types.GenerateContentConfig(
-            response_modalities=['IMAGE'],
-            aspect_ratio="9:16"
+            response_modalities=['IMAGE']
         )
     )
     image_bytes = r.candidates[0].content.parts[0].inline_data.data

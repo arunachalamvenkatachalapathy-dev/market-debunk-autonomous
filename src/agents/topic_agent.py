@@ -2,82 +2,334 @@
 src/agents/topic_agent.py
 
 Phase 1 — Topic Discovery
-This agent uses Gemini (Vertex AI) to generate an original, highly engaging
-financial story seed, ensuring full copyright and YouTube ToS compliance.
-No scraping of competitor transcripts is performed.
+
+Rotates through 7 Indian Financial YouTube channels by day of week,
+extracts the latest video, downloads its transcript (Tamil/Hinglish/mixed),
+and uses Gemini to distil a story_seed object for the script agent.
+
+Channel schedule (0=Monday … 6=Sunday):
+  Mon: MONEY PECHU       Tue: PR SUNDAR         Wed: MONEY PURSE
+  Thu: TRADE ACHIEVERS   Fri: MARKET DRIVER     Sat: TAMIL NIFTY ANALYSIS
+  Sun: ZERO1 BY ZERODHA
+
+Data flow:
+  rotate_channel() → resolve_channel_id() → fetch_latest_video()
+    → download_transcript() → summarize_to_story_seed()
 """
+from __future__ import annotations
+import os
+
 import json
 import re
-import random
-from typing import Optional
+import time
+import xml.etree.ElementTree as ET
+import http.cookiejar
 from datetime import datetime
+from pathlib import Path
+from typing import Optional
 
-from google import genai
+import feedparser
+import requests
+from tenacity import retry, stop_after_attempt, wait_exponential
+from youtube_transcript_api import YouTubeTranscriptApi, NoTranscriptFound
 
 from src.utils.config import settings
 from src.utils.logger import get_logger
 
 log = get_logger(__name__, phase="topic_discovery")
 
-# List of high-level finance topics for Gemini to choose from
-FINANCE_TOPICS = [
-    "Expense Ratios and Hidden Mutual Fund Fees",
-    "The dangers of blindly following stock tips on Telegram",
-    "Why Option Trading destroys retail wealth",
-    "The reality of IPO flipping and listing gains",
-    "SIP vs Lumpsum during all-time highs",
-    "The trap of high-dividend yield stocks",
-    "Why real estate isn't always the best investment",
-    "The psychology of panic selling",
-    "How inflation quietly eats your savings account",
-    "The sunk cost fallacy in holding losing stocks",
-    "Understanding compounding vs simple interest",
-    "The reality of 'guaranteed return' insurance policies"
-]
+_CHANNEL_IDS_PATH = settings.DATA_DIR / "channel_ids.json"
 
-def _fallback_story_seed(topic: str) -> dict:
-    """Minimal fallback when LLM fails."""
+
+# ──────────────────────────────────────────────────────────────────────────────
+#  Channel ID Resolution
+# ──────────────────────────────────────────────────────────────────────────────
+
+def _load_channel_id_cache() -> dict[str, Optional[str]]:
+    if _CHANNEL_IDS_PATH.exists():
+        with open(_CHANNEL_IDS_PATH, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {name: None for name in settings.CHANNEL_REGISTRY}
+
+
+def _save_channel_id_cache(cache: dict[str, Optional[str]]) -> None:
+    with open(_CHANNEL_IDS_PATH, "w", encoding="utf-8") as f:
+        json.dump(cache, f, indent=2, ensure_ascii=False)
+
+
+def resolve_channel_id(channel_name: str) -> Optional[str]:
+    """
+    Returns the YouTube channel ID for a given channel name.
+    Tries the local cache first; on a miss, searches via YouTube Data API v3.
+    If YT_API_KEY is absent, returns None (caller will use RSS name-based URL).
+    """
+    cache = _load_channel_id_cache()
+
+    if cache.get(channel_name):
+        return cache[channel_name]
+
+    if not settings.YT_API_KEY:
+        log.warning("YT_API_KEY not set — cannot resolve channel ID for '%s'", channel_name)
+        return None
+
+    log.info("Resolving channel ID for '%s' via YouTube API …", channel_name)
+    url = "https://www.googleapis.com/youtube/v3/search"
+    params = {
+        "part": "snippet",
+        "q": channel_name,
+        "type": "channel",
+        "maxResults": 3,
+        "key": settings.YT_API_KEY,
+    }
+    try:
+        resp = requests.get(url, params=params, timeout=15)
+        resp.raise_for_status()
+        items = resp.json().get("items", [])
+        if items:
+            channel_id = items[0]["id"]["channelId"]
+            cache[channel_name] = channel_id
+            _save_channel_id_cache(cache)
+            log.info("Resolved '%s' → %s", channel_name, channel_id)
+            return channel_id
+    except Exception as exc:
+        log.error("Failed to resolve channel ID for '%s': %s", channel_name, exc)
+
+    return None
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+#  Day-Based Channel Rotation
+# ──────────────────────────────────────────────────────────────────────────────
+
+def rotate_channel(day_override: Optional[int] = None) -> str:
+    """
+    Returns the channel name to use for today.
+    day_override (0-6) lets you force a specific day (useful for testing).
+    """
+    day = day_override if day_override is not None else datetime.now().weekday()
+    channel = settings.CHANNEL_REGISTRY[day % 7]
+    log.info("Day %d → using channel: %s", day, channel)
+    return channel
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+#  Latest Video Fetching
+# ──────────────────────────────────────────────────────────────────────────────
+
+@retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
+def _fetch_latest_video_api(channel_id: str) -> Optional[dict]:
+    """Primary: YouTube Data API v3."""
+    url = "https://www.googleapis.com/youtube/v3/search"
+    params = {
+        "part": "snippet",
+        "channelId": channel_id,
+        "order": "date",
+        "type": "video",
+        "maxResults": 1,
+        "key": settings.YT_API_KEY,
+    }
+    resp = requests.get(url, params=params, timeout=15)
+    resp.raise_for_status()
+    items = resp.json().get("items", [])
+    if not items:
+        return None
+    item = items[0]
     return {
-        "thesis": f"The hidden truth about {topic}",
-        "story_seed": {
-            "inciting_event": f"Arjun realizes his {topic.lower()} strategy isn't working as expected.",
-            "protagonist_flaw": "He trusted conventional advice without understanding the underlying mechanics.",
-            "real_world_anchor": "Historical market data showing retail investor behavior.",
-            "concept_name": "Market Mispricing",
-            "concept_one_liner": "When prices don't reflect real value, savvy investors profit while others lose."
-        }
+        "video_id": item["id"]["videoId"],
+        "title": item["snippet"]["title"],
+        "published_at": item["snippet"]["publishedAt"],
     }
 
-def discover_topic(day_override: Optional[int] = None) -> dict:
+
+def _fetch_latest_video_rss(channel_id: str) -> Optional[dict]:
+    """Fallback: YouTube RSS feed (no API key needed)."""
+    rss_url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
+    try:
+        feed = feedparser.parse(rss_url)
+        if not feed.entries:
+            return None
+        entry = feed.entries[0]
+        video_id = entry.get("yt_videoid") or re.search(r"v=([^&]+)", entry.get("link", ""))
+        if hasattr(video_id, "group"):
+            video_id = video_id.group(1)
+        return {
+            "video_id": str(video_id),
+            "title": entry.get("title", ""),
+            "published_at": entry.get("published", ""),
+        }
+    except Exception as exc:
+        log.error("RSS fetch failed for channel %s: %s", channel_id, exc)
+        return None
+
+
+def fetch_latest_video(channel_name: str) -> Optional[dict]:
     """
-    Generates an original financial story seed using Gemini directly.
-    Replaces the old YouTube scraping method to ensure full copyright and ToS compliance.
+    Fetches the latest video metadata for a channel.
+    Returns dict with keys: video_id, title, published_at
     """
-    log.info("Generating original financial topic via Gemini...")
+    channel_id = resolve_channel_id(channel_name)
+
+    # Try API first
+    if channel_id and settings.YT_API_KEY:
+        try:
+            video = _fetch_latest_video_api(channel_id)
+            if video:
+                log.info("Found video via API: [%s] %s", video["video_id"], video["title"])
+                return video
+        except Exception as exc:
+            log.warning("API fetch failed, falling back to RSS: %s", exc)
+
+    # RSS fallback (requires channel_id)
+    if channel_id:
+        video = _fetch_latest_video_rss(channel_id)
+        if video:
+            log.info("Found video via RSS: [%s] %s", video["video_id"], video["title"])
+            return video
+
+    log.error("Could not fetch latest video for channel: %s", channel_name)
+    return None
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+#  Transcript Download
+# ──────────────────────────────────────────────────────────────────────────────
+
+def download_transcript(video_id: str) -> str:
+    """
+    Downloads the YouTube transcript using the RapidAPI WEBVTT endpoint.
+    Handles Tamil, Hindi, Hinglish, or mixed-language transcripts.
+    Returns the raw concatenated text.
+    """
+    log.info("Downloading transcript via RapidAPI for video: %s", video_id)
+
+    # Priority: Tamil -> Hindi -> English
+    lang_priority = ["ta", "hi", "en-IN", "en", "auto"]
     
-    # Pick a random high-level topic to ground the generation
-    base_topic = random.choice(FINANCE_TOPICS)
-    log.info("Selected base topic: %s", base_topic)
+    headers = {
+        'X-RapidAPI-Key': '3ca9e1830emsh4fa6a4b01278502p132c7fjsn05a996617bc0',
+        'X-RapidAPI-Host': 'youtube-captions-transcript-subtitles-video-combiner.p.rapidapi.com'
+    }
+    
+    url = f"https://youtube-captions-transcript-subtitles-video-combiner.p.rapidapi.com/download-webvtt/{video_id}"
 
-    prompt = f"""You are an elite financial content strategist and storyteller for an Indian YouTube Shorts channel.
-Your task is to invent an original, highly engaging, and educational financial story seed based on this topic:
-"{base_topic}"
+    for lang in lang_priority:
+        try:
+            querystring = {"language": lang, "response_mode": "default"}
+            response = requests.get(url, headers=headers, params=querystring, timeout=15)
+            
+            if response.status_code == 200 and "WEBVTT" in response.text:
+                # Parse WEBVTT into raw text
+                lines = response.text.split('\n')
+                raw_text = []
+                for line in lines:
+                    line = line.strip()
+                    # Skip empty lines, timestamps, WEBVTT headers, and metadata
+                    if not line or '-->' in line or line == 'WEBVTT' or line.startswith('Kind:') or line.startswith('Language:') or line.startswith('Style:'):
+                        continue
+                    # Remove any inline styling like <c.color> or <b>
+                    line = re.sub(r'<[^>]+>', '', line)
+                    if line not in raw_text[-3:]: # Basic deduplication
+                        raw_text.append(line)
+                
+                final_text = " ".join(raw_text)
+                log.info("Downloaded transcript (%s) via RapidAPI: %d chars", lang, len(final_text))
+                if len(final_text) > 50:
+                    return final_text
+        except Exception as exc:
+            log.warning("RapidAPI failed for lang %s: %s", lang, exc)
+            continue
 
-Output ONLY a valid JSON object with exactly these keys:
+    log.error("RapidAPI exhausted all languages. Attempting ultimate yt-dlp fallback.")
+    return _download_transcript_ytdlp(video_id, "cookies.txt" if os.path.exists("cookies.txt") else None)
+
+def _download_transcript_ytdlp(video_id: str, cookies_path: Optional[str] = None) -> str:
+    """Last-resort transcript extraction via yt-dlp."""
+    import subprocess
+    import tempfile
+
+    import sys
+
+    url = f"https://www.youtube.com/watch?v={video_id}"
+    with tempfile.TemporaryDirectory() as tmpdir:
+        try:
+            result = subprocess.run(
+                [
+                    sys.executable, "-m", "yt_dlp",
+                    "--write-auto-sub",
+                    "--sub-lang", "ta,hi,en",
+                    "--skip-download",
+                    "--sub-format", "vtt",
+                    "-o", f"{tmpdir}/%(id)s",
+                    url,
+                ],
+                capture_output=True,
+                text=True,
+                timeout=60,
+            )
+            # Find any .vtt file
+            vtt_files = list(Path(tmpdir).glob("*.vtt"))
+            if vtt_files:
+                raw = vtt_files[0].read_text(encoding="utf-8")
+                # Strip VTT formatting
+                lines = [
+                    re.sub(r"<[^>]+>", "", line).strip()
+                    for line in raw.split("\n")
+                    if line.strip() and not line.startswith("WEBVTT")
+                    and not re.match(r"\d{2}:\d{2}", line)
+                    and not "-->" in line
+                ]
+                return " ".join(filter(None, lines))
+        except Exception as exc:
+            log.error("yt-dlp transcript extraction failed: %s", exc)
+
+    log.warning("All transcript methods failed — returning empty string")
+    return ""
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+#  Story Seed Extraction (Gemini Summarization — NEW)
+# ──────────────────────────────────────────────────────────────────────────────
+
+def summarize_to_story_seed(raw_transcript: str, video_title: str = "") -> dict:
+    """
+    Pipes the raw (possibly Tamil/Hinglish) transcript through Gemini
+    to extract a rich story_seed object for the script agent.
+
+    Returns a dict with:
+        - thesis: single controversial English sentence
+        - story_seed: {inciting_event, protagonist_flaw, real_world_anchor,
+                       concept_name, concept_one_liner}
+    """
+    if not raw_transcript.strip():
+        return _fallback_story_seed(video_title)
+
+    prompt = f"""You are a financial content analyst and creative storytwriter specialising in Indian stock markets.
+
+The following is a raw YouTube video transcript (may be in Tamil, Hindi, Hinglish, or a mix).
+Video title: "{video_title}"
+
+TRANSCRIPT:
+{raw_transcript[:5000]}
+
+Your task: Extract a story seed to be turned into a cinematic short-form video about finance.
+
+Output ONLY a valid JSON object with exactly these keys (all values in English):
 {{
-  "thesis": "One sentence (max 25 words): a controversial or provocative claim about this topic. Should make viewers say 'wait, really?!'",
+  "thesis": "One sentence (max 25 words): the most controversial or provocative financial claim from this content. Should make viewers say 'wait, really?!'",
   "story_seed": {{
     "inciting_event": "A specific, relatable everyday moment that sets up the story (e.g. 'Arjun checks his mutual fund app and his returns are 0% despite the Nifty being up 12%')",
     "protagonist_flaw": "The common mistake most people make, which Arjun will also make (e.g. 'He trusted his fund manager blindly and never checked the expense ratio')",
-    "real_world_anchor": "A real, factual market dynamic, law, or historical trend that anchors this story in reality (e.g. 'Active funds charge up to 2% yearly, which compounds against you')",
+    "real_world_anchor": "The actual market fact, company name, or financial event from the transcript that this story is based on (e.g. 'HDFC AMC quietly raised its expense ratio from 1.05% to 1.35% this quarter')",
     "concept_name": "The official finance term being explained (e.g. 'Expense Ratio Drag')",
     "concept_one_liner": "One plain-English sentence explaining what this concept means (e.g. 'Even when markets go up, hidden fund fees quietly eat your profits every year')"
   }}
 }}
 
-Output ONLY the JSON. No markdown fences, no explanation."""
+Output ONLY the JSON. No explanation, no preamble, no markdown fences."""
 
+    # Try Gemini (via Vertex AI)
     try:
+        from google import genai
         client = genai.Client(vertexai=True, project="exalted-shape-502013-q5", location="us-central1")
         response = client.models.generate_content(
             model='gemini-2.5-flash',
@@ -85,36 +337,108 @@ Output ONLY the JSON. No markdown fences, no explanation."""
             config={"response_mime_type": "application/json"}
         )
         raw_json = response.text.strip()
+        # Strip markdown if present
         if "```" in raw_json:
             raw_json = re.sub(r"^```(?:json)?\s*", "", raw_json, flags=re.MULTILINE)
             raw_json = re.sub(r"\s*```\s*$", "", raw_json, flags=re.MULTILINE)
-            
         result = json.loads(raw_json)
-        
-        thesis = result.get("thesis", "The truth about investing")
-        story_seed = result.get("story_seed", {})
-        
-        log.info("Success! Generated original story seed | concept: %s", story_seed.get("concept_name", "?"))
-        
-        # We simulate a "video" for the orchestrator to pass deduplication
-        video_id = f"ORIG_{int(random.random()*100000)}"
-        return {
-            "channel": "Market Debunk Original",
-            "video_id": video_id,
-            "video_title": f"Market Debunk on {story_seed.get('concept_name', 'Finance')}",
-            "thesis": thesis,
-            "story_seed": story_seed,
-            "transcript_length": 0,
-        }
-        
+        log.info("Gemini story seed extracted | concept: %s | thesis: %s",
+                 result.get("story_seed", {}).get("concept_name", "?"),
+                 result.get("thesis", "?"))
+        return result
     except Exception as exc:
-        log.error("Gemini failed to generate original topic: %s. Using fallback.", exc)
-        result = _fallback_story_seed(base_topic)
-        return {
-            "channel": "Market Debunk Original",
-            "video_id": f"FALL_{int(random.random()*100000)}",
-            "video_title": f"Market Debunk on {result['story_seed']['concept_name']}",
-            "thesis": result["thesis"],
-            "story_seed": result["story_seed"],
-            "transcript_length": 0,
+        log.warning("Gemini story seed extraction failed, falling back to Groq: %s", exc)
+
+    # Groq fallback — simpler thesis only
+    if settings.GROQ_API_KEY:
+        try:
+            from groq import Groq
+            client = Groq(api_key=settings.GROQ_API_KEY)
+            completion = client.chat.completions.create(
+                model=settings.GROQ_FALLBACK_MODEL,
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=600,
+                temperature=0.7,
+            )
+            raw_json = completion.choices[0].message.content.strip()
+            if "```" in raw_json:
+                raw_json = re.sub(r"^```(?:json)?\s*", "", raw_json, flags=re.MULTILINE)
+                raw_json = re.sub(r"\s*```\s*$", "", raw_json, flags=re.MULTILINE)
+            result = json.loads(raw_json)
+            log.info("Groq story seed: %s", result.get("thesis", "?"))
+            return result
+        except Exception as exc:
+            log.error("Groq story seed extraction also failed: %s", exc)
+
+    return _fallback_story_seed(video_title)
+
+
+def _fallback_story_seed(video_title: str) -> dict:
+    """Minimal fallback when all LLM calls fail."""
+    return {
+        "thesis": video_title or "Indian market analysis and investment insights",
+        "story_seed": {
+            "inciting_event": "Arjun checks his investment portfolio and finds his returns are far lower than expected",
+            "protagonist_flaw": "He trusted conventional advice without understanding the underlying mechanics",
+            "real_world_anchor": video_title or "Indian stock market recent movement",
+            "concept_name": "Market Mispricing",
+            "concept_one_liner": "When prices don't reflect real value, savvy investors profit while others lose"
         }
+    }
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+#  Main Entry Point
+# ──────────────────────────────────────────────────────────────────────────────
+
+def discover_topic(day_override: Optional[int] = None) -> dict:
+    """
+    Full topic discovery pipeline with cascading fallback.
+    Starts with the channel of the day, and if it fails (no video or empty transcript),
+    cascades to the next channel in the rotation until a valid topic is found.
+    
+    Returns dict with keys: channel, video_id, video_title, thesis, story_seed, transcript_length
+    """
+    start_day = day_override if day_override is not None else datetime.now().weekday()
+    
+    for offset in range(7):
+        current_day_index = (start_day + offset) % 7
+        channel_name = settings.CHANNEL_REGISTRY[current_day_index]
+        
+        log.info("--- Attempt %d/7: Scanning channel '%s' ---", offset + 1, channel_name)
+        
+        try:
+            video_meta = fetch_latest_video(channel_name)
+
+            if not video_meta:
+                log.warning("No video found for %s. Cascading to next channel...", channel_name)
+                continue
+
+            video_id = video_meta["video_id"]
+            video_title = video_meta["title"]
+
+            transcript = download_transcript(video_id)
+            if not transcript or not transcript.strip():
+                log.warning("Empty transcript for %s. Cascading to next channel...", channel_name)
+                continue
+
+            seed_data = summarize_to_story_seed(transcript, video_title)
+
+            thesis = seed_data.get("thesis", video_title)
+            story_seed = seed_data.get("story_seed", {})
+
+            log.info("Success! Extracted topic from %s", channel_name)
+            return {
+                "channel": channel_name,
+                "video_id": video_id,
+                "video_title": video_title,
+                "thesis": thesis,
+                "story_seed": story_seed,
+                "transcript_length": len(transcript),
+            }
+        except Exception as exc:
+            log.error("Failed processing %s: %s. Cascading to next channel...", channel_name, exc)
+            continue
+
+    raise RuntimeError("Cascading scan failed: Could not fetch a valid video and transcript from ANY of the 7 channels.")
+
