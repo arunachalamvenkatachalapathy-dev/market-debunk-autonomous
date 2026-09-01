@@ -2,9 +2,9 @@ name: Daily Autonomous Video Pipeline
 
 on:
   schedule:
-    # 8:30 AM IST (03:00 UTC) and 2:30 PM IST (09:00 UTC)
-    - cron: '0 3 * * *'
-    - cron: '0 9 * * *'
+    # 8:00 AM IST (02:30 UTC) and 7:30 PM IST (14:00 UTC)
+    - cron: '30 2 * * *'
+    - cron: '0 14 * * *'
   workflow_dispatch: # Allow manual trigger from GitHub UI
 
 jobs:
