@@ -80,7 +80,8 @@ def _call_imagen(prompt: str, output_path: Path):
         model='gemini-2.5-flash-image',
         contents=prompt,
         config=types.GenerateContentConfig(
-            response_modalities=['IMAGE']
+            response_modalities=['IMAGE'],
+            aspect_ratio="9:16"
         )
     )
     image_bytes = r.candidates[0].content.parts[0].inline_data.data
@@ -90,34 +91,16 @@ def _call_imagen(prompt: str, output_path: Path):
 
 
 def generate_image(prompt: str, output_path: Path, scene_id: int = 0) -> bool:
+    enhanced_prompt = _build_enhanced_prompt(prompt, scene_id)
+    log.info("Generating image for scene %d via Vertex AI...", scene_id)
     try:
-        enhanced_prompt = _build_enhanced_prompt(prompt, scene_id)
-        log.info("Generating image for scene %d via Vertex AI...", scene_id)
         _call_imagen(enhanced_prompt, output_path)
         log.info("Scene %d image saved successfully.", scene_id)
         return True
     except Exception as exc:
-        log.warning(
-            "Vertex AI Image generation failed for scene %d: %s. Trying safe fallback...",
-            scene_id, exc
-        )
-        try:
-            safe_prompt = (
-                f"Abstract cinematic shot of a glass-walled Chennai office at dusk, "
-                f"stock market data visible on a monitor in soft bokeh, no people, "
-                f"Style: {_STYLE_TAG}"
-            )
-            _call_imagen(safe_prompt, output_path)
-            log.info("Scene %d safe fallback image saved successfully.", scene_id)
-            return True
-        except Exception as exc2:
-            log.error("Safe fallback also failed for scene %d: %s. Copying placeholder.", scene_id, exc2)
-            import shutil
-            placeholder_path = Path("assets") / "host_original.png"
-            if placeholder_path.exists():
-                shutil.copy(placeholder_path, output_path)
-                return True
-            return False
+        log.error("Vertex AI Image generation FATAL ERROR for scene %d: %s", scene_id, exc)
+        # Fail loudly to prevent the entire video from rendering with a single placeholder
+        raise exc
 
 
 def source_all_visuals(scenes: list, output_dir: Path) -> list:
