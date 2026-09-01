@@ -524,6 +524,14 @@ def discover_topic(day_override: Optional[int] = None) -> dict:
             thesis = seed_data.get("thesis", video_title)
             story_seed = seed_data.get("story_seed", {})
 
+            # A channel may have a new upload that is still the same market
+            # story already covered by this channel. Cascade instead of
+            # stopping the entire run; SerpAPI is then used after all seven
+            # channel candidates are exhausted.
+            if evaluator.is_duplicate(thesis)[0] or evaluator.is_duplicate(video_title, threshold=0.90)[0]:
+                log.info("Channel candidate is already covered. Cascading to the next source.")
+                continue
+
             log.info("Success! Extracted topic from %s", channel_name)
             return {
                 "channel": channel_name,
