@@ -103,3 +103,17 @@ jobs:
           git add data/used_topics.json data/channel_ids.json
           # Only commit if there are changes
           git diff --quiet && git diff --staged --quiet || (git commit -m "chore: update topic dedup history [skip ci]" && git push)
+
+      - name: Trigger Tamil companion pipeline
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.TAMIL_WORKFLOW_TOKEN }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "TAMIL_WORKFLOW_TOKEN is missing. English completed, but Tamil trigger was skipped."
+            exit 0
+          fi
+          gh workflow run daily_video.yml \
+            --repo arunachalamvenkatachalapathy-dev/market-debunk-tamil \
+            --ref master \
+            -f english_run_id="${{ github.run_id }}"
