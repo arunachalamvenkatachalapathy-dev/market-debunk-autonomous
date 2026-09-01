@@ -246,6 +246,18 @@ def _call_gemini(user_prompt: str, model_name: str) -> str:
     )
     return response.text
 
+
+def _repair_json(raw_response: str, error: Exception, model_name: str) -> str:
+    """Spend one small repair call only when a valid-content response has malformed JSON."""
+    repair_prompt = f"""Repair the following attempted Market Debunk script response.
+Return ONLY complete valid JSON. Keep the original meaning and all 12 scenes.
+Do not add markdown fences or commentary. The parser error was: {error}
+
+ATTEMPTED RESPONSE:
+{raw_response}
+"""
+    return _call_gemini(repair_prompt, model_name)
+
 def generate_script(thesis: str, channel_name: str, story_seed: Optional[dict] = None) -> ScriptPayload:
     """
     Generate a full 12-scene cinematic story script.
@@ -283,7 +295,11 @@ Before answering, internally check that:
             raw = _call_gemini(user_prompt, model)
             log.debug("Raw response: %d chars", len(raw))
 
-            data = _extract_json(raw)
+            try:
+                data = _extract_json(raw)
+            except json.JSONDecodeError as parse_error:
+                log.warning("Model returned malformed JSON; requesting one repair pass: %s", parse_error)
+                data = _extract_json(_repair_json(raw, parse_error, model))
             script = ScriptPayload(**data)
 
             total_words = sum(len(s.narration.split()) for s in script.scenes)
