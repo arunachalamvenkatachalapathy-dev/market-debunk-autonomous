@@ -132,3 +132,28 @@ Configure a serverless scheduler to run the pipeline automatically twice a day (
 13. Click **Create**.
 
 Your video pipeline is now fully automated and running natively on Google Cloud Platform!
+
+## Optional distribution platforms
+
+The pipeline treats each publisher independently. Missing credentials, disabled
+flags, or a platform error are logged as skips and do not fail video generation
+or the other publishers.
+
+For GitHub Actions, add these repository secrets and map them into the workflow
+step environment:
+
+```text
+ENABLE_YT_UPLOAD=true                 # plus ALLOW_PUBLICATION=true in the workflow
+YT_CLIENT_ID, YT_CLIENT_SECRET, YT_REFRESH_TOKEN
+ENABLE_TELEGRAM=true
+TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
+ENABLE_INSTAGRAM=true
+INSTAGRAM_ACCESS_TOKEN, INSTAGRAM_USER_ID, INSTAGRAM_VIDEO_URL
+```
+
+YouTube uses OAuth refresh-token credentials. Telegram uses a bot added to the
+target group with permission to send videos. Instagram uses the Graph API and
+requires a Business/Creator account; `INSTAGRAM_VIDEO_URL` must be a public
+HTTPS URL because Meta fetches the video remotely. The local generated MP4
+cannot be used directly as that URL. Leave a platform disabled until its full
+configuration is ready.
