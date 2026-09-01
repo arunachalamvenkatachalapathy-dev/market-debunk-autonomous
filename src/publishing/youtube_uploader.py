@@ -24,6 +24,13 @@ from src.utils.youtube_titles import normalize_youtube_title
 
 log = get_logger(__name__, phase="youtube_upload")
 
+_DESCRIPTION_FOOTER = (
+    "Subscribe for daily market myth-busting.\n\n"
+    "Ask your market doubts on Telegram:\n"
+    "English: https://t.me/MarketDebunk\n"
+    "Tamil: https://t.me/marketdebunk_tamil"
+)
+
 
 def _get_authenticated_service():
     """Build an authenticated YouTube API client using OAuth2 refresh token."""
@@ -76,8 +83,8 @@ def upload_video(
         # Build tags from hashtags (strip # prefix)
         tags = [h.lstrip("#") for h in hashtags][:15]
 
-        # Full description with hashtags appended
-        full_description = f"{description}\n\n" + " ".join(f"#{t}" for t in tags)
+        # Full description with CTA, Telegram links, and hashtags appended.
+        full_description = f"{description}\n\n{_DESCRIPTION_FOOTER}\n\n" + " ".join(f"#{t}" for t in tags)
 
         request_body = {
             "snippet": {

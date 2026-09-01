@@ -112,7 +112,10 @@ def run_pipeline():
             bgm_dir = Path("assets/bgm")
             bgm_path = None
             if bgm_dir.exists():
-                tracks = list(bgm_dir.glob("*.mp3"))
+                tracks = [
+                    track for track in bgm_dir.glob("*.mp3")
+                    if track.stat().st_size >= settings.BGM_MIN_BYTES
+                ]
                 if tracks:
                     bgm_path = random.choice(tracks)
                     log.info(f"Selected BGM track: {bgm_path.name}")

@@ -237,6 +237,30 @@ def burn_subtitles(video_path: Path, ass_path: Path, output_path: Path) -> Path:
     return output_path
 
 
+def overlay_brand_mark(video_path: Path, output_path: Path) -> Path:
+    """Overlay the channel protection mark at the top-right corner."""
+    logo_path = settings.BRAND_MARK_PATH
+    if not logo_path.is_file():
+        log.warning("Brand protection mark not found at %s — skipping overlay", logo_path)
+        shutil.copy2(video_path, output_path)
+        return output_path
+
+    pad = settings.BRAND_MARK_PADDING
+    vf = f"[1:v]scale={settings.BRAND_MARK_WIDTH}:-1[logo];[0:v][logo]overlay=W-w-{pad}:{pad}"
+    _ffmpeg(
+        "-i", str(video_path),
+        "-i", str(logo_path),
+        "-filter_complex", vf,
+        "-c:v", "libx264",
+        "-preset", "fast",
+        "-crf", "20",
+        "-c:a", "copy",
+        str(output_path),
+        description="overlay brand protection mark"
+    )
+    return output_path
+
+
 # ──────────────────────────────────────────────────────────────────────────────
 #  Step 4 — BGM Mixing
 # ──────────────────────────────────────────────────────────────────────────────
@@ -280,10 +304,10 @@ def mix_bgm(
     vol_factor = 10 ** (bgm_volume_db / 20)
     if use_ducking:
         audio_filter = (
-            "[0:a]aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo[voice];"
+            "[0:a]aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asplit=2[voice_mix][voice_key];"
             f"[1:a]aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,volume={vol_factor:.4f}[bgm];"
-            "[bgm][voice]sidechaincompress=threshold=0.035:ratio=5:attack=35:release=350[ducked];"
-            "[voice][ducked]amix=inputs=2:duration=first:dropout_transition=0,"
+            "[bgm][voice_key]sidechaincompress=threshold=0.035:ratio=5:attack=35:release=350[ducked];"
+            "[voice_mix][ducked]amix=inputs=2:duration=first:dropout_transition=0,"
             "loudnorm=I=-14:TP=-1:LRA=11[out]"
         )
         description = "BGM ducking mix + loudness normalisation"
@@ -378,38 +402,46 @@ def assemble_video(
     clips_dir = run_dir / "clips"
     raw_video = run_dir / "raw_video.mp4"
     subtitled_video = run_dir / "subtitled_video.mp4"
+    branded_video = run_dir / "branded_video.mp4"
     final_video = run_dir / "distribution_ready.mp4"
 
     # Step 1: Build per-scene clips
-    log.info("Step 1/4: Building %d scene clips …", len(voice_results))
+    log.info("Step 1/5: Building %d scene clips …", len(voice_results))
     clip_paths = build_scene_clips(voice_results, visual_results, clips_dir)
 
     # Step 2: Concatenate
-    log.info("Step 2/4: Concatenating clips …")
+    log.info("Step 2/5: Concatenating clips …")
     concatenate_clips(clip_paths, raw_video)
 
     # Step 3: Burn subtitles
-    log.info("Step 3/4: Burning subtitles …")
+    log.info("Step 3/5: Burning subtitles …")
     burn_subtitles(raw_video, ass_path, subtitled_video)
 
-    # Step 4: Mix BGM
+    # Step 4: Add brand mark
+    log.info("Step 4/5: Adding brand protection mark …")
+    overlay_brand_mark(subtitled_video, branded_video)
+
+    # Step 5: Mix BGM
     import random
     if not bgm_path or not Path(bgm_path).is_file():
         bgm_dir = settings.ASSETS_DIR / "bgm"
-        available_bgm = list(bgm_dir.glob("*.mp3"))
+        available_bgm = [
+            track for track in bgm_dir.glob("*.mp3")
+            if track.stat().st_size >= settings.BGM_MIN_BYTES
+        ]
         bgm = random.choice(available_bgm) if available_bgm else settings.BGM_PATH
     else:
         bgm = bgm_path
     log.info(
-        "Step 4/4: Mixing BGM (%s at %.1f dB) and normalising loudness …",
+        "Step 5/5: Mixing BGM (%s at %.1f dB) and normalising loudness …",
         bgm.name,
         settings.BGM_VOLUME_DB,
     )
     try:
-        mix_bgm_with_retries(subtitled_video, bgm, final_video)
+        mix_bgm_with_retries(branded_video, bgm, final_video)
     except Exception as exc:
         log.error("BGM mix failed after retries; finalizing without BGM as emergency artifact: %s", exc)
-        finalize_without_bgm(subtitled_video, final_video)
+        finalize_without_bgm(branded_video, final_video)
 
     log.info(
         "🎬 Assembly complete → %s  (%d KB)",

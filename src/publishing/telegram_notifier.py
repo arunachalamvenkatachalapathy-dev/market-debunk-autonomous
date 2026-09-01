@@ -72,7 +72,6 @@ def send_completion_notification(
                     data={
                         "chat_id": settings.TELEGRAM_CHAT_ID,
                         "caption": message[:1024],
-                        "parse_mode": "Markdown",
                         "supports_streaming": "true",
                     },
                     files={"video": (video_path.name, video_file, "video/mp4")},
@@ -84,7 +83,6 @@ def send_completion_notification(
                 json={
                     "chat_id": settings.TELEGRAM_CHAT_ID,
                     "text": message,
-                    "parse_mode": "Markdown",
                 },
                 timeout=15,
             )

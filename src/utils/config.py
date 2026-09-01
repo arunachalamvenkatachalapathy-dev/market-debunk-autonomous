@@ -83,6 +83,7 @@ class Settings:
     BGM_VOLUME_DB: float = float(_get("BGM_VOLUME_DB", default="-14"))
     BGM_MIX_RETRIES: int = int(_get("BGM_MIX_RETRIES", default="3"))
     BGM_MIX_REQUIRED: bool = (_get("BGM_MIX_REQUIRED", default="true") or "true").lower() == "true"
+    BGM_MIN_BYTES: int = int(_get("BGM_MIN_BYTES", default="1000000"))
 
     # ── Voice Settings ─────────────────────────────────────────────
     VOICE_NAME: str = _get("VOICE_NAME", default="en-IN-Chirp3-HD-Orus") or "en-IN-Chirp3-HD-Orus"
@@ -99,6 +100,9 @@ class Settings:
     OUTPUT_DIR: Path = ROOT_DIR / "output"
     ASSETS_DIR: Path = ROOT_DIR / "assets"
     BGM_PATH: Path = ASSETS_DIR / "bgm" / "background.mp3"
+    BRAND_MARK_PATH: Path = Path(_get("BRAND_MARK_PATH", default=str(ASSETS_DIR / "brand_protection.png")))
+    BRAND_MARK_WIDTH: int = int(_get("BRAND_MARK_WIDTH", default="150"))
+    BRAND_MARK_PADDING: int = int(_get("BRAND_MARK_PADDING", default="30"))
 
     # ── Subtitle Style ────────────────────────────────────────────
     SUBTITLE_FONT: str = "Arial"
