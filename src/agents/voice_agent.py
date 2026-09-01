@@ -1,30 +1,27 @@
 """
 src/agents/voice_agent.py
 
-Phase 3 — Voice Synthesis (Microsoft Edge TTS)
-
-Uses `edge-tts` (Microsoft Edge Neural TTS) — completely free, no API key,
-high-quality Neural voices. Generates per-scene MP3 files and produces
-word-level timestamp data for subtitle rendering.
-
 Phase 3 — Voice Synthesis (Google Cloud TTS)
 
 Uses Google Cloud Text-to-Speech API for high-quality Neural voices.
 Generates per-scene MP3 files and produces estimated word-level 
 timestamp data for subtitle rendering.
 
-Default voice: en-US-Journey-D (Neutral male)
+Default voice: en-IN-Chirp3-HD-Orus
 """
+import html
 import json
+import re
 import subprocess
 from pathlib import Path
 
 from google.cloud import texttospeech
+from src.utils.config import settings
 from src.utils.logger import get_logger
 
 log = get_logger(__name__, phase="voice_synthesis")
 
-DEFAULT_VOICE = "en-IN-Chirp3-HD-Orus"  # Upgraded to expressive Chirp3-HD model for natural narrative prosody
+DEFAULT_VOICE = settings.VOICE_NAME
 
 def get_audio_duration(mp3_path: Path) -> float:
     """Returns the duration of an MP3 file in seconds using ffprobe."""
@@ -45,7 +42,7 @@ def trim_audio_silence(input_path: Path, output_path: Path):
         subprocess.run(
             [
                 "ffmpeg", "-y", "-i", str(input_path),
-                "-af", "silenceremove=start_periods=1:start_threshold=-50dB:start_duration=0.05,areverse,silenceremove=start_periods=1:start_threshold=-50dB:start_duration=0.05,areverse",
+                "-af", "silenceremove=start_periods=1:start_threshold=-45dB:start_duration=0.03,areverse,silenceremove=start_periods=1:start_threshold=-45dB:start_duration=0.03,areverse",
                 str(output_path)
             ],
             capture_output=True, check=True
@@ -55,6 +52,23 @@ def trim_audio_silence(input_path: Path, output_path: Path):
         # Fallback to the original file if trimming fails
         import shutil
         shutil.copy(input_path, output_path)
+
+
+def _build_ssml(narration: str) -> str:
+    """Add light SSML direction for smoother, less robotic delivery."""
+    text = html.escape(" ".join(narration.split()))
+    text = re.sub(r"([.!?])\s+", r'\1 <break time="180ms"/> ', text)
+    text = re.sub(r"([,:;])\s+", r'\1 <break time="90ms"/> ', text)
+    rate_pct = int(settings.VOICE_SPEAKING_RATE * 100)
+    pitch = settings.VOICE_PITCH
+    return (
+        "<speak>"
+        f"<prosody rate=\"{rate_pct}%\" pitch=\"{pitch:+.1f}st\">"
+        f"{text}"
+        "</prosody>"
+        "</speak>"
+    )
+
 
 def synthesize_scene(
     scene_id: int,
@@ -71,7 +85,7 @@ def synthesize_scene(
     timings_path = audio_dir / f"scene_{scene_id}_timings.json"
 
     client = texttospeech.TextToSpeechClient()
-    synthesis_input = texttospeech.SynthesisInput(text=narration)
+    synthesis_input = texttospeech.SynthesisInput(ssml=_build_ssml(narration))
     
     # Extract language code from voice name (e.g. "en-IN-Wavenet-B" -> "en-IN")
     lang_code = "-".join(voice_name.split("-")[:2])
@@ -156,9 +170,10 @@ def synthesize_all_scenes(scenes: list[dict], audio_dir: Path, voice: str = DEFA
 
 
 def get_available_voices() -> list[str]:
-    """Returns list of available edge-tts voices (cached after first call)."""
-    async def _list():
-        voices = await edge_tts.list_voices()
-        return [v["ShortName"] for v in voices if "en-IN" in v["ShortName"] or "en-US" in v["ShortName"]]
-
-    return asyncio.run(_list())
+    """Return available Google Cloud TTS voices for English/India and English/US."""
+    client = texttospeech.TextToSpeechClient()
+    voices = client.list_voices().voices
+    return [
+        voice.name for voice in voices
+        if voice.language_codes and any(code in {"en-IN", "en-US"} for code in voice.language_codes)
+    ]

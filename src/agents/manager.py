@@ -127,6 +127,7 @@ def run_pipeline():
         with PhaseTimer("Phase 6: Logging & Record keeping"):
             evaluator.record_topic(thesis)
             evaluator.record_title(script_dict["title"])
+            evaluator.record_source_video(topic_data.get("video_id", ""))
             log.info("Recorded topic to prevent future duplicates.")
 
         # ── Phase 7: Publishing ───────────────────────────────────────────

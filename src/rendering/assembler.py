@@ -13,7 +13,7 @@ Pipeline:
      c. Merge scene video + scene audio → scene_clip.mp4
   2. Concatenate all scene clips → raw_video.mp4
   3. Burn .ass subtitles into raw_video → subtitled_video.mp4
-  4. Mix BGM at -18dBFS under voice, normalise voice to -14 LUFS → final.mp4
+  4. Mix BGM audibly under voice with sidechain ducking → final.mp4
   5. Rename to distribution_ready.mp4
 """
 from __future__ import annotations
@@ -61,6 +61,7 @@ def _build_scene_from_video(
     """
     w, h = settings.VIDEO_WIDTH, settings.VIDEO_HEIGHT
     fps = settings.VIDEO_FPS
+    fade_start = max(duration - 0.08, 0)
 
     # Crop rather than pad: empty bars are a release-quality failure for Shorts.
     vf = (
@@ -75,6 +76,7 @@ def _build_scene_from_video(
         "-i", str(video_path),
         "-i", str(audio_path),
         "-vf", vf,
+        "-af", f"apad=pad_dur=0.12,afade=t=in:st=0:d=0.03,afade=t=out:st={fade_start:.3f}:d=0.08",
         "-t", str(duration),
         "-c:v", "libx264",
         "-preset", "fast",
@@ -83,7 +85,6 @@ def _build_scene_from_video(
         "-b:a", "192k",
         "-map", "0:v:0",
         "-map", "1:a:0",
-        "-shortest",
         str(output_path),
         description=f"build scene clip from video: {output_path.name}"
     )
@@ -102,6 +103,7 @@ def _build_scene_from_image(
     w, h = settings.VIDEO_WIDTH, settings.VIDEO_HEIGHT
     fps = settings.VIDEO_FPS
     n_frames = int(duration * fps)
+    fade_start = max(duration - 0.08, 0)
 
     # Vary the zoom direction based on scene_id to prevent repetitive motion
     pan_type = scene_id % 3
@@ -128,6 +130,7 @@ def _build_scene_from_image(
         "-i", str(image_path),
         "-i", str(audio_path),
         "-vf", vf,
+        "-af", f"apad=pad_dur=0.12,afade=t=in:st=0:d=0.03,afade=t=out:st={fade_start:.3f}:d=0.08",
         "-t", str(duration),
         "-c:v", "libx264",
         "-preset", "fast",
@@ -137,7 +140,6 @@ def _build_scene_from_image(
         "-b:a", "192k",
         "-map", "0:v:0",
         "-map", "1:a:0",
-        "-shortest",
         str(output_path),
         description=f"build scene clip from image: {output_path.name}"
     )
@@ -241,7 +243,7 @@ def mix_bgm(
     video_path: Path,
     bgm_path: Optional[Path],
     output_path: Path,
-    bgm_volume_db: float = -22.0,
+    bgm_volume_db: float = -16.0,
 ) -> Path:
     """
     Layer BGM under the voiceover and normalise the mix.
@@ -264,12 +266,14 @@ def mix_bgm(
         )
         return output_path
 
-    # Mix: voice (0dB) + BGM (at bgm_volume_db), loop BGM, normalise
+    # Mix: voice (0dB) + audible BGM with sidechain ducking under narration.
     vol_factor = 10 ** (bgm_volume_db / 20)
     audio_filter = (
         f"[0:a]loudnorm=I=-14:TP=-1:LRA=11[voice];"
         f"[1:a]volume={vol_factor:.4f}[bgm];"
-        f"[voice][bgm]amix=inputs=2:duration=first:dropout_transition=2[out]"
+        f"[bgm][voice]sidechaincompress=threshold=0.035:ratio=5:attack=35:release=350[ducked];"
+        f"[voice][ducked]amix=inputs=2:duration=first:dropout_transition=0,"
+        f"loudnorm=I=-14:TP=-1:LRA=11[out]"
     )
 
     _ffmpeg(

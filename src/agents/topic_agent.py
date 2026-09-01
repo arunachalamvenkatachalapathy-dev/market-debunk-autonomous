@@ -33,12 +33,14 @@ import requests
 from tenacity import retry, stop_after_attempt, wait_exponential
 from youtube_transcript_api import YouTubeTranscriptApi, NoTranscriptFound
 
+from src.agents import evaluator
 from src.utils.config import settings
 from src.utils.logger import get_logger
 
 log = get_logger(__name__, phase="topic_discovery")
 
 _CHANNEL_IDS_PATH = settings.DATA_DIR / "channel_ids.json"
+_SERP_QUERIES = ("nifty50", "sensex", "share market")
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -421,6 +423,57 @@ def _fallback_story_seed(video_title: str) -> dict:
     }
 
 
+def _fetch_serp_news(query: str) -> Optional[dict]:
+    """Use SerpApi Google News only after all seven channel candidates fail."""
+    if not settings.SERPAPI_KEY:
+        return None
+    response = requests.get(
+        "https://serpapi.com/search.json",
+        params={
+            "engine": "google_news",
+            "q": query,
+            "api_key": settings.SERPAPI_KEY,
+            "gl": "in",
+            "hl": "en",
+        },
+        timeout=20,
+    )
+    response.raise_for_status()
+    for item in response.json().get("news_results", []):
+        title = (item.get("title") or "").strip()
+        snippet = (item.get("snippet") or "").strip()
+        if not title or evaluator.is_duplicate(title)[0]:
+            continue
+        source = item.get("source") or "market news"
+        date = item.get("date") or ""
+        raw_text = f"{title}. {snippet} Source: {source}. Published: {date}."
+        return {
+            "channel": "SERPAPI market news",
+            "video_id": "",
+            "video_title": title,
+            "raw_text": raw_text,
+        }
+    return None
+
+
+def _discover_from_serp() -> Optional[dict]:
+    for query in _SERP_QUERIES:
+        try:
+            candidate = _fetch_serp_news(query)
+            if not candidate:
+                continue
+            seed_data = summarize_to_story_seed(candidate["raw_text"], candidate["video_title"])
+            return {
+                **{key: candidate[key] for key in ("channel", "video_id", "video_title")},
+                "thesis": seed_data.get("thesis", candidate["video_title"]),
+                "story_seed": seed_data.get("story_seed", {}),
+                "transcript_length": len(candidate["raw_text"]),
+            }
+        except Exception as exc:
+            log.warning("SERPAPI query '%s' failed: %s", query, exc)
+    return None
+
+
 # ──────────────────────────────────────────────────────────────────────────────
 #  Main Entry Point
 # ──────────────────────────────────────────────────────────────────────────────
@@ -451,6 +504,9 @@ def discover_topic(day_override: Optional[int] = None) -> dict:
 
             video_id = video_meta["video_id"]
             video_title = video_meta["title"]
+            if evaluator.is_source_video_used(video_id):
+                log.info("Already-used source video %s. Cascading...", video_id)
+                continue
             if title_only_candidate is None:
                 title_only_candidate = {
                     "channel": channel_name,
@@ -480,6 +536,11 @@ def discover_topic(day_override: Optional[int] = None) -> dict:
         except Exception as exc:
             log.error("Failed processing %s: %s. Cascading to next channel...", channel_name, exc)
             continue
+
+    serp_result = _discover_from_serp()
+    if serp_result:
+        log.info("No fresh channel source available; selected a new SERPAPI market-news item.")
+        return serp_result
 
     if title_only_candidate:
         log.warning(

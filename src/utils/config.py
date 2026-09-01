@@ -48,6 +48,7 @@ class Settings:
 
     # Transcript provider
     RAPIDAPI_KEY: str = _get("RAPIDAPI_KEY", required=False) or ""
+    SERPAPI_KEY: str = _get("SERPAPI_KEY", required=False) or ""
 
     # ── Pexels (Background Footage) ───────────────────────────────
     PEXELS_API_KEY: str = _get("PEXELS_API_KEY", required=False) or ""
@@ -72,6 +73,11 @@ class Settings:
     MIN_VIDEO_DURATION: int = int(_get("MIN_VIDEO_DURATION", default="40"))
     MAX_VIDEO_DURATION: int = int(_get("MAX_VIDEO_DURATION", default="90"))
 
+    # ── Voice Settings ─────────────────────────────────────────────
+    VOICE_NAME: str = _get("VOICE_NAME", default="en-IN-Chirp3-HD-Orus") or "en-IN-Chirp3-HD-Orus"
+    VOICE_SPEAKING_RATE: float = float(_get("VOICE_SPEAKING_RATE", default="1.04"))
+    VOICE_PITCH: float = float(_get("VOICE_PITCH", default="-0.5"))
+
     # ── Deduplication ─────────────────────────────────────────────
     DEDUP_THRESHOLD: float = float(_get("DEDUP_THRESHOLD", default="0.75"))
     DEDUP_WINDOW_DAYS: int = int(_get("DEDUP_WINDOW_DAYS", default="30"))
@@ -85,10 +91,10 @@ class Settings:
 
     # ── Subtitle Style ────────────────────────────────────────────
     SUBTITLE_FONT: str = "Arial"
-    SUBTITLE_FONT_SIZE: int = 112
+    SUBTITLE_FONT_SIZE: int = 96
     SUBTITLE_PRIMARY_COLOR: str = "&H00FFFFFF"   # white
     SUBTITLE_OUTLINE_COLOR: str = "&H00000000"   # black
-    SUBTITLE_MARGIN_V: int = 120                  # pixels from bottom
+    SUBTITLE_MARGIN_V: int = 470                  # safe above Shorts handle/description UI
 
     # ── YouTube Channel Registry (day-indexed, 0=Monday) ─────────
     CHANNEL_REGISTRY: list[str] = [
@@ -120,6 +126,8 @@ def validate_for_run() -> list[str]:
         warnings.append("PEXELS_API_KEY missing — will use Pollinations image fallback")
     if not settings.RAPIDAPI_KEY:
         warnings.append("RAPIDAPI_KEY missing — transcript discovery will use yt-dlp fallback")
+    if not settings.SERPAPI_KEY:
+        warnings.append("SERPAPI_KEY missing — market-news fallback disabled")
     if not settings.GEMINI_IMAGE_API_KEY:
         warnings.append("GEMINI_IMAGE_API_KEY missing — AI image generation disabled")
     if not settings.GEMINI_LIVE_API_KEY:

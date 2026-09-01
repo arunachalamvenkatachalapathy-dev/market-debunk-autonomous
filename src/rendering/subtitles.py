@@ -8,11 +8,11 @@ Alpha (.ass) subtitle file with high-retention styling.
 
 Subtitle Style Spec:
   - Font: Arial Bold
-  - Size: 112pt
+  - Size: 96pt
   - Color: White with black outline (high contrast)
-  - Position: Bottom-third (Margin V = 120px from bottom)
+  - Position: lower-middle safe zone, above YouTube Shorts handle/description UI
   - Alignment: Centered (horizontal)
-  - Word highlighting: Each word appears as it is spoken (karaoke-style)
+  - Word highlighting: CapCut-style active word emphasis
 
 Why .ass over .srt?
   .ass supports per-word timing, custom fonts, outlines, and exact positioning —
@@ -21,9 +21,7 @@ Why .ass over .srt?
 from __future__ import annotations
 
 import json
-import math
 from pathlib import Path
-from typing import Optional
 
 from src.utils.config import settings
 from src.utils.logger import get_logger
@@ -40,25 +38,24 @@ def _ass_header(
     video_height: int = settings.VIDEO_HEIGHT,
 ) -> str:
     """
-    Returns the ASS file header with corporate Market Debunk subtitle definition.
+    Returns the ASS file header with modern short-form subtitle styling.
 
-    Style: Futura Bold white text on a semi-transparent dark background box.
-    Clean, premium, readable — Bloomberg / Netflix lower-third aesthetic.
+    Style: chunky white text, strong black stroke, amber active-word emphasis.
+    Captions sit in the lower-middle safe zone so YouTube Shorts UI does not
+    cover them after upload.
     Alignment=2 = bottom-center.
-    BorderStyle=4 = opaque box background (the dark pill).
-    MarginV=160 = keeps text well above bottom edge on 9:16 vertical.
     """
-    font = "Arial"
-    font_size = 88
+    font = settings.SUBTITLE_FONT
+    font_size = settings.SUBTITLE_FONT_SIZE
     primary_color = "&H00FFFFFF"   # Pure white text
     outline_color = "&H00000000"   # Black border
-    back_color = "&HAA000000"      # Shadow color (semi-transparent black)
+    back_color = "&H7A000000"      # Soft shadow color
     bold = -1
-    outline_px = 3                 # Thicker outline for readability
-    shadow_px = 5                  # Drop shadow instead of pill box
+    outline_px = 5
+    shadow_px = 2
     alignment = 2                  # Bottom-center
-    margin_v = 160                 # Pixels from bottom edge
-    border_style = 1               # 1 = Outline + Shadow (replaces the jumping 4 = opaque box)
+    margin_v = settings.SUBTITLE_MARGIN_V
+    border_style = 1
 
     return f"""[Script Info]
 ScriptType: v4.00+
@@ -115,24 +112,35 @@ def _build_dialogue_lines(
         for i in range(0, len(word_timings), max_words_per_line)
     ]
 
-    # Amber gold in BGR + scale pop-in animation (105% -> 100% over 100ms)
-    highlight_color = "{\\c&H55A8E8&\\fscx105\\fscy105\\t(0,100,\\fscx100\\fscy100)}"  
-    reset_color = "{\\c}"
+    # Amber in ASS BGR notation, with a small pop-in like modern CapCut captions.
+    highlight_color = "{\\c&H55A8E8&\\fscx112\\fscy112\\t(0,120,\\fscx100\\fscy100)}"
+    dim_color = "{\\c&HFFFFFF&}"
+    reset_color = "{\\rDefault}"
 
     for chunk in chunks:
-        # For each word in the chunk, we create a dialogue line 
-        # that lasts exactly for that word's duration.
+        chunk_start = scene_audio_offset + chunk[0]["start"]
+        chunk_end = scene_audio_offset + chunk[-1]["end"]
+        if chunk_end <= chunk_start:
+            chunk_end = chunk_start + 0.6
+
+        # Keep the whole phrase visible for the phrase duration; only the active
+        # word changes. This reads much more like CapCut than one-word flashes.
         for i, active_word_data in enumerate(chunk):
             start = scene_audio_offset + active_word_data["start"]
-            end = scene_audio_offset + active_word_data["end"]
+            next_start = (
+                scene_audio_offset + chunk[i + 1]["start"]
+                if i + 1 < len(chunk)
+                else chunk_end
+            )
+            end = max(next_start, start + 0.12)
             
-            # Construct the line text with the active word highlighted
             formatted_words = []
             for j, w in enumerate(chunk):
+                word = w["word"].upper()
                 if i == j:
-                    formatted_words.append(f"{highlight_color}{w['word']}{reset_color}")
+                    formatted_words.append(f"{highlight_color}{word}{reset_color}")
                 else:
-                    formatted_words.append(w["word"])
+                    formatted_words.append(f"{dim_color}{word}{reset_color}")
             
             text = " ".join(formatted_words)
 

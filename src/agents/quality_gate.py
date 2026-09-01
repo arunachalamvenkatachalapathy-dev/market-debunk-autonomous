@@ -101,8 +101,11 @@ def validate_rendered_video(video_path: Path) -> None:
     validate_duration(duration)
 
     video_streams = [s for s in probe.get("streams", []) if s.get("codec_type") == "video"]
+    audio_streams = [s for s in probe.get("streams", []) if s.get("codec_type") == "audio"]
     if not video_streams:
         raise RuntimeError("Release blocked: final MP4 has no video stream.")
+    if not audio_streams:
+        raise RuntimeError("Release blocked: final MP4 has no audio stream.")
     stream = video_streams[0]
     expected_size = (settings.VIDEO_WIDTH, settings.VIDEO_HEIGHT)
     actual_size = (int(stream.get("width", 0)), int(stream.get("height", 0)))
@@ -130,4 +133,23 @@ def validate_rendered_video(video_path: Path) -> None:
         raise RuntimeError(
             f"Release blocked: final video has black/empty sampled frames near {seconds}s."
         )
+
+    # A missing final scene soundtrack is easy to miss in a visual-only check.
+    # Inspect the final three seconds and reject a genuinely silent tail.
+    tail_cmd = [
+        "ffmpeg", "-v", "info", "-sseof", "-3", "-i", str(video_path),
+        "-vn", "-af", "volumedetect", "-f", "null", "-",
+    ]
+    tail_result = subprocess.run(tail_cmd, capture_output=True, text=True, timeout=45)
+    if tail_result.returncode != 0:
+        raise RuntimeError("Release blocked: could not inspect final audio tail.")
+    max_volume = None
+    for line in tail_result.stderr.splitlines():
+        if "max_volume:" in line:
+            try:
+                max_volume = float(line.split("max_volume:", 1)[1].strip().split()[0])
+            except (ValueError, IndexError):
+                pass
+    if max_volume is None or max_volume <= -45.0:
+        raise RuntimeError("Release blocked: final three seconds are silent or missing audio.")
     log.info("Rendered-video gate passed: %d sampled frames contain visible imagery", len(frames))
