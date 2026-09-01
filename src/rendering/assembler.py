@@ -7,11 +7,11 @@ Takes per-scene audio + visual assets and assembles the final
 distribution-ready YouTube Short (1080×1920, 30fps, H.264/AAC).
 
 Pipeline:
-  1. For each of 8 scenes:
+  1. For each scene:
      a. If asset is a VIDEO: crop/scale to 1080×1920, loop to match audio duration
      b. If asset is an IMAGE: convert to video (ken-burns pan effect), match audio duration
      c. Merge scene video + scene audio → scene_clip.mp4
-  2. Concatenate all 8 scene clips → raw_video.mp4
+  2. Concatenate all scene clips → raw_video.mp4
   3. Burn .ass subtitles into raw_video → subtitled_video.mp4
   4. Mix BGM at -18dBFS under voice, normalise voice to -14 LUFS → final.mp4
   5. Rename to distribution_ready.mp4
@@ -56,18 +56,16 @@ def _build_scene_from_video(
 ) -> None:
     """
     Crop and loop a stock video to match audio duration, scale to 1080×1920.
-    Scale down to fit inside 1080x1920, pad with black, loop to match audio.
+    Scale to fill 1080x1920, crop excess, and loop to match audio.
     Applies a subtle slow-zoom (1.04x) for visual energy.
     """
     w, h = settings.VIDEO_WIDTH, settings.VIDEO_HEIGHT
     fps = settings.VIDEO_FPS
 
-    # Video filter chain:
-    #   1. Scale down to fit inside 1080x1920
-    #   2. Pad with black to exactly 1080x1920
+    # Crop rather than pad: empty bars are a release-quality failure for Shorts.
     vf = (
-        f"scale={w}:{h}:force_original_aspect_ratio=decrease,"
-        f"pad={w}:{h}:(ow-iw)/2:(oh-ih)/2:black,"
+        f"scale={w}:{h}:force_original_aspect_ratio=increase,"
+        f"crop={w}:{h},"
         f"setsar=1,"
         f"zoompan=z='min(zoom+0.0005,1.04)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d={int(duration*fps)}:s={w}x{h}:fps={fps}"
     )

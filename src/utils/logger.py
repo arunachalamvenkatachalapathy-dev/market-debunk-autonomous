@@ -40,6 +40,9 @@ def get_logger(name: str, phase: str = "pipeline") -> logging.Logger:
     if logger.handlers:
         return logger  # already configured
 
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
     handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(_JsonFormatter())
     logger.addHandler(handler)

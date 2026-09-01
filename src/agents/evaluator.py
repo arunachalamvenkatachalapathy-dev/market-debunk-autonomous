@@ -3,15 +3,16 @@ src/agents/evaluator.py
 
 Fuzzy-Match Deduplication Gate
 
-Maintains a rolling 7-day buffer of used topics in data/used_topics.json.
+Maintains a rolling buffer of used topics/titles in data/used_topics.json.
 Before any topic enters the pipeline, it is checked against this buffer.
-If semantic similarity exceeds 0.75, the topic is blocked as a duplicate.
+If similarity exceeds the configured threshold, the candidate is blocked.
 
 Uses thefuzz.fuzz.token_sort_ratio for language-agnostic fuzzy matching.
 """
 from __future__ import annotations
 
 import json
+import re
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional
@@ -20,6 +21,7 @@ from thefuzz import fuzz
 
 from src.utils.config import settings
 from src.utils.logger import get_logger
+from src.utils.youtube_titles import normalize_youtube_title
 
 log = get_logger(__name__, phase="dedup_gate")
 
@@ -83,17 +85,30 @@ def _max_similarity(new_topic: str, buffer: dict[str, str]) -> tuple[float, str]
 
     best_score = 0.0
     best_match = ""
-    new_norm = new_topic.lower().strip()
+    new_norm = _normalize_for_similarity(new_topic)
 
     for existing_topic in buffer:
-        existing_norm = existing_topic.lower().strip()
-        # token_sort_ratio handles word-order variations gracefully
-        score = fuzz.token_sort_ratio(new_norm, existing_norm) / 100.0
+        existing_norm = _normalize_for_similarity(existing_topic)
+        scores = [
+            fuzz.token_sort_ratio(new_norm, existing_norm),
+            fuzz.token_set_ratio(new_norm, existing_norm),
+            fuzz.partial_ratio(new_norm, existing_norm),
+        ]
+        score = max(scores) / 100.0
         if score > best_score:
             best_score = score
             best_match = existing_topic
 
     return best_score, best_match
+
+
+def _normalize_for_similarity(topic: str) -> str:
+    """Canonicalize public titles/topics before fuzzy matching."""
+    text = topic.lower().strip()
+    text = re.sub(r"(?i)#shorts\b", "", text)
+    text = re.sub(r"[^a-z0-9]+", " ", text)
+    text = re.sub(r"\s+", " ", text).strip()
+    return text
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -146,6 +161,11 @@ def record_topic(topic: str) -> None:
     buffer[topic] = datetime.now(timezone.utc).isoformat()
     _save_buffer(buffer)
     log.info("Recorded topic to buffer: '%s' (%d in buffer)", topic, len(buffer))
+
+
+def record_title(title: str) -> None:
+    """Record the final public-facing YouTube title after normalization."""
+    record_topic(normalize_youtube_title(title))
 
 
 def get_buffer_summary() -> dict:

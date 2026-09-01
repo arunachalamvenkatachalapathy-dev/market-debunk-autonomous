@@ -46,11 +46,15 @@ class Settings:
     GROQ_API_KEY: str = _get("GROQ_API_KEY", required=False) or ""
     GROQ_FALLBACK_MODEL: str = _get("GROQ_FALLBACK_MODEL", required=False) or "llama3-8b-8192"
 
+    # Transcript provider
+    RAPIDAPI_KEY: str = _get("RAPIDAPI_KEY", required=False) or ""
+
     # ── Pexels (Background Footage) ───────────────────────────────
     PEXELS_API_KEY: str = _get("PEXELS_API_KEY", required=False) or ""
 
     # ── YouTube Publishing ─────────────────────────────────────────
     ENABLE_YT_UPLOAD: bool = _get("ENABLE_YT_UPLOAD", default="false").lower() == "true"
+    ALLOW_PUBLICATION: bool = _get("ALLOW_PUBLICATION", default="false").lower() == "true"
     YT_CLIENT_ID: str = _get("YT_CLIENT_ID", default="") or ""
     YT_CLIENT_SECRET: str = _get("YT_CLIENT_SECRET", default="") or ""
     YT_REFRESH_TOKEN: str = _get("YT_REFRESH_TOKEN", default="") or ""
@@ -65,10 +69,12 @@ class Settings:
     VIDEO_HEIGHT: int = int(_get("VIDEO_HEIGHT", default="1920"))
     VIDEO_FPS: int = int(_get("VIDEO_FPS", default="30"))
     VIDEO_DURATION_TARGET: int = int(_get("VIDEO_DURATION_TARGET", default="60"))
+    MIN_VIDEO_DURATION: int = int(_get("MIN_VIDEO_DURATION", default="40"))
+    MAX_VIDEO_DURATION: int = int(_get("MAX_VIDEO_DURATION", default="90"))
 
     # ── Deduplication ─────────────────────────────────────────────
     DEDUP_THRESHOLD: float = float(_get("DEDUP_THRESHOLD", default="0.75"))
-    DEDUP_WINDOW_DAYS: int = int(_get("DEDUP_WINDOW_DAYS", default="7"))
+    DEDUP_WINDOW_DAYS: int = int(_get("DEDUP_WINDOW_DAYS", default="30"))
 
     # ── Paths ─────────────────────────────────────────────────────
     ROOT_DIR: Path = Path(__file__).resolve().parents[2]
@@ -112,6 +118,8 @@ def validate_for_run() -> list[str]:
         raise EnvironmentError("GROQ_API_KEY is required for script generation")
     if not settings.PEXELS_API_KEY:
         warnings.append("PEXELS_API_KEY missing — will use Pollinations image fallback")
+    if not settings.RAPIDAPI_KEY:
+        warnings.append("RAPIDAPI_KEY missing — transcript discovery will use yt-dlp fallback")
     if not settings.GEMINI_IMAGE_API_KEY:
         warnings.append("GEMINI_IMAGE_API_KEY missing — AI image generation disabled")
     if not settings.GEMINI_LIVE_API_KEY:

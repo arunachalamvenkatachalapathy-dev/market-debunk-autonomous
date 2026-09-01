@@ -1,5 +1,6 @@
 __pycache__/
 *.pyc
+.env
 logs.txt
 final_logs.txt
 scratch/

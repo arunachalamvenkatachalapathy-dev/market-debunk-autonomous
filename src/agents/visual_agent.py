@@ -16,11 +16,13 @@ log = get_logger(__name__, phase="video_assembly")
 # ──────────────────────────────────────────────────────────────────────────────
 
 _STYLE_TAG = (
-    "photorealistic 3D-cartoon render, cinematic lighting, 9:16 vertical composition, "
-    "highly detailed, no text overlays. Color palette: deep teal-navy background "
-    "(#1B3540) with warm amber gold (#E8A855) practical lighting accents (lamps, windows). "
-    "Include a distinct foreground element (glass reflection, out-of-focus plant, doorway edge) "
-    "to create depth."
+    "semi-stylized 3D-cartoon render with photoreal skin and cinematic lighting, "
+    "full-bleed 1080x1920 vertical 9:16 composition, edge-to-edge filled frame, "
+    "no letterbox bars, no pillarbox bars, no unused black canvas, highly detailed. "
+    "Color palette: deep teal-navy background (#1B3540), warm amber practical light "
+    "(#E8A855), powder-blue shirt (#AECBDA). Include a distinct foreground element "
+    "(glass reflection, out-of-focus plant, doorway edge, desk edge, phone edge) "
+    "to create depth and stop the image from feeling generic."
 )
 
 _ARJUN_BIBLE = (
@@ -45,11 +47,12 @@ _PRIYA_BIBLE = (
 )
 
 _NEGATIVE_PROMPT = (
-    "NEGATIVE PROMPT: cropped composition, empty black space, letterboxing, "
-    "pillarboxing, centered vignette, unused canvas edges, different character design, "
-    "inconsistent face, morphed features, changed outfit, different hair, "
-    "flat illustration, anime style, ugly, bad anatomy, text, watermark, blurry, "
-    "photoreal photography"
+    "NEGATIVE PROMPT: different character design, inconsistent face, morphed features, "
+    "changed outfit, different hair, flat illustration, anime style, ugly, bad anatomy, "
+    "text, readable words, logo, watermark, blurry, cropped composition, empty black space, "
+    "dark blank frame, black background, letterboxing, pillarboxing, centered vignette, "
+    "unused canvas edges, generic stock photo, photoreal photography, duplicate pose, "
+    "duplicate background"
 )
 
 
@@ -60,15 +63,29 @@ def _build_enhanced_prompt(raw_prompt: str, scene_id: int) -> str:
     - Scenes 11-12: Arjun or Priya (if Priya mentioned)
     """
     prompt = raw_prompt.strip()
+    if not prompt:
+        raise ValueError(f"Scene {scene_id} visual prompt is empty.")
 
     priya_keywords = ["priya", "wife", "her ", "she ", "woman"]
     needs_priya = any(kw in prompt.lower() for kw in priya_keywords)
     
     char_context = _ARJUN_BIBLE
+    character_rule = "This scene must show Arjun clearly and consistently."
     if needs_priya and scene_id >= 10:
         char_context = _PRIYA_BIBLE
+        character_rule = "This scene must show Priya clearly and consistently."
 
-    enhanced = f"{char_context} {prompt} Style: {_STYLE_TAG} {_NEGATIVE_PROMPT}"
+    scene_directive = (
+        f"Scene {scene_id} of a 12-scene Market Debunk Short. "
+        "Create a premium finance-edutainment still, not a poster and not a slide. "
+        "No readable text anywhere; financial information must appear as abstract charts, "
+        "blurred dashboards, arrows, colored bars, or document shapes."
+    )
+
+    enhanced = (
+        f"{scene_directive} {character_rule} Character bible: {char_context} "
+        f"Scene direction: {prompt} Style: {_STYLE_TAG} {_NEGATIVE_PROMPT}"
+    )
 
     log.info("Scene %d enhanced prompt: '%s...'", scene_id, enhanced[:120])
     return enhanced

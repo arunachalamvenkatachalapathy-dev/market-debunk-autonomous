@@ -6,9 +6,14 @@ import os
 import sys
 
 PORT = 8091
-CLIENT_ID = "751457863885-pehk2927qh7t49akhi552q4vjddm4nlt.apps.googleusercontent.com"
-CLIENT_SECRET = "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"
+CLIENT_ID = os.environ.get("YT_CLIENT_ID", "").strip()
+CLIENT_SECRET = os.environ.get("YT_CLIENT_SECRET", "").strip()
 REDIRECT_URI = f"http://localhost:{PORT}"
+
+if not CLIENT_ID or not CLIENT_SECRET:
+    raise SystemExit(
+        "Set YT_CLIENT_ID and YT_CLIENT_SECRET in your environment before running this script."
+    )
 
 class OAuthHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):

@@ -161,13 +161,18 @@ def _fetch_latest_video_ytdlp(channel_id: str) -> Optional[dict]:
             'playlist_items': '1', # Get only the latest 1 video
             'force_generic_extractor': False,
         }
-        url = f"https://www.youtube.com/channel/{channel_id}"
+        uploads_playlist_id = f"UU{channel_id[2:]}" if channel_id.startswith("UC") else channel_id
+        url = f"https://www.youtube.com/playlist?list={uploads_playlist_id}"
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
             if 'entries' in info and info['entries']:
                 entry = info['entries'][0]
+                video_id = entry.get("id") or entry.get("url")
+                if not video_id or video_id == channel_id:
+                    log.warning("yt-dlp returned an invalid video id for channel %s: %s", channel_id, video_id)
+                    return None
                 return {
-                    "video_id": entry.get("id"),
+                    "video_id": video_id,
                     "title": entry.get("title", ""),
                     "published_at": "", # We can't easily get date from flat extract, but it's not strictly needed
                 }
@@ -218,9 +223,13 @@ def download_transcript(video_id: str) -> str:
 
     # Priority: Tamil -> Hindi -> English
     lang_priority = ["ta", "hi", "en-IN", "en", "auto"]
+
+    if not settings.RAPIDAPI_KEY:
+        log.warning("RAPIDAPI_KEY missing. Skipping RapidAPI transcript provider.")
+        return _download_transcript_ytdlp(video_id, "cookies.txt" if os.path.exists("cookies.txt") else None)
     
     headers = {
-        'X-RapidAPI-Key': '3ca9e1830emsh4fa6a4b01278502p132c7fjsn05a996617bc0',
+        'X-RapidAPI-Key': settings.RAPIDAPI_KEY,
         'X-RapidAPI-Host': 'youtube-captions-transcript-subtitles-video-combiner.p.rapidapi.com'
     }
     
@@ -274,8 +283,9 @@ def _download_transcript_ytdlp(video_id: str, cookies_path: Optional[str] = None
                     "--skip-download",
                     "--sub-format", "vtt",
                     "-o", f"{tmpdir}/%(id)s",
-                    url,
-                ],
+                ]
+                + (["--cookies", cookies_path] if cookies_path else [])
+                + [url],
                 capture_output=True,
                 text=True,
                 timeout=60,
@@ -317,7 +327,8 @@ def summarize_to_story_seed(raw_transcript: str, video_title: str = "") -> dict:
     if not raw_transcript.strip():
         return _fallback_story_seed(video_title)
 
-    prompt = f"""You are a financial content analyst and creative storytwriter specialising in Indian stock markets.
+    prompt = f"""You are the Market Debunk research desk: financial content analyst, fact checker,
+story editor, and short-form retention strategist specialising in Indian stock markets.
 
 The following is a raw YouTube video transcript (may be in Tamil, Hindi, Hinglish, or a mix).
 Video title: "{video_title}"
@@ -327,6 +338,13 @@ TRANSCRIPT:
 
 Your task: Extract a story seed to be turned into a cinematic short-form video about finance.
 
+Anti-hallucination rules:
+- Use only claims, companies, sectors, events, or concepts supported by the transcript/title.
+- Do not invent exact percentages, dates, prices, index levels, earnings figures, laws, or quotes.
+- If the transcript is vague, write qualitative evidence instead of pretending certainty.
+- The thesis must be provocative but still defensible.
+- The story_seed should give the script agent concrete props and situations, not generic advice.
+
 Output ONLY a valid JSON object with exactly these keys (all values in English):
 {{
   "thesis": "One sentence (max 25 words): the most controversial or provocative financial claim from this content. Should make viewers say 'wait, really?!'",
@@ -335,7 +353,8 @@ Output ONLY a valid JSON object with exactly these keys (all values in English):
     "protagonist_flaw": "The common mistake most people make, which Arjun will also make (e.g. 'He trusted his fund manager blindly and never checked the expense ratio')",
     "real_world_anchor": "The actual market fact, company name, or financial event from the transcript that this story is based on (e.g. 'HDFC AMC quietly raised its expense ratio from 1.05% to 1.35% this quarter')",
     "concept_name": "The official finance term being explained (e.g. 'Expense Ratio Drag')",
-    "concept_one_liner": "One plain-English sentence explaining what this concept means (e.g. 'Even when markets go up, hidden fund fees quietly eat your profits every year')"
+    "concept_one_liner": "One plain-English sentence explaining what this concept means (e.g. 'Even when markets go up, hidden fund fees quietly eat your profits every year')",
+    "visual_evidence": "One concrete non-branded visual object that can appear on screen, such as a blurred app chart, invoice, calculator, newspaper-like clipping, or marked notebook"
   }}
 }}
 
@@ -396,7 +415,8 @@ def _fallback_story_seed(video_title: str) -> dict:
             "protagonist_flaw": "He trusted conventional advice without understanding the underlying mechanics",
             "real_world_anchor": video_title or "Indian stock market recent movement",
             "concept_name": "Market Mispricing",
-            "concept_one_liner": "When prices don't reflect real value, savvy investors profit while others lose"
+            "concept_one_liner": "When prices don't reflect real value, savvy investors profit while others lose",
+            "visual_evidence": "a blurred portfolio chart and marked notebook on a desk"
         }
     }
 
@@ -414,6 +434,7 @@ def discover_topic(day_override: Optional[int] = None) -> dict:
     Returns dict with keys: channel, video_id, video_title, thesis, story_seed, transcript_length
     """
     start_day = day_override if day_override is not None else datetime.now().weekday()
+    title_only_candidate: Optional[dict] = None
     
     for offset in range(7):
         current_day_index = (start_day + offset) % 7
@@ -430,6 +451,12 @@ def discover_topic(day_override: Optional[int] = None) -> dict:
 
             video_id = video_meta["video_id"]
             video_title = video_meta["title"]
+            if title_only_candidate is None:
+                title_only_candidate = {
+                    "channel": channel_name,
+                    "video_id": video_id,
+                    "video_title": video_title,
+                }
 
             transcript = download_transcript(video_id)
             if not transcript or not transcript.strip():
@@ -453,6 +480,20 @@ def discover_topic(day_override: Optional[int] = None) -> dict:
         except Exception as exc:
             log.error("Failed processing %s: %s. Cascading to next channel...", channel_name, exc)
             continue
+
+    if title_only_candidate:
+        log.warning(
+            "All transcript providers failed. Falling back to title-only topic seed from %s: %s",
+            title_only_candidate["channel"],
+            title_only_candidate["video_title"],
+        )
+        seed_data = _fallback_story_seed(title_only_candidate["video_title"])
+        return {
+            **title_only_candidate,
+            "thesis": seed_data["thesis"],
+            "story_seed": seed_data["story_seed"],
+            "transcript_length": 0,
+        }
 
     raise RuntimeError("Cascading scan failed: Could not fetch a valid video and transcript from ANY of the 7 channels.")
 

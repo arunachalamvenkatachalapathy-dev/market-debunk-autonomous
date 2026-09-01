@@ -23,7 +23,7 @@ from src.utils.config import settings
 from src.utils.logger import get_logger, PhaseTimer
 
 # Import agents
-from src.agents import topic_agent, script_agent, voice_agent, visual_agent, evaluator
+from src.agents import topic_agent, script_agent, voice_agent, visual_agent, evaluator, quality_gate
 from src.rendering import subtitles, assembler
 from src.publishing import youtube_uploader, telegram_notifier
 
@@ -70,6 +70,12 @@ def run_pipeline():
         with PhaseTimer("Phase 2: Script Generation"):
             script = script_agent.generate_script(thesis, channel, story_seed=story_seed)
             script_dict = script_agent.script_to_dict(script)
+
+            is_dup, score, match = evaluator.is_duplicate(script_dict["title"], threshold=0.90)
+            if is_dup:
+                raise RuntimeError(
+                    f"Release blocked: generated title duplicates '{match}' (similarity {score:.2f})."
+                )
             
             # Save script to output for debugging
             script_path = run_dir / "script.json"
@@ -81,11 +87,16 @@ def run_pipeline():
         with PhaseTimer("Phase 3: Voice Synthesis"):
             voice_results = voice_agent.synthesize_all_scenes(script_dict["scenes"], audio_dir)
             stats["total_duration"] = sum(r["duration"] for r in voice_results)
+            quality_gate.validate_duration(stats["total_duration"])
 
         # ── Phase 4: Visual Sourcing ──────────────────────────────────────
         with PhaseTimer("Phase 4: Visual Sourcing"):
             visual_results = visual_agent.source_all_visuals(script_dict["scenes"], visuals_dir)
             stats["visual_sources"] = ", ".join(set(r["source"] for r in visual_results))
+            quality_gate.validate_visual_assets(
+                visual_results,
+                {scene["scene_id"] for scene in script_dict["scenes"]},
+            )
 
         # ── Phase 5: FFmpeg Assembly ──────────────────────────────────────
         with PhaseTimer("Phase 5: Video Assembly"):
@@ -110,10 +121,12 @@ def run_pipeline():
                 run_dir=run_dir,
                 bgm_path=bgm_path,
             )
+            quality_gate.validate_rendered_video(final_video)
 
         # ── Phase 6: Post-Processing & Recording ──────────────────────────
         with PhaseTimer("Phase 6: Logging & Record keeping"):
             evaluator.record_topic(thesis)
+            evaluator.record_title(script_dict["title"])
             log.info("Recorded topic to prevent future duplicates.")
 
         # ── Phase 7: Publishing ───────────────────────────────────────────

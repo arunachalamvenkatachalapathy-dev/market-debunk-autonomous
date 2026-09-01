@@ -2,7 +2,7 @@
 src/publishing/youtube_uploader.py
 
 YouTube Data API v3 uploader (OAuth2 refresh token flow).
-Disabled by default — set ENABLE_YT_UPLOAD=true in .env to activate.
+Disabled by default. Set ENABLE_YT_UPLOAD=true and ALLOW_PUBLICATION=true to activate.
 
 The upload package includes:
   - Auto-generated SEO title (from Groq)
@@ -20,6 +20,7 @@ from typing import Optional
 
 from src.utils.config import settings
 from src.utils.logger import get_logger
+from src.utils.youtube_titles import normalize_youtube_title
 
 log = get_logger(__name__, phase="youtube_upload")
 
@@ -56,11 +57,15 @@ def upload_video(
     if not settings.ENABLE_YT_UPLOAD:
         log.info("YouTube upload is disabled (ENABLE_YT_UPLOAD=false) — skipping")
         return None
+    if not settings.ALLOW_PUBLICATION:
+        log.info("YouTube upload is locked (ALLOW_PUBLICATION=false) — skipping")
+        return None
 
     if not all([settings.YT_CLIENT_ID, settings.YT_CLIENT_SECRET, settings.YT_REFRESH_TOKEN]):
         log.warning("YouTube OAuth credentials missing — upload skipped")
         return None
 
+    title = normalize_youtube_title(title)
     log.info("Uploading to YouTube: '%s'", title)
 
     try:
