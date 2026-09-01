@@ -423,32 +423,41 @@ def _fallback_story_seed(video_title: str) -> dict:
     }
 
 
-def _fetch_serp_news(query: str) -> Optional[dict]:
-    """Use SerpApi Google News only after all seven channel candidates fail."""
+def _fetch_serp_google_result(query: str) -> Optional[dict]:
+    """Use a fresh India-localized Google search after all channel sources fail."""
     if not settings.SERPAPI_KEY:
         return None
     response = requests.get(
         "https://serpapi.com/search.json",
         params={
-            "engine": "google_news",
+            "engine": "google",
             "q": query,
             "api_key": settings.SERPAPI_KEY,
             "gl": "in",
             "hl": "en",
+            "tbs": "qdr:d",  # results indexed in the last day
+            "num": 10,
         },
         timeout=20,
     )
     response.raise_for_status()
-    for item in response.json().get("news_results", []):
+    results = response.json().get("organic_results", [])
+    for item in results:
         title = (item.get("title") or "").strip()
         snippet = (item.get("snippet") or "").strip()
-        if not title or evaluator.is_duplicate(title)[0]:
+        link = (item.get("link") or "").strip()
+        date = (item.get("date") or "").strip()
+        source = (item.get("source") or item.get("displayed_link") or "").strip()
+        # A headline alone is not enough for a factual finance script. Require
+        # a fresh-looking date and a result URL/snippet that can form a source seed.
+        if not title or not snippet or not link or not date or evaluator.is_duplicate(title)[0]:
             continue
-        source = item.get("source") or "market news"
-        date = item.get("date") or ""
-        raw_text = f"{title}. {snippet} Source: {source}. Published: {date}."
+        raw_text = (
+            f"Latest Google Search result for '{query}'. Headline: {title}. "
+            f"Summary: {snippet}. Source: {source}. Published: {date}. URL: {link}."
+        )
         return {
-            "channel": "SERPAPI market news",
+            "channel": "SERPAPI Google Search",
             "video_id": "",
             "video_title": title,
             "raw_text": raw_text,
@@ -459,7 +468,7 @@ def _fetch_serp_news(query: str) -> Optional[dict]:
 def _discover_from_serp() -> Optional[dict]:
     for query in _SERP_QUERIES:
         try:
-            candidate = _fetch_serp_news(query)
+            candidate = _fetch_serp_google_result(query)
             if not candidate:
                 continue
             seed_data = summarize_to_story_seed(candidate["raw_text"], candidate["video_title"])
@@ -547,7 +556,7 @@ def discover_topic(day_override: Optional[int] = None) -> dict:
 
     serp_result = _discover_from_serp()
     if serp_result:
-        log.info("No fresh channel source available; selected a new SERPAPI market-news item.")
+        log.info("No fresh channel source available; selected the newest SERPAPI Google Search result.")
         return serp_result
 
     if title_only_candidate:
