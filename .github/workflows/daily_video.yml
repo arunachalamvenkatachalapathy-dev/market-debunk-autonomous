@@ -53,14 +53,22 @@ jobs:
           GEMINI_SCRIPT_API_KEY: ${{ secrets.GEMINI_SCRIPT_API_KEY }}
           GEMINI_IMAGE_API_KEY: ${{ secrets.GEMINI_IMAGE_API_KEY }}
           PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+          RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
+          SERPAPI_KEY: ${{ secrets.SERPAPI_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           YT_API_KEY: ${{ secrets.YT_API_KEY }}
           ENABLE_YT_UPLOAD: ${{ secrets.ENABLE_YT_UPLOAD }}
+          ALLOW_PUBLICATION: ${{ secrets.ALLOW_PUBLICATION }}
           YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
           YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
           YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
           ENABLE_TELEGRAM: ${{ secrets.ENABLE_TELEGRAM }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          ENABLE_INSTAGRAM: ${{ secrets.ENABLE_INSTAGRAM }}
+          INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
+          INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
+          INSTAGRAM_VIDEO_URL: ${{ secrets.INSTAGRAM_VIDEO_URL }}
         run: python -m src.agents.manager
 
       - name: Upload Video Artifact
