@@ -20,6 +20,8 @@ from __future__ import annotations
 
 import subprocess
 import sys
+import shutil
+import time
 from pathlib import Path
 from typing import Optional
 
@@ -243,17 +245,24 @@ def mix_bgm(
     video_path: Path,
     bgm_path: Optional[Path],
     output_path: Path,
-    bgm_volume_db: float = -16.0,
+    bgm_volume_db: Optional[float] = None,
+    use_ducking: bool = True,
 ) -> Path:
     """
     Layer BGM under the voiceover and normalise the mix.
     BGM is looped to match video duration and mixed at bgm_volume_db.
-    Voice is normalised to -14 LUFS (YouTube's recommended level).
+    The final mix is normalised to -14 LUFS.
 
     If bgm_path is None or doesn't exist, only applies loudness normalisation.
     """
+    if bgm_volume_db is None:
+        bgm_volume_db = settings.BGM_VOLUME_DB
+
     if not bgm_path or not bgm_path.exists():
-        log.warning("BGM track not found at %s — skipping BGM mix", bgm_path)
+        message = f"BGM track not found at {bgm_path}"
+        if settings.BGM_MIX_REQUIRED:
+            raise FileNotFoundError(message)
+        log.warning("%s — applying voice-only loudness normalisation", message)
         # Just normalise loudness
         _ffmpeg(
             "-i", str(video_path),
@@ -266,15 +275,26 @@ def mix_bgm(
         )
         return output_path
 
-    # Mix: voice (0dB) + audible BGM with sidechain ducking under narration.
+    # Mix: voice (0dB) + audible BGM. The primary path ducks BGM under speech;
+    # a simpler fallback is used by the caller if a platform FFmpeg build balks.
     vol_factor = 10 ** (bgm_volume_db / 20)
-    audio_filter = (
-        f"[0:a]loudnorm=I=-14:TP=-1:LRA=11[voice];"
-        f"[1:a]volume={vol_factor:.4f}[bgm];"
-        f"[bgm][voice]sidechaincompress=threshold=0.035:ratio=5:attack=35:release=350[ducked];"
-        f"[voice][ducked]amix=inputs=2:duration=first:dropout_transition=0,"
-        f"loudnorm=I=-14:TP=-1:LRA=11[out]"
-    )
+    if use_ducking:
+        audio_filter = (
+            "[0:a]aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo[voice];"
+            f"[1:a]aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,volume={vol_factor:.4f}[bgm];"
+            "[bgm][voice]sidechaincompress=threshold=0.035:ratio=5:attack=35:release=350[ducked];"
+            "[voice][ducked]amix=inputs=2:duration=first:dropout_transition=0,"
+            "loudnorm=I=-14:TP=-1:LRA=11[out]"
+        )
+        description = "BGM ducking mix + loudness normalisation"
+    else:
+        audio_filter = (
+            "[0:a]aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo[voice];"
+            f"[1:a]aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,volume={vol_factor:.4f}[bgm];"
+            "[voice][bgm]amix=inputs=2:duration=first:dropout_transition=0,"
+            "loudnorm=I=-14:TP=-1:LRA=11[out]"
+        )
+        description = "BGM simple mix + loudness normalisation"
 
     _ffmpeg(
         "-i", str(video_path),
@@ -287,8 +307,55 @@ def mix_bgm(
         "-c:a", "aac",
         "-b:a", "192k",
         str(output_path),
-        description="BGM mix + loudness normalisation"
+        description=description
     )
+    return output_path
+
+
+def mix_bgm_with_retries(video_path: Path, bgm_path: Optional[Path], output_path: Path) -> Path:
+    """
+    Retry the preferred ducked BGM mix, then a simpler BGM mix. BGM remains the
+    target output; voice-only finalization is reserved for the outer emergency
+    fallback so the run still produces an inspectable artifact.
+    """
+    retry_count = max(settings.BGM_MIX_RETRIES, 1)
+    last_exc: Optional[Exception] = None
+    for attempt in range(1, retry_count + 1):
+        try:
+            log.info("BGM mix attempt %d/%d with ducking", attempt, retry_count)
+            return mix_bgm(video_path, bgm_path, output_path, use_ducking=True)
+        except Exception as exc:
+            last_exc = exc
+            log.warning("BGM ducking mix attempt %d failed: %s", attempt, exc)
+            time.sleep(min(5 * attempt, 20))
+
+    try:
+        log.warning("Retrying with simpler BGM mix after ducking failures")
+        return mix_bgm(video_path, bgm_path, output_path, use_ducking=False)
+    except Exception as exc:
+        last_exc = exc
+
+    raise RuntimeError(f"BGM mix failed after retries: {last_exc}")
+
+
+def finalize_without_bgm(video_path: Path, output_path: Path) -> Path:
+    """
+    Last-resort finalization. Keeps the completed subtitled voice video rather
+    than failing the whole run because the optional BGM stage had a problem.
+    """
+    try:
+        _ffmpeg(
+            "-i", str(video_path),
+            "-af", "loudnorm=I=-14:TP=-1:LRA=11",
+            "-c:v", "copy",
+            "-c:a", "aac",
+            "-b:a", "192k",
+            str(output_path),
+            description="fallback loudness normalisation without BGM"
+        )
+    except Exception as exc:
+        log.warning("Fallback loudness normalisation failed; copying subtitled video: %s", exc)
+        shutil.copy2(video_path, output_path)
     return output_path
 
 
@@ -333,8 +400,16 @@ def assemble_video(
         bgm = random.choice(available_bgm) if available_bgm else settings.BGM_PATH
     else:
         bgm = bgm_path
-    log.info(f"Step 4/4: Mixing BGM ({bgm.name}) and normalising loudness …")
-    mix_bgm(subtitled_video, bgm, final_video)
+    log.info(
+        "Step 4/4: Mixing BGM (%s at %.1f dB) and normalising loudness …",
+        bgm.name,
+        settings.BGM_VOLUME_DB,
+    )
+    try:
+        mix_bgm_with_retries(subtitled_video, bgm, final_video)
+    except Exception as exc:
+        log.error("BGM mix failed after retries; finalizing without BGM as emergency artifact: %s", exc)
+        finalize_without_bgm(subtitled_video, final_video)
 
     log.info(
         "🎬 Assembly complete → %s  (%d KB)",

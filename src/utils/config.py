@@ -80,6 +80,9 @@ class Settings:
     MIN_VIDEO_DURATION: int = int(_get("MIN_VIDEO_DURATION", default="40"))
     MAX_VIDEO_DURATION: int = int(_get("MAX_VIDEO_DURATION", default="90"))
     VISUAL_GENERATION_DELAY_SECONDS: float = float(_get("VISUAL_GENERATION_DELAY_SECONDS", default="10"))
+    BGM_VOLUME_DB: float = float(_get("BGM_VOLUME_DB", default="-14"))
+    BGM_MIX_RETRIES: int = int(_get("BGM_MIX_RETRIES", default="3"))
+    BGM_MIX_REQUIRED: bool = (_get("BGM_MIX_REQUIRED", default="true") or "true").lower() == "true"
 
     # ── Voice Settings ─────────────────────────────────────────────
     VOICE_NAME: str = _get("VOICE_NAME", default="en-IN-Chirp3-HD-Orus") or "en-IN-Chirp3-HD-Orus"
