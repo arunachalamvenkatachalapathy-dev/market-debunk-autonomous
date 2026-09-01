@@ -24,7 +24,7 @@ from src.utils.logger import get_logger
 
 log = get_logger(__name__, phase="voice_synthesis")
 
-DEFAULT_VOICE = "en-IN-Wavenet-B"  # High-quality Indian male voice from Google TTS
+DEFAULT_VOICE = "en-IN-Chirp3-HD-Orus"  # Upgraded to expressive Chirp3-HD model for natural narrative prosody
 
 def get_audio_duration(mp3_path: Path) -> float:
     """Returns the duration of an MP3 file in seconds using ffprobe."""
@@ -39,6 +39,23 @@ def get_audio_duration(mp3_path: Path) -> float:
         log.warning("ffprobe failed: %s", exc)
         return 5.0
 
+def trim_audio_silence(input_path: Path, output_path: Path):
+    """Aggressively trims leading and trailing silence to prevent robotic stitching pauses."""
+    try:
+        subprocess.run(
+            [
+                "ffmpeg", "-y", "-i", str(input_path),
+                "-af", "silenceremove=start_periods=1:start_threshold=-50dB:start_duration=0.05,areverse,silenceremove=start_periods=1:start_threshold=-50dB:start_duration=0.05,areverse",
+                str(output_path)
+            ],
+            capture_output=True, check=True
+        )
+    except subprocess.CalledProcessError as e:
+        log.error("FFmpeg silence removal failed: %s", e.stderr)
+        # Fallback to the original file if trimming fails
+        import shutil
+        shutil.copy(input_path, output_path)
+
 def synthesize_scene(
     scene_id: int,
     narration: str,
@@ -49,6 +66,7 @@ def synthesize_scene(
     log.info("Synthesizing scene %d with Google TTS...", scene_id)
     audio_dir.mkdir(parents=True, exist_ok=True)
     
+    raw_mp3_path = audio_dir / f"scene_{scene_id}_raw.mp3"
     mp3_path = audio_dir / f"scene_{scene_id}.mp3"
     timings_path = audio_dir / f"scene_{scene_id}_timings.json"
 
@@ -73,7 +91,12 @@ def synthesize_scene(
     )
     
     response = client.synthesize_speech(request=request)
-    mp3_path.write_bytes(response.audio_content)
+    raw_mp3_path.write_bytes(response.audio_content)
+    
+    # Trim silence to ensure fluid pacing across scene cuts
+    trim_audio_silence(raw_mp3_path, mp3_path)
+    # Cleanup raw file
+    raw_mp3_path.unlink(missing_ok=True)
     
     duration = get_audio_duration(mp3_path)
     

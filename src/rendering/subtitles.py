@@ -115,7 +115,8 @@ def _build_dialogue_lines(
         for i in range(0, len(word_timings), max_words_per_line)
     ]
 
-    highlight_color = "{\\c&H55A8E8&}"  # Amber gold in BGR
+    # Amber gold in BGR + scale pop-in animation (105% -> 100% over 100ms)
+    highlight_color = "{\\c&H55A8E8&\\fscx105\\fscy105\\t(0,100,\\fscx100\\fscy100)}"  
     reset_color = "{\\c}"
 
     for chunk in chunks:

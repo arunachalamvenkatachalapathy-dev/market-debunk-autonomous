@@ -89,14 +89,26 @@ def run_pipeline():
 
         # ── Phase 5: FFmpeg Assembly ──────────────────────────────────────
         with PhaseTimer("Phase 5: Video Assembly"):
+            import random
+            
             ass_path = run_dir / "subtitles.ass"
             subtitles.generate_ass_file(voice_results, ass_path)
+            
+            # Select random BGM track from the premium folder
+            bgm_dir = Path("assets/bgm")
+            bgm_path = None
+            if bgm_dir.exists():
+                tracks = list(bgm_dir.glob("*.mp3"))
+                if tracks:
+                    bgm_path = random.choice(tracks)
+                    log.info(f"Selected BGM track: {bgm_path.name}")
             
             final_video = assembler.assemble_video(
                 voice_results=voice_results,
                 visual_results=visual_results,
                 ass_path=ass_path,
                 run_dir=run_dir,
+                bgm_path=bgm_path,
             )
 
         # ── Phase 6: Post-Processing & Recording ──────────────────────────

@@ -55,6 +55,12 @@ PRIYA (The Truth-Teller):
   • Mid-30s Indian woman, calm, professional.
   • She MUST appear in Scenes 11 and 12 to deliver the final reveal and CTA. She is the closer.
 
+NARRATION STYLE (CRITICAL FOR AUDIO):
+  • You are telling a story, not reading a textbook.
+  • Write for the ear, not the eye — use contractions, sentence fragments, and varied sentence length.
+  • Avoid three sentences of the same length and rhythm in a row.
+  • Keep it punchy, conversational, and direct. Break up complex ideas into short beats.
+
 ──────────────────────────────────────────────────────────────────────────────
 THE 12-SCENE STORY ARC (Exactly 12 Scenes. 60-90 seconds total runtime):
 ──────────────────────────────────────────────────────────────────────────────

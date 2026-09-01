@@ -96,19 +96,32 @@ def _build_scene_from_image(
     audio_path: Path,
     duration: float,
     output_path: Path,
+    scene_id: int = 1,
 ) -> None:
     """
-    Scale image to fit, pad to 1080x1920, and apply a slow ken-burns zoom.
+    Scale image to fill (no black bars), crop to 1080x1920, and apply varied ken-burns zoom.
     """
     w, h = settings.VIDEO_WIDTH, settings.VIDEO_HEIGHT
     fps = settings.VIDEO_FPS
     n_frames = int(duration * fps)
 
+    # Vary the zoom direction based on scene_id to prevent repetitive motion
+    pan_type = scene_id % 3
+    if pan_type == 0:
+        # Straight slow zoom in
+        zp_motion = "x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'"
+    elif pan_type == 1:
+        # Zoom in while panning slightly right
+        zp_motion = "x='iw/2-(iw/zoom/2)+2':y='ih/2-(ih/zoom/2)'"
+    else:
+        # Zoom in while panning slightly left
+        zp_motion = "x='iw/2-(iw/zoom/2)-2':y='ih/2-(ih/zoom/2)'"
+
     vf = (
-        f"scale={w}:{h}:force_original_aspect_ratio=decrease,"
-        f"pad={w}:{h}:(ow-iw)/2:(oh-ih)/2:black,"
+        f"scale={w}:{h}:force_original_aspect_ratio=increase," # Fill frame, no black bars
+        f"crop={w}:{h},"
         f"setsar=1,"
-        f"zoompan=z='min(zoom+0.0008,1.06)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d={n_frames}:s={w}x{h}:fps={fps}"
+        f"zoompan=z='min(zoom+0.0008,1.05)':{zp_motion}:d={n_frames}:s={w}x{h}:fps={fps}"
     )
 
     _ffmpeg(
@@ -167,7 +180,7 @@ def build_scene_clips(
         if asset_type == "video":
             _build_scene_from_video(asset_path, audio_path, duration, clip_path)
         else:
-            _build_scene_from_image(asset_path, audio_path, duration, clip_path)
+            _build_scene_from_image(asset_path, audio_path, duration, clip_path, scene_id=scene_id)
 
         clip_paths.append(clip_path)
 
@@ -230,7 +243,7 @@ def mix_bgm(
     video_path: Path,
     bgm_path: Optional[Path],
     output_path: Path,
-    bgm_volume_db: float = -12.0,
+    bgm_volume_db: float = -22.0,
 ) -> Path:
     """
     Layer BGM under the voiceover and normalise the mix.

@@ -18,30 +18,38 @@ log = get_logger(__name__, phase="video_assembly")
 _STYLE_TAG = (
     "photorealistic 3D-cartoon render, cinematic lighting, 9:16 vertical composition, "
     "highly detailed, no text overlays. Color palette: deep teal-navy background "
-    "(#1B3540) with warm amber gold (#E8A855) practical lighting accents (lamps, windows)."
+    "(#1B3540) with warm amber gold (#E8A855) practical lighting accents (lamps, windows). "
+    "Include a distinct foreground element (glass reflection, out-of-focus plant, doorway edge) "
+    "to create depth."
 )
 
 _ARJUN_BIBLE = (
-    "Host Character: A confident Indian man in his early-to-mid 30s, side-parted dark hair "
-    "swept back neatly, clean-shaven with a defined jawline, medium-warm skin tone. "
-    "Signature outfit: a light powder-blue button-down dress shirt, sleeves occasionally "
-    "rolled to the forearm, no tie, top button undone — this exact shirt and collar style. "
-    "Build: lean, professional posture. Rendering: semi-stylized 3D character render — "
-    "photoreal-quality skin texture, lighting, and material rendering, but proportions and "
-    "finish pulled just enough from full-photorealism (slightly smoothed/idealized features, "
-    "a faint render-quality sheen) that it unmistakably reads as an animated/illustrated "
-    "character, not a real photographed person."
+    "Indian man, early-to-mid 30s, dark brown hair with natural wave, side "
+    "part to his left, a few loose strands in casual settings, thick "
+    "naturally-shaped dark eyebrows, warm wheatish-brown skin, clean-shaven "
+    "with a defined jawline, soft smile lines, medium-lean build. Wearing a "
+    "light powder-blue button-down shirt, top button undone, sleeves rolled "
+    "to two folds above the wrist, thin stainless-steel analog watch on his "
+    "left wrist. Semi-stylized 3D-cartoon render, photoreal skin/lighting "
+    "texture, not flat-shaded, not fully photorealistic."
 )
 
 _PRIYA_BIBLE = (
-    "Secondary Character: Indian woman, mid-30s, dark hair pulled back, wearing a "
-    "deep navy collared blouse, small bindi. Semi-stylized 3D character render."
+    "Indian woman, early-to-mid 30s, dark hair pulled back into a low bun "
+    "with a center part, small red bindi on the forehead, warm brown eyes, "
+    "calm gentle default expression, slim build, relaxed upright posture. "
+    "Wearing a deep navy mandarin-collar blouse with three-quarter sleeves, "
+    "a single thin gold pendant necklace at the collar. Semi-stylized "
+    "3D-cartoon render, photoreal skin/lighting texture, not flat-shaded, "
+    "not fully photorealistic."
 )
 
 _NEGATIVE_PROMPT = (
-    "NEGATIVE PROMPT: different character design, inconsistent face, morphed features, "
-    "changed outfit, different hair, flat illustration, anime style, ugly, bad anatomy, "
-    "text, watermark, blurry, photoreal photography"
+    "NEGATIVE PROMPT: cropped composition, empty black space, letterboxing, "
+    "pillarboxing, centered vignette, unused canvas edges, different character design, "
+    "inconsistent face, morphed features, changed outfit, different hair, "
+    "flat illustration, anime style, ugly, bad anatomy, text, watermark, blurry, "
+    "photoreal photography"
 )
 
 
@@ -71,7 +79,10 @@ def _call_imagen(prompt: str, output_path: Path):
     r = client.models.generate_content(
         model='gemini-2.5-flash-image',
         contents=prompt,
-        config=types.GenerateContentConfig(response_modalities=['IMAGE'])
+        config=types.GenerateContentConfig(
+            response_modalities=['IMAGE'],
+            aspect_ratio="9:16"
+        )
     )
     image_bytes = r.candidates[0].content.parts[0].inline_data.data
     with open(output_path, 'wb') as f:
