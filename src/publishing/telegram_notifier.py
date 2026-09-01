@@ -62,15 +62,32 @@ def send_completion_notification(
             f"{stats_block}"
         )
 
-        resp = requests.post(
-            f"{base_url}/sendMessage",
-            json={
-                "chat_id": settings.TELEGRAM_CHAT_ID,
-                "text": message,
-                "parse_mode": "Markdown",
-            },
-            timeout=15,
-        )
+        if video_path and video_path.is_file():
+            # Send the actual rendered MP4 to the group. Telegram's bot API
+            # accepts multipart uploads; the caption is kept short enough for
+            # the sendVideo limit and the full details remain in the log.
+            with video_path.open("rb") as video_file:
+                resp = requests.post(
+                    f"{base_url}/sendVideo",
+                    data={
+                        "chat_id": settings.TELEGRAM_CHAT_ID,
+                        "caption": message[:1024],
+                        "parse_mode": "Markdown",
+                        "supports_streaming": "true",
+                    },
+                    files={"video": (video_path.name, video_file, "video/mp4")},
+                    timeout=120,
+                )
+        else:
+            resp = requests.post(
+                f"{base_url}/sendMessage",
+                json={
+                    "chat_id": settings.TELEGRAM_CHAT_ID,
+                    "text": message,
+                    "parse_mode": "Markdown",
+                },
+                timeout=15,
+            )
         resp.raise_for_status()
         log.info("✓ Telegram notification sent")
         return True
