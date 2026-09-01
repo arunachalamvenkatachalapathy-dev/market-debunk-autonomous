@@ -71,6 +71,14 @@ jobs:
           path: output/**/distribution_ready.mp4
           retention-days: 7
 
+      - name: Upload Tamil master visual package
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: market-debunk-master-package
+          path: output/**/master_visual_package/**
+          retention-days: 7
+
       - name: Commit Deduplication Data
         if: success()
         run: |
