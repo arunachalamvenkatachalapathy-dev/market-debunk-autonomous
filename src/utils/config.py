@@ -65,6 +65,13 @@ class Settings:
     TELEGRAM_BOT_TOKEN: str = _get("TELEGRAM_BOT_TOKEN", default="") or ""
     TELEGRAM_CHAT_ID: str = _get("TELEGRAM_CHAT_ID", default="") or ""
 
+    # ── Instagram Graph API publishing ───────────────────────────
+    ENABLE_INSTAGRAM: bool = _get("ENABLE_INSTAGRAM", default="false").lower() == "true"
+    INSTAGRAM_ACCESS_TOKEN: str = _get("INSTAGRAM_ACCESS_TOKEN", default="") or ""
+    INSTAGRAM_USER_ID: str = _get("INSTAGRAM_USER_ID", default="") or ""
+    INSTAGRAM_VIDEO_URL: str = _get("INSTAGRAM_VIDEO_URL", default="") or ""
+    INSTAGRAM_GRAPH_VERSION: str = _get("INSTAGRAM_GRAPH_VERSION", default="v23.0") or "v23.0"
+
     # ── Video Settings ─────────────────────────────────────────────
     VIDEO_WIDTH: int = int(_get("VIDEO_WIDTH", default="1080"))
     VIDEO_HEIGHT: int = int(_get("VIDEO_HEIGHT", default="1920"))
@@ -128,6 +135,8 @@ def validate_for_run() -> list[str]:
         warnings.append("RAPIDAPI_KEY missing — transcript discovery will use yt-dlp fallback")
     if not settings.SERPAPI_KEY:
         warnings.append("SERPAPI_KEY missing — market-news fallback disabled")
+    if settings.ENABLE_INSTAGRAM and not all((settings.INSTAGRAM_ACCESS_TOKEN, settings.INSTAGRAM_USER_ID, settings.INSTAGRAM_VIDEO_URL)):
+        warnings.append("Instagram enabled but credentials/video URL are incomplete — Instagram upload will be skipped")
     if not settings.GEMINI_IMAGE_API_KEY:
         warnings.append("GEMINI_IMAGE_API_KEY missing — AI image generation disabled")
     if not settings.GEMINI_LIVE_API_KEY:

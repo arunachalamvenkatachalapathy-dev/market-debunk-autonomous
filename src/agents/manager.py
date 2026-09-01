@@ -25,7 +25,7 @@ from src.utils.logger import get_logger, PhaseTimer
 # Import agents
 from src.agents import topic_agent, script_agent, voice_agent, visual_agent, evaluator, quality_gate
 from src.rendering import subtitles, assembler
-from src.publishing import youtube_uploader, telegram_notifier
+from src.publishing import youtube_uploader, telegram_notifier, instagram_publisher
 
 log = get_logger(__name__, phase="orchestrator")
 
@@ -150,6 +150,14 @@ def run_pipeline():
                     youtube_url=yt_url,
                     video_path=final_video,
                     run_stats=stats,
+                )
+
+            if settings.ENABLE_INSTAGRAM:
+                instagram_publisher.publish_reel(
+                    video_path=final_video,
+                    title=script_dict["title"],
+                    description=script_dict["description"],
+                    hashtags=script_dict["hashtags"],
                 )
 
         total_time = time.time() - total_start
