@@ -46,10 +46,20 @@ _CHANNEL_IDS_PATH = settings.DATA_DIR / "channel_ids.json"
 # ──────────────────────────────────────────────────────────────────────────────
 
 def _load_channel_id_cache() -> dict[str, Optional[str]]:
+    """Loads cached channel IDs or returns hardcoded defaults."""
+    cache = {
+        "MONEY PECHU": "UC7fQFl37yAOaPaoxQm-TqSA",
+        "PR SUNDAR": "UCS2NdYUmv_PUyyKeDAo5zYA",
+        "MONEY PURSE": "UChBT5TlUeG68PKvJSg6MkqQ",
+        "TRADE ACHIEVERS": "UCzk4zJEoZMnjvpoN0HlKjHQ",
+        "MARKET DRIVER": "UCo5CAieenL0ExXzvjzs17QQ",
+        "TAMIL NIFTY ANALYSIS": "UCft3VdKoq4HNBYd4MRnQF6Q",
+        "ZERO1 BY ZERODHA": "UCUUlw3anBIkbW9W44Y-eURw"
+    }
     if _CHANNEL_IDS_PATH.exists():
         with open(_CHANNEL_IDS_PATH, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return {name: None for name in settings.CHANNEL_REGISTRY}
+            cache.update(json.load(f))
+    return cache
 
 
 def _save_channel_id_cache(cache: dict[str, Optional[str]]) -> None:
@@ -141,25 +151,29 @@ def _fetch_latest_video_api(channel_id: str) -> Optional[dict]:
     }
 
 
-def _fetch_latest_video_rss(channel_id: str) -> Optional[dict]:
-    """Fallback: YouTube RSS feed (no API key needed)."""
-    rss_url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
+def _fetch_latest_video_ytdlp(channel_id: str) -> Optional[dict]:
+    """Fallback: yt-dlp to scrape latest video (bypasses RSS IP blocks)."""
     try:
-        feed = feedparser.parse(rss_url)
-        if not feed.entries:
-            return None
-        entry = feed.entries[0]
-        video_id = entry.get("yt_videoid") or re.search(r"v=([^&]+)", entry.get("link", ""))
-        if hasattr(video_id, "group"):
-            video_id = video_id.group(1)
-        return {
-            "video_id": str(video_id),
-            "title": entry.get("title", ""),
-            "published_at": entry.get("published", ""),
+        import yt_dlp
+        ydl_opts = {
+            'quiet': True,
+            'extract_flat': True,
+            'playlist_items': '1', # Get only the latest 1 video
+            'force_generic_extractor': False,
         }
+        url = f"https://www.youtube.com/channel/{channel_id}"
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=False)
+            if 'entries' in info and info['entries']:
+                entry = info['entries'][0]
+                return {
+                    "video_id": entry.get("id"),
+                    "title": entry.get("title", ""),
+                    "published_at": "", # We can't easily get date from flat extract, but it's not strictly needed
+                }
     except Exception as exc:
-        log.error("RSS fetch failed for channel %s: %s", channel_id, exc)
-        return None
+        log.error("yt-dlp fetch failed for channel %s: %s", channel_id, exc)
+    return None
 
 
 def fetch_latest_video(channel_name: str) -> Optional[dict]:
@@ -177,13 +191,13 @@ def fetch_latest_video(channel_name: str) -> Optional[dict]:
                 log.info("Found video via API: [%s] %s", video["video_id"], video["title"])
                 return video
         except Exception as exc:
-            log.warning("API fetch failed, falling back to RSS: %s", exc)
+            log.warning("API fetch failed, falling back to yt-dlp: %s", exc)
 
-    # RSS fallback (requires channel_id)
+    # yt-dlp fallback (requires channel_id)
     if channel_id:
-        video = _fetch_latest_video_rss(channel_id)
+        video = _fetch_latest_video_ytdlp(channel_id)
         if video:
-            log.info("Found video via RSS: [%s] %s", video["video_id"], video["title"])
+            log.info("Found video via yt-dlp: [%s] %s", video["video_id"], video["title"])
             return video
 
     log.error("Could not fetch latest video for channel: %s", channel_name)
