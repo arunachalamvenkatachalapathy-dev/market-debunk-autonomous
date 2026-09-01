@@ -54,14 +54,14 @@ class Settings:
     PEXELS_API_KEY: str = _get("PEXELS_API_KEY", required=False) or ""
 
     # ── YouTube Publishing ─────────────────────────────────────────
-    ENABLE_YT_UPLOAD: bool = _get("ENABLE_YT_UPLOAD", default="false").lower() == "true"
-    ALLOW_PUBLICATION: bool = _get("ALLOW_PUBLICATION", default="false").lower() == "true"
+    ENABLE_YT_UPLOAD: bool = (_get("ENABLE_YT_UPLOAD", default="true") or "true").lower() == "true"
+    ALLOW_PUBLICATION: bool = (_get("ALLOW_PUBLICATION", default="true") or "true").lower() == "true"
     YT_CLIENT_ID: str = _get("YT_CLIENT_ID", default="") or ""
     YT_CLIENT_SECRET: str = _get("YT_CLIENT_SECRET", default="") or ""
     YT_REFRESH_TOKEN: str = _get("YT_REFRESH_TOKEN", default="") or ""
 
     # ── Telegram Notifications ─────────────────────────────────────
-    ENABLE_TELEGRAM: bool = _get("ENABLE_TELEGRAM", default="false").lower() == "true"
+    ENABLE_TELEGRAM: bool = (_get("ENABLE_TELEGRAM", default="true") or "true").lower() == "true"
     TELEGRAM_BOT_TOKEN: str = _get("TELEGRAM_BOT_TOKEN", default="") or ""
     TELEGRAM_CHAT_ID: str = _get("TELEGRAM_CHAT_ID", default="") or ""
 
