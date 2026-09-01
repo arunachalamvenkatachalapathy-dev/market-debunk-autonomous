@@ -21,6 +21,7 @@ from pathlib import Path
 
 from src.utils.config import settings
 from src.utils.logger import get_logger, PhaseTimer
+from src.utils.master_package import export_master_package
 
 # Import agents
 from src.agents import topic_agent, script_agent, voice_agent, visual_agent, evaluator, quality_gate
@@ -97,6 +98,8 @@ def run_pipeline():
                 visual_results,
                 {scene["scene_id"] for scene in script_dict["scenes"]},
             )
+            master_package = export_master_package(run_dir, thesis, script_dict, visual_results)
+            log.info("Exported Tamil companion visual package: %s", master_package)
 
         # ── Phase 5: FFmpeg Assembly ──────────────────────────────────────
         with PhaseTimer("Phase 5: Video Assembly"):
