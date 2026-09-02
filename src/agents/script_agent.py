@@ -286,7 +286,7 @@ def _template_script(thesis: str) -> ScriptPayload:
     for i, narration in enumerate(narrations, 1):
         character = "Arjun" if i <= 10 else "Priya"
         scenes.append({"scene_id": i, "narration": narration,
-                       "visual_prompt": f"{character} in a teal finance studio examining a clear market chart and notebook, cinematic vertical composition",
+                       "visual_prompt": f"{character}, consistent locked character design, in a deep teal and navy finance studio, examining a clearly visible market chart, calculator, annotated notebook and phone, warm amber practical desk light, powder-blue wardrobe, expressive natural pose matching the narration, cinematic depth of field, premium semi-stylized 3D render with photoreal lighting, full-bleed 1080x1920 vertical composition, no text, no watermark, no letterboxing",
                        "duration_hint": 4.0})
     return ScriptPayload(title="Market Debunk: What Investors Miss", description="A concise market explanation based on the available evidence. Subscribe for more practical finance insights.", hashtags=["#Finance", "#Investing", "#Shorts"], scenes=scenes)
 
