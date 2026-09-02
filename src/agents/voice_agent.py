@@ -7,7 +7,7 @@ Uses Google Cloud Text-to-Speech API for high-quality Neural voices.
 Generates per-scene MP3 files and produces estimated word-level 
 timestamp data for subtitle rendering.
 
-Default voice: en-IN-Chirp3-HD-Orus
+Default voice: en-IN-Chirp3-HD-Fenrir (Look F — Dark Editorial)
 """
 import html
 import json
@@ -54,16 +54,23 @@ def trim_audio_silence(input_path: Path, output_path: Path):
         shutil.copy(input_path, output_path)
 
 
-def _build_ssml(narration: str) -> str:
-    """Add light SSML direction for smoother, less robotic delivery."""
+def _build_ssml(narration: str, scene_id: int = 1) -> str:
+    """Scene-aware SSML so hooks are slower and reveals are a hair faster."""
     text = html.escape(" ".join(narration.split()))
-    text = re.sub(r"([.!?])\s+", r'\1 <break time="180ms"/> ', text)
-    text = re.sub(r"([,:;])\s+", r'\1 <break time="90ms"/> ', text)
-    rate_pct = int(settings.VOICE_SPEAKING_RATE * 100)
-    pitch = settings.VOICE_PITCH
+    text = re.sub(r"([,;])\s+", r'\1 <break time="60ms"/> ', text)
+    text = re.sub(r"([.!?])\s+", r'\1 <break time="260ms"/> ', text)
+
+    if scene_id <= 2:
+        rate, pitch = "92%", "-2.5st"
+    elif scene_id >= 10:
+        rate, pitch = "98%", "-1.5st"
+    else:
+        rate_pct = int(settings.VOICE_SPEAKING_RATE * 100)
+        rate, pitch = f"{rate_pct}%", f"{settings.VOICE_PITCH:+.1f}st"
+
     return (
         "<speak>"
-        f"<prosody rate=\"{rate_pct}%\" pitch=\"{pitch:+.1f}st\">"
+        f'<prosody rate="{rate}" pitch="{pitch}">'
         f"{text}"
         "</prosody>"
         "</speak>"
@@ -85,7 +92,7 @@ def synthesize_scene(
     timings_path = audio_dir / f"scene_{scene_id}_timings.json"
 
     client = texttospeech.TextToSpeechClient()
-    synthesis_input = texttospeech.SynthesisInput(ssml=_build_ssml(narration))
+    synthesis_input = texttospeech.SynthesisInput(ssml=_build_ssml(narration, scene_id))
     
     # Extract language code from voice name (e.g. "en-IN-Wavenet-B" -> "en-IN")
     lang_code = "-".join(voice_name.split("-")[:2])

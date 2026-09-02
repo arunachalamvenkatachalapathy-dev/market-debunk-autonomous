@@ -21,43 +21,45 @@ _CACHE_DIR = settings.OUTPUT_DIR / "visual_cache"
 # ──────────────────────────────────────────────────────────────────────────────
 
 _STYLE_TAG = (
-    "semi-stylized 3D-cartoon render with photoreal skin and cinematic lighting, "
+    "photoreal cinematic still, 85mm lens, shallow depth of field, visible film grain, "
     "full-bleed 1080x1920 vertical 9:16 composition, edge-to-edge filled frame, "
-    "no letterbox bars, no pillarbox bars, no unused black canvas, highly detailed. "
-    "Color palette: deep teal-navy background (#1B3540), warm amber practical light "
-    "(#E8A855), powder-blue shirt (#AECBDA). Include a distinct foreground element "
-    "(glass reflection, out-of-focus plant, doorway edge, desk edge, phone edge) "
-    "to create depth and stop the image from feeling generic."
+    "no letterbox bars, no pillarbox bars, no unused black canvas. "
+    "LIGHTING: extreme split light, warm amber key camera-left (#E8A855) carving the face, "
+    "deep teal shadow fill camera-right (#0D2A32), thin teal rim on the dark-side hair. "
+    "Background is a dark teal-navy void with at most one practical (amber lamp, doorway "
+    "edge, desk edge, glass reflection). Highly detailed skin texture, not plastic."
 )
 
 _ARJUN_BIBLE = (
-    "Indian man, early-to-mid 30s, dark brown hair with natural wave, side "
-    "part to his left, a few loose strands in casual settings, thick "
-    "naturally-shaped dark eyebrows, warm wheatish-brown skin, clean-shaven "
-    "with a defined jawline, soft smile lines, medium-lean build. Wearing a "
-    "light powder-blue button-down shirt, top button undone, sleeves rolled "
-    "to two folds above the wrist, thin stainless-steel analog watch on his "
-    "left wrist. Semi-stylized 3D-cartoon render, photoreal skin/lighting "
-    "texture, not flat-shaded, not fully photorealistic."
+    "Indian man, 33, wheatish-olive skin with visible pores and faint five-o'clock "
+    "shadow, dark brown hair slightly messy with a natural wave and a few strands "
+    "falling over the forehead, thick dark eyebrows, warm brown heavy-lidded eyes, "
+    "defined jaw, default expression is no smile, intense and slightly tired. "
+    "Wearing a charcoal linen shirt, top two buttons open, no tie, no glasses, "
+    "no gold chain. Optional thin stainless-steel watch on the left wrist if hands "
+    "are visible. Photoreal cinematic, not 3D cartoon, not Pixar, not illustration, "
+    "not plastic skin, not a smiling presenter."
 )
 
 _PRIYA_BIBLE = (
-    "Indian woman, early-to-mid 30s, dark hair pulled back into a low bun "
-    "with a center part, small red bindi on the forehead, warm brown eyes, "
-    "calm gentle default expression, slim build, relaxed upright posture. "
-    "Wearing a deep navy mandarin-collar blouse with three-quarter sleeves, "
-    "a single thin gold pendant necklace at the collar. Semi-stylized "
-    "3D-cartoon render, photoreal skin/lighting texture, not flat-shaded, "
-    "not fully photorealistic."
+    "Indian woman, 33, wheatish-brown skin, dark hair in a low slightly messy bun "
+    "with a few loose strands, no bindi, sharp dark brows, warm brown eyes, calm "
+    "lethal default expression with no polite smile. Wearing a deep charcoal silk "
+    "mandarin-collar blouse, one thin gold pendant, small gold hoops. Photoreal "
+    "cinematic, not 3D cartoon, not Pixar, not plastic skin."
 )
 
 _NEGATIVE_PROMPT = (
-    "NEGATIVE PROMPT: different character design, inconsistent face, morphed features, "
-    "changed outfit, different hair, flat illustration, anime style, ugly, bad anatomy, "
-    "text, readable words, logo, watermark, blurry, cropped composition, empty black space, "
-    "dark blank frame, black background, letterboxing, pillarboxing, centered vignette, "
-    "unused canvas edges, generic stock photo, photoreal photography, duplicate pose, "
-    "duplicate background"
+    "NEGATIVE PROMPT: 3D cartoon, Pixar, Disney, Unreal Engine character, plastic "
+    "skin, smooth doll face, toothy smile, customer-service smile, raised friendly "
+    "eyebrows, powder-blue shirt, white office shirt, suit and tie, world map, "
+    "globe, studio cyclorama, even lighting, ring light, beauty lighting, flat "
+    "illustration, anime, comic, readable text, words, numbers, logos, watermarks, "
+    "brand names, newspaper masthead, phone UI text, labelled charts, black "
+    "letterbox bars, empty black canvas, stock photo, celebrity likeness, different "
+    "face, different hair, different outfit, glasses on Arjun, gold chain on Arjun, "
+    "bindi on Priya, waving, presenter hands, pointing at floating text, bright "
+    "office, daylight window, colourful infographic"
 )
 
 
@@ -82,7 +84,7 @@ def _build_enhanced_prompt(raw_prompt: str, scene_id: int) -> str:
 
     scene_directive = (
         f"Scene {scene_id} of a 12-scene Market Debunk Short. "
-        "Create a premium finance-edutainment still, not a poster and not a slide. "
+        "Create a premium cinematic thriller still, not a poster, not a slide, not a cartoon. "
         "No readable text anywhere; financial information must appear as abstract charts, "
         "blurred dashboards, arrows, colored bars, or document shapes."
     )
