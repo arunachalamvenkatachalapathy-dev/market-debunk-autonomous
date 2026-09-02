@@ -229,11 +229,12 @@ _GEMINI_MODELS = [
 
 def _call_gemma(user_prompt: str) -> str:
     """Call Gemma through Google AI Studio as the last structured-output fallback."""
-    if not settings.GEMINI_SCRIPT_API_KEY:
-        raise RuntimeError("GEMINI_SCRIPT_API_KEY is not configured for Gemma fallback")
+    api_key = settings.GEMINI_SCRIPT_API_KEY or settings.GEMINI_API_KEY
+    if not api_key:
+        raise RuntimeError("GEMINI_SCRIPT_API_KEY or GEMINI_API_KEY is not configured for Gemma fallback")
     from google import genai
     from google.genai import types
-    client = genai.Client(api_key=settings.GEMINI_SCRIPT_API_KEY)
+    client = genai.Client(api_key=api_key)
     response = client.models.generate_content(
         model=settings.GEMMA_FALLBACK_MODEL,
         contents=user_prompt,
@@ -316,7 +317,7 @@ Before answering, internally check that:
 
             try:
                 data = _extract_json(raw)
-            except json.JSONDecodeError as parse_error:
+            except (json.JSONDecodeError, ValueError) as parse_error:
                 log.warning("Model returned malformed JSON; requesting one repair pass: %s", parse_error)
                 data = _extract_json(_repair_json(raw, parse_error, model))
             script = ScriptPayload(**data)
@@ -339,7 +340,7 @@ Before answering, internally check that:
         raw = _call_gemma(user_prompt)
         try:
             data = _extract_json(raw)
-        except json.JSONDecodeError as parse_error:
+        except (json.JSONDecodeError, ValueError) as parse_error:
             log.warning("Gemma returned malformed JSON; requesting one repair pass")
             data = _extract_json(_call_gemma(
                 f"Repair this response into complete valid JSON with exactly 12 scenes. "
