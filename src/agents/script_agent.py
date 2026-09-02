@@ -227,6 +227,25 @@ _GEMINI_MODELS = [
     "gemini-2.5-flash",
 ]
 
+def _call_gemma(user_prompt: str) -> str:
+    """Call Gemma through Google AI Studio as the last structured-output fallback."""
+    if not settings.GEMINI_SCRIPT_API_KEY:
+        raise RuntimeError("GEMINI_SCRIPT_API_KEY is not configured for Gemma fallback")
+    from google import genai
+    from google.genai import types
+    client = genai.Client(api_key=settings.GEMINI_SCRIPT_API_KEY)
+    response = client.models.generate_content(
+        model=settings.GEMMA_FALLBACK_MODEL,
+        contents=user_prompt,
+        config=types.GenerateContentConfig(
+            system_instruction=_SYSTEM_PROMPT,
+            temperature=0.65,
+            max_output_tokens=4000,
+            response_mime_type="application/json",
+        ),
+    )
+    return response.text
+
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=2, min=3, max=20))
 def _call_gemini(user_prompt: str, model_name: str) -> str:
     """Call Gemini via Vertex AI and return raw response."""
@@ -312,6 +331,27 @@ Before answering, internally check that:
         except Exception as exc:
             log.warning("Model %s failed: %s — trying next", model, exc)
             continue
+
+    # Last LLM attempt: Gemma is deliberately kept after Vertex and still goes
+    # through the same JSON parser, Pydantic model, and downstream gates.
+    try:
+        log.info("Trying Gemma fallback model: %s", settings.GEMMA_FALLBACK_MODEL)
+        raw = _call_gemma(user_prompt)
+        try:
+            data = _extract_json(raw)
+        except json.JSONDecodeError as parse_error:
+            log.warning("Gemma returned malformed JSON; requesting one repair pass")
+            data = _extract_json(_call_gemma(
+                f"Repair this response into complete valid JSON with exactly 12 scenes. "
+                f"Parser error: {parse_error}\n\n{raw}"
+            ))
+        script = ScriptPayload(**data)
+        total_words = sum(len(s.narration.split()) for s in script.scenes)
+        log.info("✓ Script ready | model: %s | title: '%s' | total_words: %d",
+                 settings.GEMMA_FALLBACK_MODEL, script.title, total_words)
+        return script
+    except Exception as exc:
+        log.error("Gemma fallback failed: %s", exc)
 
     raise RuntimeError(
         f"All Gemini models failed to produce a valid 12-scene script for: '{thesis}'"

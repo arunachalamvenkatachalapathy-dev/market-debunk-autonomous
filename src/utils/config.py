@@ -35,6 +35,7 @@ class Settings:
 
     # ── Script Generation (Gemma via Google AI Studio) ────────────
     GEMINI_SCRIPT_API_KEY: str = _get("GEMINI_SCRIPT_API_KEY", required=False) or ""
+    GEMMA_FALLBACK_MODEL: str = _get("GEMMA_FALLBACK_MODEL", required=False) or "gemma-3-27b-it"
 
     # ── Gemini Live (Voice Synthesis) ─────────────────────────────
     GEMINI_LIVE_API_KEY: str = _get("GEMINI_LIVE_API_KEY", required=False) or ""
