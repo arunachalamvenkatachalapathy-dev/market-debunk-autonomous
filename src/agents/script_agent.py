@@ -228,32 +228,12 @@ _GEMINI_MODELS = [
 ]
 
 def _call_gemma(user_prompt: str) -> str:
-    """Call Gemma through Google AI Studio as the last structured-output fallback."""
-    api_key = settings.GEMINI_SCRIPT_API_KEY or settings.GEMINI_API_KEY
-    if not api_key:
-        raise RuntimeError("GEMINI_SCRIPT_API_KEY or GEMINI_API_KEY is not configured for Gemma fallback")
+    """Call Gemma through the same Vertex AI/GCP identity as the pipeline."""
     from google import genai
     from google.genai import types
-    client = genai.Client(api_key=api_key)
+    client = genai.Client(vertexai=True, project="exalted-shape-502013-q5", location="us-central1")
     model_name = settings.GEMMA_FALLBACK_MODEL
-    # Model availability differs between AI Studio API versions and keys.
-    # Resolve an actually callable Gemma model instead of trusting one name.
-    try:
-        available = list(client.models.list())
-        candidates = [model_name, "gemma-3-27b", "gemma-3-12b-it", "gemma-3-4b-it", "gemma-2-27b-it"]
-        for candidate in candidates:
-            for model in available:
-                name = getattr(model, "name", "")
-                methods = getattr(model, "supported_actions", []) or getattr(model, "supported_methods", [])
-                if name.endswith(candidate) and (not methods or "generateContent" in methods):
-                    model_name = name.removeprefix("models/")
-                    break
-            else:
-                continue
-            break
-    except Exception as exc:
-        log.warning("Could not list Gemma models; trying configured name: %s", exc)
-    log.info("Resolved Gemma model: %s", model_name)
+    log.info("Calling Vertex Gemma deployment: %s", model_name)
     response = client.models.generate_content(
         model=model_name,
         contents=user_prompt,
