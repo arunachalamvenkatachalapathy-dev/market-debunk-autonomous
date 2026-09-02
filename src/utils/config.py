@@ -79,7 +79,7 @@ class Settings:
     VIDEO_FPS: int = int(_get("VIDEO_FPS", default="30"))
     VIDEO_DURATION_TARGET: int = int(_get("VIDEO_DURATION_TARGET", default="60"))
     MIN_VIDEO_DURATION: int = int(_get("MIN_VIDEO_DURATION", default="40"))
-    MAX_VIDEO_DURATION: int = int(_get("MAX_VIDEO_DURATION", default="90"))
+    MAX_VIDEO_DURATION: int = int(_get("MAX_VIDEO_DURATION", default="59"))
     VISUAL_GENERATION_DELAY_SECONDS: float = float(_get("VISUAL_GENERATION_DELAY_SECONDS", default="10"))
     BGM_VOLUME_DB: float = float(_get("BGM_VOLUME_DB", default="-14"))
     BGM_MIX_RETRIES: int = int(_get("BGM_MIX_RETRIES", default="3"))
