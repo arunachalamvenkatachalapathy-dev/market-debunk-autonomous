@@ -86,7 +86,7 @@ class ScriptPayload(BaseModel):
         total_words = sum(len(scene.narration.split()) for scene in self.scenes)
         if not 140 <= total_words <= 240:
             raise ValueError(
-                f"Script must contain 140-240 narration words for a 40-90s Short; got {total_words}."
+                f"Script must contain 100-145 narration words for a 40-59s Short; got {total_words}."
             )
         visual_prompts = [scene.visual_prompt.lower() for scene in self.scenes]
         if len(set(visual_prompts)) != len(visual_prompts):
@@ -129,7 +129,7 @@ NARRATION STYLE (CRITICAL FOR AUDIO):
   • Write for the ear, not the eye — use contractions, sentence fragments, and varied sentence length.
   • Avoid three sentences of the same length and rhythm in a row.
   • Keep it punchy, conversational, and direct. Break up complex ideas into short beats.
-  • Write 140-240 narration words across all 12 scenes. This is non-negotiable.
+  • Write 100-145 narration words across all 12 scenes (target 125-140 for a 40-56 second Short). This is non-negotiable.
   • Each scene narration must be 9-24 words.
   • No generic disclaimers, no "not financial advice", no motivational filler.
 
@@ -306,7 +306,7 @@ Before answering, internally check that:
 - scenes 11-12 mention Priya in visual_prompt;
 - every visual prompt has a specific prop/evidence object;
 - no scene invents precise facts outside the story_seed;
-- the total narration is 140-240 words."""
+- the total narration is 100-145 words (target 125-140 words, about 40-56 seconds)."""
 
     for model in _GEMINI_MODELS:
         log.info("Trying model: %s", model)

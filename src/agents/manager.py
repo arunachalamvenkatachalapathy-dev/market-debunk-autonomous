@@ -77,6 +77,18 @@ def run_pipeline():
                 raise RuntimeError(
                     f"Release blocked: generated title duplicates '{match}' (similarity {score:.2f})."
                 )
+
+            # Preflight timing before any TTS or visual generation.
+            estimated_seconds = sum(
+                len(scene.get("narration", "").split())
+                for scene in script_dict["scenes"]
+            ) / 2.5
+            log.info("Timing preflight: %.1fs estimated before voice synthesis", estimated_seconds)
+            if not 40 <= estimated_seconds <= 59:
+                raise RuntimeError(
+                    f"Timing preflight blocked before TTS: {estimated_seconds:.1f}s; "
+                    "script must target 40-59s."
+                )
             
             # Save script to output for debugging
             script_path = run_dir / "script.json"
