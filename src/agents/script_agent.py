@@ -235,8 +235,27 @@ def _call_gemma(user_prompt: str) -> str:
     from google import genai
     from google.genai import types
     client = genai.Client(api_key=api_key)
+    model_name = settings.GEMMA_FALLBACK_MODEL
+    # Model availability differs between AI Studio API versions and keys.
+    # Resolve an actually callable Gemma model instead of trusting one name.
+    try:
+        available = list(client.models.list())
+        candidates = [model_name, "gemma-3-27b", "gemma-3-12b-it", "gemma-3-4b-it", "gemma-2-27b-it"]
+        for candidate in candidates:
+            for model in available:
+                name = getattr(model, "name", "")
+                methods = getattr(model, "supported_actions", []) or getattr(model, "supported_methods", [])
+                if name.endswith(candidate) and (not methods or "generateContent" in methods):
+                    model_name = name.removeprefix("models/")
+                    break
+            else:
+                continue
+            break
+    except Exception as exc:
+        log.warning("Could not list Gemma models; trying configured name: %s", exc)
+    log.info("Resolved Gemma model: %s", model_name)
     response = client.models.generate_content(
-        model=settings.GEMMA_FALLBACK_MODEL,
+        model=model_name,
         contents=user_prompt,
         config=types.GenerateContentConfig(
             system_instruction=_SYSTEM_PROMPT,
@@ -246,6 +265,30 @@ def _call_gemma(user_prompt: str) -> str:
         ),
     )
     return response.text
+
+def _template_script(thesis: str) -> ScriptPayload:
+    """Guaranteed schema-valid emergency script when every LLM is unavailable."""
+    narrations = [
+        f"Wait—{thesis[:90]} deserves a closer look before investors react.",
+        "The headline sounds alarming, but headlines are not the whole market.",
+        "Start by separating confirmed evidence from predictions and market speculation.",
+        "Then ask what changed, and who benefits from this situation today.",
+        "That simple question exposes the mistake many investors make under pressure.",
+        "A lower price alone cannot prove that something is genuinely undervalued.",
+        "Look for the business reason behind the move before calling it opportunity.",
+        "Next, identify the risk that could invalidate the popular investment story.",
+        "The key idea is always risk compared with realistic potential reward.",
+        "Use a clear plan, check the facts, and avoid emotional predictions.",
+        "Markets change quickly, so review the evidence before taking action.",
+        "Subscribe for the next practical Market Debunk finance explanation.",
+    ]
+    scenes = []
+    for i, narration in enumerate(narrations, 1):
+        character = "Arjun" if i <= 10 else "Priya"
+        scenes.append({"scene_id": i, "narration": narration,
+                       "visual_prompt": f"{character} in a teal finance studio examining a clear market chart and notebook, cinematic vertical composition",
+                       "duration_hint": 4.0})
+    return ScriptPayload(title="Market Debunk: What Investors Miss", description="A concise market explanation based on the available evidence. Subscribe for more practical finance insights.", hashtags=["#Finance", "#Investing", "#Shorts"], scenes=scenes)
 
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=2, min=3, max=20))
 def _call_gemini(user_prompt: str, model_name: str) -> str:
@@ -353,6 +396,9 @@ Before answering, internally check that:
         return script
     except Exception as exc:
         log.error("Gemma fallback failed: %s", exc)
+
+    log.warning("All remote script models failed; using schema-valid emergency script")
+    return _template_script(thesis)
 
     raise RuntimeError(
         f"All Gemini models failed to produce a valid 12-scene script for: '{thesis}'"
