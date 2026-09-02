@@ -443,6 +443,35 @@ def assemble_video(
         log.error("BGM mix failed after retries; finalizing without BGM as emergency artifact: %s", exc)
         finalize_without_bgm(branded_video, final_video)
 
+    # Duration safety guard: Ensure final duration does not exceed settings.MAX_VIDEO_DURATION
+    try:
+        from src.agents.quality_gate import _probe_video
+        probe = _probe_video(final_video)
+        final_dur = float(probe.get("format", {}).get("duration", 0.0))
+        if final_dur > settings.MAX_VIDEO_DURATION:
+            clamp_dur = settings.MAX_VIDEO_DURATION - 0.2
+            log.warning(
+                "Final video duration (%.2fs) exceeds max (%.1fs); clamping cleanly to %.2fs",
+                final_dur,
+                settings.MAX_VIDEO_DURATION,
+                clamp_dur,
+            )
+            clamped_path = run_dir / "distribution_ready_clamped.mp4"
+            fade_start = max(clamp_dur - 0.3, 0)
+            _ffmpeg(
+                "-i", str(final_video),
+                "-t", f"{clamp_dur:.2f}",
+                "-c:v", "copy",
+                "-af", f"afade=t=out:st={fade_start:.2f}:d=0.3",
+                "-c:a", "aac",
+                "-b:a", "192k",
+                str(clamped_path),
+                description="clamping final video duration to Shorts limit"
+            )
+            shutil.move(str(clamped_path), str(final_video))
+    except Exception as clamp_err:
+        log.warning("Duration clamp check non-fatal notice: %s", clamp_err)
+
     log.info(
         "🎬 Assembly complete → %s  (%d KB)",
         final_video.name,

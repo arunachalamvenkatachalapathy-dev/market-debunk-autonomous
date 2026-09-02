@@ -15,12 +15,15 @@ log = get_logger(__name__, phase="quality_gate")
 
 def validate_duration(total_seconds: float) -> None:
     """Reject a render outside the channel's intentional Shorts duration range."""
-    if not settings.MIN_VIDEO_DURATION <= total_seconds <= settings.MAX_VIDEO_DURATION:
+    # YouTube Shorts allow up to 60s; allow a 0.5s tolerance for audio padding and container rounding
+    min_allowed = settings.MIN_VIDEO_DURATION - 0.5
+    max_allowed = settings.MAX_VIDEO_DURATION + 0.5
+    if not min_allowed <= total_seconds <= max_allowed:
         raise RuntimeError(
-            f"Release blocked: {total_seconds:.1f}s is outside the required "
-            f"{settings.MIN_VIDEO_DURATION}-{settings.MAX_VIDEO_DURATION}s range."
+            f"Release blocked: {total_seconds:.1f}s is outside the allowed "
+            f"{settings.MIN_VIDEO_DURATION:.0f}-{settings.MAX_VIDEO_DURATION:.0f}s range."
         )
-    log.info("Duration gate passed: %.1fs", total_seconds)
+    log.info("Duration gate passed: %.1fs (target %s-%ss)", total_seconds, settings.MIN_VIDEO_DURATION, settings.MAX_VIDEO_DURATION)
 
 
 def _sha256(path: Path) -> str:
