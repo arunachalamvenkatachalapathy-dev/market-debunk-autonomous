@@ -27,6 +27,7 @@ log = get_logger(__name__, phase="dedup_gate")
 
 _TOPICS_PATH = settings.DATA_DIR / "used_topics.json"
 _SOURCE_PREFIX = "source_video:"
+_SOURCE_ID_PREFIX = "source_id:"
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -89,7 +90,7 @@ def _max_similarity(new_topic: str, buffer: dict[str, str]) -> tuple[float, str]
     new_norm = _normalize_for_similarity(new_topic)
 
     for existing_topic in buffer:
-        if existing_topic.startswith(_SOURCE_PREFIX):
+        if existing_topic.startswith((_SOURCE_PREFIX, _SOURCE_ID_PREFIX)):
             continue
         existing_norm = _normalize_for_similarity(existing_topic)
         scores = [
@@ -167,6 +168,19 @@ def is_source_video_used(video_id: str) -> bool:
     return used
 
 
+def is_source_id_used(source_id: str) -> bool:
+    """Return True when an exact source identity has already fed a completed run."""
+    if not source_id:
+        return False
+    buffer = _evict_old_entries(_load_buffer())
+    marker = f"{_SOURCE_ID_PREFIX}{source_id}"
+    used = marker in buffer
+    _save_buffer(buffer)
+    if used:
+        log.info("Source ID already used: %s", source_id)
+    return used
+
+
 def record_topic(topic: str) -> None:
     """
     Add an approved topic to the used-topics buffer with the current timestamp.
@@ -188,6 +202,12 @@ def record_source_video(video_id: str) -> None:
     """Record a source YouTube video ID after a completed production run."""
     if video_id:
         record_topic(f"{_SOURCE_PREFIX}{video_id}")
+
+
+def record_source_id(source_id: str) -> None:
+    """Record a canonical source identity after a completed production run."""
+    if source_id:
+        record_topic(f"{_SOURCE_ID_PREFIX}{source_id}")
 
 
 def get_buffer_summary() -> dict:

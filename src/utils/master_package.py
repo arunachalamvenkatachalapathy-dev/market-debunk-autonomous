@@ -6,7 +6,7 @@ import shutil
 from pathlib import Path
 
 
-def export_master_package(run_dir: Path, thesis: str, script: dict, visuals: list[dict]) -> Path:
+def export_master_package(run_dir: Path, thesis: str, script: dict, visuals: list[dict], source_id: str = "") -> Path:
     """Copy scene assets plus the scene-aligned English script into one package."""
     package_dir = run_dir / "master_visual_package"
     assets_dir = package_dir / "visuals"
@@ -24,6 +24,7 @@ def export_master_package(run_dir: Path, thesis: str, script: dict, visuals: lis
     manifest = {
         "schema_version": 1,
         "thesis": thesis,
+        "source_id": source_id,
         "script": script,
         "scenes": manifest_scenes,
     }

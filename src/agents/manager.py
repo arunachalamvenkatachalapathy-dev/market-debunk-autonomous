@@ -98,7 +98,13 @@ def run_pipeline():
                 visual_results,
                 {scene["scene_id"] for scene in script_dict["scenes"]},
             )
-            master_package = export_master_package(run_dir, thesis, script_dict, visual_results)
+            master_package = export_master_package(
+                run_dir,
+                thesis,
+                script_dict,
+                visual_results,
+                source_id=topic_data.get("source_id", ""),
+            )
             log.info("Exported Tamil companion visual package: %s", master_package)
 
         # ── Phase 5: FFmpeg Assembly ──────────────────────────────────────
@@ -134,6 +140,7 @@ def run_pipeline():
             evaluator.record_topic(thesis)
             evaluator.record_title(script_dict["title"])
             evaluator.record_source_video(topic_data.get("video_id", ""))
+            evaluator.record_source_id(topic_data.get("source_id", ""))
             log.info("Recorded topic to prevent future duplicates.")
 
         # ── Phase 7: Publishing ───────────────────────────────────────────

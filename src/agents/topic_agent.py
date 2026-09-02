@@ -19,6 +19,7 @@ Data flow:
 from __future__ import annotations
 import os
 
+import hashlib
 import json
 import re
 import time
@@ -448,9 +449,18 @@ def _fetch_serp_google_result(query: str) -> Optional[dict]:
         link = (item.get("link") or "").strip()
         date = (item.get("date") or "").strip()
         source = (item.get("source") or item.get("displayed_link") or "").strip()
+        source_key = link or f"{source}:{title}"
+        source_id = "serp:" + hashlib.sha256(source_key.lower().encode("utf-8")).hexdigest()[:16]
         # A headline alone is not enough for a factual finance script. Require
         # a fresh-looking date and a result URL/snippet that can form a source seed.
-        if not title or not snippet or not link or not date or evaluator.is_duplicate(title)[0]:
+        if (
+            not title
+            or not snippet
+            or not link
+            or not date
+            or evaluator.is_source_id_used(source_id)
+            or evaluator.is_duplicate(title)[0]
+        ):
             continue
         raw_text = (
             f"Latest Google Search result for '{query}'. Headline: {title}. "
@@ -459,6 +469,7 @@ def _fetch_serp_google_result(query: str) -> Optional[dict]:
         return {
             "channel": "SERPAPI Google Search",
             "video_id": "",
+            "source_id": source_id,
             "video_title": title,
             "raw_text": raw_text,
         }
@@ -473,7 +484,7 @@ def _discover_from_serp() -> Optional[dict]:
                 continue
             seed_data = summarize_to_story_seed(candidate["raw_text"], candidate["video_title"])
             return {
-                **{key: candidate[key] for key in ("channel", "video_id", "video_title")},
+                **{key: candidate[key] for key in ("channel", "video_id", "video_title", "source_id")},
                 "thesis": seed_data.get("thesis", candidate["video_title"]),
                 "story_seed": seed_data.get("story_seed", {}),
                 "transcript_length": len(candidate["raw_text"]),
@@ -513,6 +524,10 @@ def discover_topic(day_override: Optional[int] = None) -> dict:
 
             video_id = video_meta["video_id"]
             video_title = video_meta["title"]
+            source_id = f"youtube:{video_id}"
+            if evaluator.is_source_id_used(source_id):
+                log.info("Already-used source ID %s. Cascading...", source_id)
+                continue
             if evaluator.is_source_video_used(video_id):
                 log.info("Already-used source video %s. Cascading...", video_id)
                 continue
@@ -545,6 +560,7 @@ def discover_topic(day_override: Optional[int] = None) -> dict:
             return {
                 "channel": channel_name,
                 "video_id": video_id,
+                "source_id": source_id,
                 "video_title": video_title,
                 "thesis": thesis,
                 "story_seed": story_seed,
@@ -568,6 +584,7 @@ def discover_topic(day_override: Optional[int] = None) -> dict:
         seed_data = _fallback_story_seed(title_only_candidate["video_title"])
         return {
             **title_only_candidate,
+            "source_id": f"youtube:{title_only_candidate['video_id']}",
             "thesis": seed_data["thesis"],
             "story_seed": seed_data["story_seed"],
             "transcript_length": 0,
