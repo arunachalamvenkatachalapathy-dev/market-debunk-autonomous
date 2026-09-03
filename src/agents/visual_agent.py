@@ -170,20 +170,25 @@ def generate_image(prompt: str, output_path: Path, scene_id: int = 0) -> bool:
         raise exc
 
 
-def fetch_pexels_broll(query: str, pexels_key: str, output_path: Path) -> bool:
+def fetch_pexels_broll(query: str, pexels_key: str, output_path: Path, used_ids: set[int] | None = None) -> bool:
     """
     Search Pexels Video API for high-retention 1080x1920 vertical finance B-roll footage.
+    Skips any videos already used by earlier scenes in the same video.
     """
     if not pexels_key or not query:
         return False
     try:
         headers = {"Authorization": pexels_key}
         clean_q = urllib.parse.quote(query.strip())
-        url = f"https://api.pexels.com/videos/search?query={clean_q}&per_page=6&orientation=portrait"
+        url = f"https://api.pexels.com/videos/search?query={clean_q}&per_page=8&orientation=portrait"
         res = requests.get(url, headers=headers, timeout=12)
         if res.status_code == 200:
             videos = res.json().get("videos", [])
             for v in videos:
+                vid_id = v.get("id")
+                # Prevent reusing the same video asset across different scenes
+                if used_ids is not None and vid_id in used_ids:
+                    continue
                 for vf in v.get("video_files", []):
                     w = vf.get("width", 0)
                     h = vf.get("height", 0)
@@ -198,7 +203,9 @@ def fetch_pexels_broll(query: str, pexels_key: str, output_path: Path) -> bool:
                                     if chunk:
                                         f.write(chunk)
                             if output_path.exists() and output_path.stat().st_size > 50000:
-                                log.info(" ✓ Pexels vertical video downloaded for '%s' (%d KB)", query, output_path.stat().st_size // 1024)
+                                log.info(" ✓ Pexels vertical video downloaded for '%s' (ID %s, %d KB)", query, vid_id, output_path.stat().st_size // 1024)
+                                if used_ids is not None and vid_id:
+                                    used_ids.add(vid_id)
                                 return True
     except Exception as e:
         log.warning("Pexels video fetch failed for '%s': %s", query, e)
@@ -211,6 +218,7 @@ def source_all_visuals(scenes: list, output_dir: Path) -> list:
     output_dir.mkdir(parents=True, exist_ok=True)
     visual_paths = []
     pexels_key = settings.PEXELS_API_KEY
+    used_video_ids: set[int] = set()
 
     for scene in scenes:
         scene_id = scene["scene_id"]
@@ -227,7 +235,7 @@ def source_all_visuals(scenes: list, output_dir: Path) -> list:
             video_filename = f"scene_{scene_id}.mp4"
             video_filepath = output_dir / video_filename
             log.info("Searching Pexels video for scene %d | keyword: '%s'...", scene_id, broll_keyword)
-            if fetch_pexels_broll(broll_keyword, pexels_key, video_filepath):
+            if fetch_pexels_broll(broll_keyword, pexels_key, video_filepath, used_ids=used_video_ids):
                 visual_paths.append({
                     "scene_id": scene_id,
                     "asset_type": "video",

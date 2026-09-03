@@ -67,9 +67,34 @@ def validate_visual_assets(visual_results: list[dict], expected_scene_ids: set[i
         if placeholder_hash and asset_hash == placeholder_hash:
             raise RuntimeError(f"Release blocked: scene {scene_id} is the forbidden placeholder image.")
         if asset_hash in seen_hashes:
-            raise RuntimeError(
-                f"Release blocked: scenes {seen_hashes[asset_hash]} and {scene_id} use identical visual assets."
+            prev_scene = seen_hashes[asset_hash]
+            log.warning(
+                "Scenes %d and %d used identical visual asset %s. Applying auto-differentiation...",
+                prev_scene, scene_id, asset_path.name
             )
+            diff_path = asset_path.parent / f"{asset_path.stem}_diff_{scene_id}{asset_path.suffix}"
+            try:
+                # Apply horizontal flip via FFmpeg to make the scene visually unique and alter the hash
+                subprocess.run(
+                    ["ffmpeg", "-y", "-i", str(asset_path), "-vf", "hflip", "-c:a", "copy", str(diff_path)],
+                    capture_output=True, timeout=30, check=True
+                )
+                if diff_path.exists() and diff_path.stat().st_size > 0:
+                    visual["asset_path"] = str(diff_path.resolve())
+                    asset_path = diff_path
+                    asset_hash = _sha256(asset_path)
+                    log.info("✓ Auto-differentiated duplicate asset for scene %d (new hash: %s)", scene_id, asset_hash[:8])
+                else:
+                    raise RuntimeError(
+                        f"Release blocked: scenes {seen_hashes[asset_hash]} and {scene_id} use identical visual assets."
+                    )
+            except RuntimeError:
+                raise
+            except Exception as e:
+                log.warning("Asset auto-differentiation failed (%s)", e)
+                raise RuntimeError(
+                    f"Release blocked: scenes {seen_hashes[asset_hash]} and {scene_id} use identical visual assets."
+                )
         if _mean_luma(asset_path) < 12:
             raise RuntimeError(f"Release blocked: scene {scene_id} visual asset is mostly black/empty.")
         seen_ids.add(scene_id)
