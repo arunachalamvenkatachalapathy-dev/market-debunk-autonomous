@@ -27,8 +27,8 @@ class ScenePayload(BaseModel):
     def validate_narration(cls, value: str) -> str:
         cleaned = " ".join(value.split())
         word_count = len(cleaned.split())
-        if not 5 <= word_count <= 20:
-            raise ValueError(f"Each scene narration must be 5-20 words; got {word_count}.")
+        if not 4 <= word_count <= 26:
+            raise ValueError(f"Each scene narration must be 4-26 words; got {word_count}.")
         banned = ["as an ai", "not financial advice", "subscribe now"]
         if any(term in cleaned.lower() for term in banned):
             raise ValueError("Narration contains banned generic/disclaimer language.")
@@ -92,10 +92,21 @@ class ScriptPayload(BaseModel):
     @model_validator(mode="after")
     def check_narration_pacing(self):
         total_words = sum(len(scene.narration.split()) for scene in self.scenes)
-        # Target ~50s Short: 100-115 words ideal (allow 75-135 words; voice_agent auto-compresses to 50s).
-        if not 75 <= total_words <= 135:
+        # Target ~50s Short: 80-140 words ideal. Voice agent auto-clamps duration to 30-52s with atempo.
+        if total_words > 155:
+            # Auto-trim excess words from long scenes rather than failing fatally
+            diff = total_words - 140
+            for s in reversed(self.scenes):
+                words = s.narration.split()
+                if len(words) > 10 and diff > 0:
+                    trim = min(len(words) - 9, diff)
+                    s.narration = " ".join(words[:-trim]).rstrip(" ,;:") + "."
+                    diff -= trim
+            total_words = sum(len(scene.narration.split()) for scene in self.scenes)
+
+        if not 65 <= total_words <= 165:
             raise ValueError(
-                f"Script must contain 75-135 narration words for a ~50s Short; got {total_words}."
+                f"Script must contain 65-165 narration words for a ~50s Short; got {total_words}."
             )
         visual_prompts = [scene.visual_prompt.lower() for scene in self.scenes]
         if len(set(visual_prompts)) != len(visual_prompts):
@@ -330,10 +341,16 @@ def _template_script(thesis: str) -> ScriptPayload:
         }
         for i in range(1, 13)
     ]
+    # Derive a unique, descriptive hook title from the thesis rather than a static duplicate
+    clean_thesis = re.sub(r'[^a-zA-Z0-9\s]', '', thesis or "Market Truth")
+    words = [w for w in clean_thesis.split() if len(w) > 2]
+    hook_phrase = " ".join(words[:4]).title() if words else "Market Secret"
+    dynamic_title = f"{hook_phrase}: The Hidden Truth"[:50]
+
     return ScriptPayload(
-        title="Market Debunk: What Investors Miss",
-        description="A concise market explanation based on the available evidence. Practical finance insights that protect your capital.",
-        hashtags=["#Finance", "#Investing", "#Shorts"],
+        title=dynamic_title,
+        description=f"Uncovering the real mechanics behind {hook_phrase}. Concise finance insights that protect your capital.",
+        hashtags=["#Finance", "#StockMarket", "#Shorts"],
         scenes=scenes,
     )
 
