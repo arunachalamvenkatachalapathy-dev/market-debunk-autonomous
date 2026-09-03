@@ -26,8 +26,8 @@ class ScenePayload(BaseModel):
     def validate_narration(cls, value: str) -> str:
         cleaned = " ".join(value.split())
         word_count = len(cleaned.split())
-        if not 6 <= word_count <= 18:
-            raise ValueError(f"Each scene narration must be 6-18 words; got {word_count}.")
+        if not 5 <= word_count <= 20:
+            raise ValueError(f"Each scene narration must be 5-20 words; got {word_count}.")
         banned = ["as an ai", "not financial advice", "subscribe now"]
         if any(term in cleaned.lower() for term in banned):
             raise ValueError("Narration contains banned generic/disclaimer language.")
@@ -90,10 +90,10 @@ class ScriptPayload(BaseModel):
     @model_validator(mode="after")
     def check_narration_pacing(self):
         total_words = sum(len(scene.narration.split()) for scene in self.scenes)
-        # Target ~50s Short: 100-115 words (allow 85-122 words).
-        if not 85 <= total_words <= 122:
+        # Target ~50s Short: 100-115 words ideal (allow 75-135 words; voice_agent auto-compresses to 50s).
+        if not 75 <= total_words <= 135:
             raise ValueError(
-                f"Script must contain 85-122 narration words for a ~50s Short; got {total_words}."
+                f"Script must contain 75-135 narration words for a ~50s Short; got {total_words}."
             )
         visual_prompts = [scene.visual_prompt.lower() for scene in self.scenes]
         if len(set(visual_prompts)) != len(visual_prompts):
@@ -262,20 +262,20 @@ def _call_gemma(user_prompt: str) -> str:
 
 def _template_script(thesis: str) -> ScriptPayload:
     """Guaranteed schema-valid emergency script when every LLM is unavailable."""
-    clean_thesis = " ".join(thesis.split())[:50].strip()
+    clean_thesis = " ".join(thesis.split())[:45].strip()
     narrations = [
-        f"Wait—before reacting, {clean_thesis} deserves a much closer look.",
-        "The headline sounds alarming, but headlines never tell the full story.",
-        "Smart investors separate confirmed facts from market predictions and speculation.",
-        "Next, ask what actually shifted, and who benefits from this situation.",
-        "Answering that question exposes the trap that catches many retail investors.",
-        "A sudden price drop never proves that an asset is undervalued.",
-        "Look for the real business reasons before calling any drop opportunity.",
-        "Always find the key risk that could break the popular story.",
-        "Sustainable investing always compares real downside against realistic upside potential.",
-        "Keep a steady plan, check evidence, and never trade on impulse.",
-        "Markets shift quickly, so demand clear data before making your move.",
-        "Follow Market Debunk for daily practical finance breakdowns that protect capital.",
+        f"Wait—{clean_thesis} is not what it looks like.",
+        "The market headline sounds alarming, but headlines hide the truth.",
+        "Most retail investors panic and sell at the worst moment.",
+        "That panic is exactly what institutional players count on.",
+        "A sudden price drop never proves that an asset is broken.",
+        "Look at the underlying volume before calling it a crash.",
+        "Ask who benefits from pushing prices down right now.",
+        "Big players quietly accumulate while everyone else runs away.",
+        "This classic market pattern is known as a Bear Trap.",
+        "Smart money buys the exact dip that panic created.",
+        "Always demand hard data before making an emotional trade.",
+        "Protect your hard-earned capital. Check the facts first.",
     ]
     prompts = [
         "Arjun sitting at a compact home-office desk, checking a live market chart on his phone, warm amber desk lamp against teal wall, close-up over-shoulder composition, full-bleed vertical frame, clean frame edges",
@@ -289,7 +289,7 @@ def _template_script(thesis: str) -> ScriptPayload:
         "Arjun reviewing a structured investment risk matrix sheet on a wooden desk surface, warm golden desk lamp glow, engaging cinematic lighting, full-bleed composition",
         "Arjun looking forward with clarity and nodding in understanding, holding a closed digital tablet, soft amber spotlight against dark teal studio, confident pose",
         "Priya entering the modern finance studio with poised confidence, gesturing toward an elegant market valuation equation on a glass monitor, warm amber accents, cinematic medium shot",
-        "Priya delivering the final takeaway directly to the camera with an engaging smile, standing in the polished teal studio with warm amber practical lighting, crisp vertical framing",
+        "Priya delivering the final takeaway directly to the camera with an intense direct gaze, standing in the polished teal studio with warm amber practical lighting, crisp vertical framing",
     ]
     scenes = [
         {"scene_id": i, "narration": narrations[i - 1], "visual_prompt": prompts[i - 1], "duration_hint": 4.2}
@@ -297,7 +297,7 @@ def _template_script(thesis: str) -> ScriptPayload:
     ]
     return ScriptPayload(
         title="Market Debunk: What Investors Miss",
-        description="A concise market explanation based on the available evidence. Subscribe for more practical finance insights.",
+        description="A concise market explanation based on the available evidence. Practical finance insights that protect your capital.",
         hashtags=["#Finance", "#Investing", "#Shorts"],
         scenes=scenes,
     )
@@ -314,7 +314,7 @@ def _call_gemini(user_prompt: str, model_name: str) -> str:
         contents=user_prompt,
         config=types.GenerateContentConfig(
             system_instruction=_SYSTEM_PROMPT,
-            temperature=0.85,
+            temperature=0.70,
             max_output_tokens=4000,
             response_mime_type="application/json",
         )
@@ -323,10 +323,17 @@ def _call_gemini(user_prompt: str, model_name: str) -> str:
 
 
 def _repair_json(raw_response: str, error: Exception, model_name: str) -> str:
-    """Spend one small repair call only when a valid-content response has malformed JSON."""
-    repair_prompt = f"""Repair the following attempted Market Debunk script response.
-Return ONLY complete valid JSON. Keep the original meaning and all 12 scenes.
-Do not add markdown fences or commentary. The parser error was: {error}
+    """Repair an attempted Market Debunk script response when JSON parsing or validation fails."""
+    repair_prompt = f"""Repair the following attempted Market Debunk script response into complete valid JSON.
+The previous attempt failed validation with error:
+{error}
+
+CRITICAL RULES:
+1. Return ONLY pure valid JSON with no markdown code fences (no ```json).
+2. Exactly 12 scenes in the scenes array (scene_id 1 to 12).
+3. Ensure total narration word count across all 12 scenes is 95-115 words (~8-10 words per scene, 6-16 words per scene).
+4. Scenes 1-10 visual_prompt must mention Arjun. Scenes 11-12 visual_prompt must mention Priya.
+5. Address the viewer directly ("you"), with an urgent viral hook in scenes 1-2 and a cohesive story.
 
 ATTEMPTED RESPONSE:
 {raw_response}
