@@ -47,6 +47,25 @@ def _ffmpeg(*args: str, description: str = "") -> None:
         log.info("✓ %s", description)
 
 
+def get_audio_duration(path: Path) -> float:
+    """Returns duration in seconds using wave or ffprobe with safe fallback."""
+    try:
+        if str(path).endswith(".wav") and Path(path).is_file():
+            with wave.open(str(path), "rb") as wf:
+                return wf.getnframes() / float(wf.getframerate())
+    except Exception:
+        pass
+    try:
+        res = subprocess.run(
+            ["ffprobe", "-v", "quiet", "-show_entries", "format=duration", "-of", "csv=p=0", str(path)],
+            capture_output=True, text=True, timeout=10
+        )
+        return float(res.stdout.strip())
+    except Exception as exc:
+        log.warning("ffprobe failed on %s (%s); defaulting to 45.0s", path, exc)
+        return 45.0
+
+
 # ──────────────────────────────────────────────────────────────────────────────
 #  Step 1 — Per-Scene Clip Builder
 # ──────────────────────────────────────────────────────────────────────────────
@@ -387,21 +406,41 @@ def burn_subtitles(video_path: Path, ass_path: Path, output_path: Path) -> Path:
     """
     Hard-burn .ass subtitles into video frames.
     Must re-encode video for subtitle burn-in.
+    Fallback chain: ass filter -> subtitles filter -> copy without subtitles.
     """
-    # escape Windows path separators for FFmpeg filter
     ass_str = str(ass_path.resolve()).replace("\\", "/").replace(":", "\\:")
 
-    _ffmpeg(
-        "-i", str(video_path),
-        "-vf", f"ass='{ass_str}'",
-        "-c:v", "libx264",
-        "-preset", "fast",
-        "-crf", "20",
-        "-c:a", "copy",
-        str(output_path),
-        description="burn subtitles into video"
-    )
-    return output_path
+    try:
+        _ffmpeg(
+            "-i", str(video_path),
+            "-vf", f"ass='{ass_str}'",
+            "-c:v", "libx264",
+            "-preset", "fast",
+            "-crf", "20",
+            "-c:a", "copy",
+            str(output_path),
+            description="burn subtitles into video"
+        )
+        return output_path
+    except Exception as exc:
+        log.warning("FFmpeg ass filter failed (%s); trying subtitles filter fallback", exc)
+
+    try:
+        _ffmpeg(
+            "-i", str(video_path),
+            "-vf", f"subtitles='{ass_str}'",
+            "-c:v", "libx264",
+            "-preset", "fast",
+            "-crf", "20",
+            "-c:a", "copy",
+            str(output_path),
+            description="burn subtitles via subtitles filter"
+        )
+        return output_path
+    except Exception as exc2:
+        log.warning("Subtitle burn failed entirely (%s); using raw video as fallback", exc2)
+        shutil.copy2(video_path, output_path)
+        return output_path
 
 
 def overlay_brand_mark(video_path: Path, output_path: Path) -> Path:
@@ -414,18 +453,23 @@ def overlay_brand_mark(video_path: Path, output_path: Path) -> Path:
 
     pad = settings.BRAND_MARK_PADDING
     vf = f"[1:v]scale={settings.BRAND_MARK_WIDTH}:-1[logo];[0:v][logo]overlay=W-w-{pad}:{pad}"
-    _ffmpeg(
-        "-i", str(video_path),
-        "-i", str(logo_path),
-        "-filter_complex", vf,
-        "-c:v", "libx264",
-        "-preset", "fast",
-        "-crf", "20",
-        "-c:a", "copy",
-        str(output_path),
-        description="overlay brand protection mark"
-    )
-    return output_path
+    try:
+        _ffmpeg(
+            "-i", str(video_path),
+            "-i", str(logo_path),
+            "-filter_complex", vf,
+            "-c:v", "libx264",
+            "-preset", "fast",
+            "-crf", "20",
+            "-c:a", "copy",
+            str(output_path),
+            description="overlay brand protection mark"
+        )
+        return output_path
+    except Exception as e:
+        log.warning("Brand mark overlay failed (%s); falling back to unmodified video", e)
+        shutil.copy2(video_path, output_path)
+        return output_path
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -595,8 +639,13 @@ def assemble_video(
     concatenate_voice_audio(voice_results, master_voice_wav)
 
     master_sfx_wav = run_dir / "master_sfx.wav"
-    total_voice_duration = get_audio_duration(master_voice_wav)
-    sfx_path = build_sfx_track(voice_results, total_voice_duration, master_sfx_wav)
+    sfx_path = None
+    try:
+        total_voice_duration = get_audio_duration(master_voice_wav)
+        sfx_path = build_sfx_track(voice_results, total_voice_duration, master_sfx_wav)
+    except Exception as exc:
+        log.warning("SFX generation failed (%s); continuing with pure voice track", exc)
+        sfx_path = None
 
     if sfx_path and sfx_path.is_file():
         mixed_voice_sfx = run_dir / "voice_sfx_mix.wav"
