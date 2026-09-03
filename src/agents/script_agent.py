@@ -100,6 +100,20 @@ class ScriptPayload(BaseModel):
             raise ValueError("Every scene must have a unique visual prompt.")
         return self
 
+    @model_validator(mode="after")
+    def check_second_person_voice(self):
+        """Require 'you' or 'your' in at least 8 of 12 scenes to prevent fact-listing drift."""
+        second_person_scenes = sum(
+            1 for scene in self.scenes
+            if "you" in scene.narration.lower() or "your" in scene.narration.lower()
+        )
+        if second_person_scenes < 8:
+            raise ValueError(
+                f"Script must use 'you'/'your' in at least 8 scenes to sound personal and urgent; "
+                f"only {second_person_scenes} scenes contain it. Rewrite to address the viewer directly."
+            )
+        return self
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 #  System Prompt — 12-Scene Cinematic Format
@@ -134,43 +148,45 @@ PRIYA (The Closer, scenes 11-12):
   • Calm, lethal. She names the concept in plain English and owns the lens on 12.
 
 NARRATION STYLE (CRITICAL FOR VIRAL RETENTION & STORYTELLING):
-  • You are telling a gripping financial story directly to the viewer. Hook them within 2 seconds.
-  • Talk directly to "you". Make it personal, urgent, and cinematic.
-  • THE HOOK (Scenes 1-2): Must stop the scroll immediately! Open with a provocative question, an urgent warning, or a shocking counter-intuitive truth about their money. (e.g., "Think your salary account gives you free ATM cash? Think again." or "Your bank is quietly draining your balance every time you swipe at an ATM.")
-  • STORYTELLING FLOW (DO NOT READ A LIST OF FACTS!): Each sentence must build tension and naturally flow into the next beat like a documentary thriller. Do NOT output a list of isolated facts or bullet points.
-  • Write 100-115 narration words across all 12 scenes (target ~50-second Short runtime, ~8-10 words per scene). Each scene 6-16 words.
-  • Speak to the viewer ("you"). Do not awkwardly repeat the name "Arjun" in every sentence. Arjun is the protagonist shown in the visuals.
+  • You are telling a gripping financial story DIRECTLY TO THE VIEWER. Hook them within 2 seconds.
+  • Use "you" and "your" in AT LEAST 8 of the 12 scenes. This is the single most important rule.
+  • This is NOT a documentary about "they" or "everyone". The viewer IS the protagonist.
+  • THE HOOK (Scenes 1-2): Must stop the scroll immediately. Open with a provocative question or urgent warning addressed directly to "you". e.g., "Your bank is silently draining you." not "Banks drain customers."
+  • FLOW (Scenes 3-10): Continue speaking to "you" personally. "You believed..." "You didn't notice..." "You watched it recover..." NOT "People believe..." "Investors believe..." "They watch..."
+  • REVEAL (Scenes 11-12): Priya names the concept plainly, then tells "you" exactly what to do. Direct, calm, powerful.
+  • STORYTELLING FLOW (DO NOT READ A LIST OF FACTS!): Each sentence must flow into the next like a documentary thriller. Build tension. Do NOT produce isolated bullet facts.
+  • Write 100-115 narration words total across all 12 scenes. Each scene 6-16 words.
   • No generic disclaimers, no "not financial advice", no "let's dive in", no "subscribe".
 
 ──────────────────────────────────────────────────────────────────────────────
 THE 12-SCENE STORY ARC (5-Beat High-Retention Arc, ~50 seconds total runtime):
 ──────────────────────────────────────────────────────────────────────────────
 
-BEAT 1: THE SCROLL-STOPPING HOOK (Scenes 1-2):
-  Scene 1: The Grab. Hit the viewer with an urgent, relatable, shocking truth or question about their money. Stop the scroll instantly.
-  Scene 2: The Stakes. Why this silently drains their wallet every single month.
-  Visuals: Arjun in extreme close-up, intense, direct gaze, split amber-teal light. Stop the scroll.
+BEAT 1: THE SCROLL-STOPPING HOOK (Scenes 1-2) — MUST USE "YOU":
+  Scene 1: The Grab. Hit the viewer with an urgent, relatable, shocking truth or question addressed directly to THEM. "Did YOU panic?" "YOUR portfolio just—" Stop the scroll instantly.
+  Scene 2: The Stakes. Why this silently drains THEIR wallet. Keep "you/your" in this sentence.
+  Visuals: Arjun in extreme close-up, intense, direct gaze, split amber-teal light.
 
-BEAT 2: THE ILLUSION & THE SETUP (Scenes 3-4):
-  Scene 3: The common belief or bank marketing promise that everyone falls for ("free transactions", "zero balance perks").
-  Scene 4: The hidden catch that catches people completely off guard.
+BEAT 2: THE ILLUSION & THE SETUP (Scenes 3-4) — MUST USE "YOU":
+  Scene 3: The common trap YOU fell into (or nearly fell into). NOT "everyone believes". Say "You thought..." or "You've been told..."
+  Scene 4: The hidden catch that caught YOU completely off guard. "But here's what YOU missed."
   Visuals: Arjun checking his phone or inserting a card, over-shoulder, split amber-teal lighting.
 
-BEAT 3: THE HIDDEN MECHANICS (Scenes 5-7):
-  Scene 5: How the charges actually trigger behind the scenes (non-home ATMs, balance checks, mini-statements).
-  Scene 6: The slow, quiet drain where tiny debits slip past unnoticed on monthly statements.
-  Scene 7: The realization that the numbers don't add up.
+BEAT 3: THE HIDDEN MECHANICS (Scenes 5-7) — USE "YOU" OR "YOUR":
+  Scene 5: The trigger behind the scenes — but frame it as something that happened to YOU or affects YOUR money.
+  Scene 6: The slow drain YOU didn't notice. "You didn't see it. The charges slipped past YOU."
+  Scene 7: YOUR realization. "That's when YOU realize—" or "YOU had been set up."
   Visuals: Arjun analyzing statements or laptop screen, tight jaw, moody bokeh lighting.
 
-BEAT 4: THE BIG REVEAL & THE TAX BITE (Scenes 8-10):
-  Scene 8: The hidden layer most people miss: government taxes compounded on top of bank charges.
-  Scene 9: The math of how quickly it piles up into real money.
-  Scene 10: Arjun identifies the root cause and names the truth.
-  Visuals: Arjun examining proof/document, then Priya entering the frame.
+BEAT 4: THE BIG REVEAL (Scenes 8-10) — CONTRAST "smart money" vs "YOU":
+  Scene 8: What smart money does DIFFERENTLY from what YOU did. "The smart money waited. YOU reacted."
+  Scene 9: What it costs YOU when YOU miss this. The math hits YOUR portfolio.
+  Scene 10: Arjun names the truth that explains why YOU lost. Directly to camera.
+  Visuals: Arjun examining proof/document, tight jaw, split amber-teal.
 
-BEAT 5: THE RESOLUTION & ACTIONABLE CLOSER (Scenes 11-12):
-  Scene 11: Priya names the official financial rule/concept in plain, powerful English.
-  Scene 12: Priya delivers the one clear, non-obvious action the viewer must take starting today to protect their money. Direct to camera. No smile, no subscribe pitch.
+BEAT 5: THE RESOLUTION & ACTIONABLE CLOSER (Scenes 11-12) — DIRECT TO "YOU":
+  Scene 11: Priya names the official financial rule/concept in plain powerful English.
+  Scene 12: Priya tells YOU the one clear action to take starting today. "Here's what YOU do." Direct. No smile. No subscribe.
 
 ──────────────────────────────────────────────────────────────────────────────
 VISUAL PROMPT GUIDELINES
@@ -207,14 +223,14 @@ OUTPUT FORMAT — Return ONLY valid JSON, nothing else, no markdown fences:
   "scenes": [
     {
       "scene_id": 1,
-      "narration": "Present-tense cinematic narration. Max 20 words. Flows into next scene.",
+      "narration": "Present-tense cinematic narration addressed to YOU. Max 20 words. Flows into next scene.",
       "visual_prompt": "Arjun stares into camera in a dark teal room, amber lamp blurred behind his left shoulder, extreme close-up, split amber-teal light, photoreal cinematic, full-bleed 9:16",
       "duration_hint": 7.0
     }
   ]
 }
 
-CRITICAL: Exactly 12 scenes. Use the story_seed facts provided. Build a gripping story that flows, not a list of facts."""
+CRITICAL: Exactly 12 scenes. Use the story_seed facts provided. Build a gripping story that flows, not a list of facts. USE "you/your" in AT LEAST 8 scenes."""
 
 # ──────────────────────────────────────────────────────────────────────────────
 #  JSON Extraction

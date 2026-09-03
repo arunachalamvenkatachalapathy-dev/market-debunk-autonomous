@@ -3,19 +3,19 @@ src/rendering/subtitles.py
 
 ASS Subtitle Generator
 
-Converts word-level timing data (from edge-tts) into an Advanced SubStation
+Converts word-level timing data into an Advanced SubStation
 Alpha (.ass) subtitle file with high-retention styling.
 
 Subtitle Style Spec:
-  - Font: Arial Bold
-  - Size: 96pt
+  - Font: Bebas Neue (cinematic impact style)
+  - Size: 112pt
   - Color: White with black outline (high contrast)
   - Position: lower-middle safe zone, above YouTube Shorts handle/description UI
-  - Alignment: Centered (horizontal)
-  - Word highlighting: CapCut-style active word emphasis
+  - Alignment: Centered (horizontal), 80% text width
+  - Word highlighting: CapCut-style active word emphasis (5 words per group)
 
 Why .ass over .srt?
-  .ass supports per-word timing, custom fonts, outlines, and exact positioning —
+  .ass supports per-word timing, custom fonts, outlines, and exact positioning -
   essential for the High-Retention shorts look.
 """
 from __future__ import annotations
@@ -29,9 +29,9 @@ from src.utils.logger import get_logger
 log = get_logger(__name__, phase="subtitle_generation")
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 #  ASS File Header
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 
 def _ass_header(
     video_width: int = settings.VIDEO_WIDTH,
@@ -40,10 +40,11 @@ def _ass_header(
     """
     Returns the ASS file header with modern short-form subtitle styling.
 
-    Style: chunky white text, strong black stroke, amber active-word emphasis.
+    Style: chunky white Bebas Neue text, strong black stroke, amber active-word emphasis.
     Captions sit in the lower-middle safe zone so YouTube Shorts UI does not
     cover them after upload.
-    Alignment=2 = bottom-center.
+    Alignment=2 = bottom-center. WrapStyle=2 = no auto-wrap (we control grouping).
+    MarginL/R = 108px each => 80% of 1080px canvas used for text.
     """
     font = settings.SUBTITLE_FONT
     font_size = settings.SUBTITLE_FONT_SIZE
@@ -55,28 +56,30 @@ def _ass_header(
     shadow_px = 2
     alignment = 2                  # Bottom-center
     margin_v = settings.SUBTITLE_MARGIN_V
+    margin_h = settings.SUBTITLE_MARGIN_H
     border_style = 1
 
-    return f"""[Script Info]
-ScriptType: v4.00+
-PlayResX: {video_width}
-PlayResY: {video_height}
-ScaledBorderAndShadow: yes
-YCbCr Matrix: TV.709
+    return (
+        "[Script Info]\n"
+        "ScriptType: v4.00+\n"
+        f"PlayResX: {video_width}\n"
+        f"PlayResY: {video_height}\n"
+        "ScaledBorderAndShadow: yes\n"
+        "YCbCr Matrix: TV.709\n"
+        "WrapStyle: 2\n"
+        "\n"
+        "[V4+ Styles]\n"
+        "Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\n"
+        f"Style: Default,{font},{font_size},{primary_color},&H00FFFFFF,{outline_color},{back_color},{bold},0,0,0,100,100,2,0,{border_style},{outline_px},{shadow_px},{alignment},{margin_h},{margin_h},{margin_v},1\n"
+        "\n"
+        "[Events]\n"
+        "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n"
+    )
 
-[V4+ Styles]
-Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Default,{font},{font_size},{primary_color},&H00FFFFFF,{outline_color},{back_color},{bold},0,0,0,100,100,2,0,{border_style},{outline_px},{shadow_px},{alignment},60,60,{margin_v},1
 
-[Events]
-Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
-"""
-
-
-
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 #  Time Formatting
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 
 def _fmt_time(seconds: float) -> str:
     """Convert float seconds to ASS timestamp format: H:MM:SS.cs"""
@@ -88,34 +91,35 @@ def _fmt_time(seconds: float) -> str:
     return f"{h}:{m:02d}:{s:02d}.{cs:02d}"
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 #  Dialogue Line Builder
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 
 def _build_dialogue_lines(
     word_timings: list[dict],
     scene_audio_offset: float = 0.0,
-    max_words_per_line: int = 3,
+    max_words_per_line: int = 5,
 ) -> list[str]:
     """
     Groups word timings into subtitle chunks and creates dynamic word-by-word highlighting.
     Creates multiple ASS Dialogue lines for the same chunk, shifting the highlight color
     to the actively spoken word.
+
+    Uses 5 words per group (up from 3) so captions stay on screen long enough to read
+    naturally without feeling choppy.
     """
     if not word_timings:
         return []
 
     lines = []
-    # Break total words into chunks
     chunks = [
         word_timings[i : i + max_words_per_line]
         for i in range(0, len(word_timings), max_words_per_line)
     ]
 
-    # Amber in ASS BGR notation, with a small pop-in like modern CapCut captions.
-    highlight_color = "{\\c&H55A8E8&\\fscx112\\fscy112\\t(0,120,\\fscx100\\fscy100)}"
-    dim_color = "{\\c&HFFFFFF&}"
-    reset_color = "{\\rDefault}"
+    highlight_color = r"{\c&H55A8E8&\fscx112\fscy112\t(0,120,\fscx100\fscy100)}"
+    dim_color = r"{\c&HFFFFFF&}"
+    reset_color = r"{\rDefault}"
 
     for chunk in chunks:
         chunk_start = scene_audio_offset + chunk[0]["start"]
@@ -123,8 +127,6 @@ def _build_dialogue_lines(
         if chunk_end <= chunk_start:
             chunk_end = chunk_start + 0.6
 
-        # Keep the whole phrase visible for the phrase duration; only the active
-        # word changes. This reads much more like CapCut than one-word flashes.
         for i, active_word_data in enumerate(chunk):
             start = scene_audio_offset + active_word_data["start"]
             next_start = (
@@ -133,7 +135,7 @@ def _build_dialogue_lines(
                 else chunk_end
             )
             end = max(next_start, start + 0.12)
-            
+
             formatted_words = []
             for j, w in enumerate(chunk):
                 word = w["word"].upper()
@@ -141,9 +143,8 @@ def _build_dialogue_lines(
                     formatted_words.append(f"{highlight_color}{word}{reset_color}")
                 else:
                     formatted_words.append(f"{dim_color}{word}{reset_color}")
-            
-            text = " ".join(formatted_words)
 
+            text = " ".join(formatted_words)
             line = (
                 f"Dialogue: 0,{_fmt_time(start)},{_fmt_time(end)},"
                 f"Default,,0,0,0,,{text}"
@@ -153,10 +154,9 @@ def _build_dialogue_lines(
     return lines
 
 
-
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 #  Public API
-# ──────────────────────────────────────────────────────────────────────────────
+# ------------------------------------------------------------------------------
 
 def generate_ass_file(
     voice_results: list[dict],
@@ -175,7 +175,6 @@ def generate_ass_file(
     """
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # Build the full ASS file
     lines: list[str] = [_ass_header()]
 
     cumulative_offset = 0.0

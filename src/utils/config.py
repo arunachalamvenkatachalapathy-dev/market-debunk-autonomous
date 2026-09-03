@@ -108,11 +108,12 @@ class Settings:
     BRAND_MARK_PADDING: int = int(_get("BRAND_MARK_PADDING", default="30"))
 
     # ── Subtitle Style ────────────────────────────────────────────
-    SUBTITLE_FONT: str = "Arial"
-    SUBTITLE_FONT_SIZE: int = 96
+    SUBTITLE_FONT: str = "BebasNeue"
+    SUBTITLE_FONT_SIZE: int = 112
     SUBTITLE_PRIMARY_COLOR: str = "&H00FFFFFF"   # white
     SUBTITLE_OUTLINE_COLOR: str = "&H00000000"   # black
     SUBTITLE_MARGIN_V: int = 470                  # safe above Shorts handle/description UI
+    SUBTITLE_MARGIN_H: int = 108                  # 10% per side → 80% text width on 1080px canvas
 
     # ── YouTube Channel Registry (day-indexed, 0=Monday) ─────────
     CHANNEL_REGISTRY: list[str] = [

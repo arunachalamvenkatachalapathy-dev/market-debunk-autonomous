@@ -1,4 +1,4 @@
-name: Daily Autonomous Video Pipeline
+﻿name: Daily Autonomous Video Pipeline
 
 on:
   schedule:
@@ -35,6 +35,18 @@ jobs:
 
       - name: Install Dependencies
         run: pip install -r requirements.txt
+
+      - name: Install Bebas Neue Font
+        run: |
+          mkdir -p ~/.local/share/fonts
+          curl -fL "https://github.com/dharmatype/Bebas-Neue/raw/master/fonts/BebasNeue-Regular.ttf" \
+            -o ~/.local/share/fonts/BebasNeue-Regular.ttf || \
+          curl -fL "https://github.com/google/fonts/raw/main/ofl/bebasneuepro/BebasNeuePro-Regular.ttf" \
+            -o ~/.local/share/fonts/BebasNeue-Regular.ttf || \
+          (echo "All primary sources failed, skipping Bebas Neue install")
+          fc-cache -fv ~/.local/share/fonts
+          echo "Installed fonts:"
+          fc-list | grep -i bebas || echo "WARNING: Bebas Neue not found — subtitles will use fallback font"
 
       - name: Setup YouTube Cookies
         env:

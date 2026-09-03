@@ -37,12 +37,17 @@ def get_audio_duration(mp3_path: Path) -> float:
         return 5.0
 
 def trim_audio_silence(input_path: Path, output_path: Path):
-    """Trims leading silence and subtle trailing dead air without cutting off word endings."""
+    """
+    Trims leading silence only. Trailing silence is preserved as the natural
+    inter-scene breath pause in the master voice track.
+    The previous double-reverse trailing trim was clipping word endings on
+    short 1-3 word scenes from Google TTS.
+    """
     try:
         subprocess.run(
             [
                 "ffmpeg", "-y", "-i", str(input_path),
-                "-af", "silenceremove=start_periods=1:start_threshold=-50dB:start_duration=0.02,areverse,silenceremove=start_periods=1:start_threshold=-50dB:start_duration=0.10,areverse",
+                "-af", "silenceremove=start_periods=1:start_threshold=-50dB:start_duration=0.02",
                 "-c:a", "libmp3lame", "-b:a", "192k",
                 str(output_path)
             ],
