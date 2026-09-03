@@ -21,11 +21,12 @@ def send_completion_notification(
     title: str,
     thesis: str,
     youtube_url: Optional[str] = None,
+    instagram_url: Optional[str] = None,
     video_path: Optional[Path] = None,
     run_stats: Optional[dict] = None,
 ) -> bool:
     """
-    Send only a Telegram message containing the YouTube link and summary.
+    Send a Telegram message containing the YouTube and Instagram links and summary.
 
     Returns True on success, False if disabled or failed.
     """
@@ -49,16 +50,18 @@ def send_completion_notification(
                 f"\n📊 Stats:\n"
                 f"  • Total duration: {run_stats.get('total_duration', 0):.1f}s\n"
                 f"  • Visual sources: {run_stats.get('visual_sources', '')}\n"
-                f"  • Voice: Edge TTS ({run_stats.get('voice', 'en-IN-NeerjaNeural')})"
+                f"  • Voice: {run_stats.get('voice', 'Google Cloud Chirp3 Fenrir')}"
             )
 
-        yt_line = f"\n🎬 YouTube: {youtube_url}" if youtube_url else "\n(Upload disabled — video saved locally)"
+        yt_line = f"\n🎬 YouTube: {youtube_url}" if youtube_url else ""
+        ig_line = f"\n📸 Instagram Reel: {instagram_url}" if instagram_url else ""
 
         message = (
             f"✅ *Market Debunk — New Short Ready!*\n\n"
             f"📌 *Title:* {title}\n"
             f"💡 *Thesis:* _{thesis}_"
             f"{yt_line}"
+            f"{ig_line}"
             f"{stats_block}"
         )
 

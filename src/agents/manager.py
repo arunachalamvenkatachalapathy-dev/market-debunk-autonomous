@@ -168,21 +168,23 @@ def run_pipeline():
                 if yt_id:
                     yt_url = f"https://www.youtube.com/shorts/{yt_id}"
 
+            ig_url = None
+            if settings.ENABLE_INSTAGRAM:
+                ig_url = instagram_publisher.publish_reel(
+                    video_path=final_video,
+                    title=script_dict["title"],
+                    description=script_dict["description"],
+                    hashtags=script_dict["hashtags"],
+                )
+
             if settings.ENABLE_TELEGRAM:
                 telegram_notifier.send_completion_notification(
                     title=script_dict["title"],
                     thesis=thesis,
                     youtube_url=yt_url,
+                    instagram_url=ig_url,
                     video_path=final_video,
                     run_stats=stats,
-                )
-
-            if settings.ENABLE_INSTAGRAM:
-                instagram_publisher.publish_reel(
-                    video_path=final_video,
-                    title=script_dict["title"],
-                    description=script_dict["description"],
-                    hashtags=script_dict["hashtags"],
                 )
 
         total_time = time.time() - total_start
