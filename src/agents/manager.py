@@ -82,12 +82,12 @@ def run_pipeline():
             estimated_seconds = sum(
                 len(scene.get("narration", "").split())
                 for scene in script_dict["scenes"]
-            ) / 2.5
+            ) / 2.3
             log.info("Timing preflight: %.1fs estimated before voice synthesis", estimated_seconds)
-            if not 38 <= estimated_seconds <= 58:
+            if not 35 <= estimated_seconds <= 55:
                 raise RuntimeError(
                     f"Timing preflight blocked before TTS: {estimated_seconds:.1f}s; "
-                    "script must target 38-58s."
+                    "script must target 35-55s."
                 )
             
             # Save script to output for debugging

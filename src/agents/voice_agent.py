@@ -57,13 +57,13 @@ def trim_audio_silence(input_path: Path, output_path: Path):
 def _build_ssml(narration: str, scene_id: int = 1) -> str:
     """Scene-aware SSML so hooks are slower and reveals are a hair faster."""
     text = html.escape(" ".join(narration.split()))
-    text = re.sub(r"([,;])\s+", r'\1 <break time="60ms"/> ', text)
-    text = re.sub(r"([.!?])\s+", r'\1 <break time="260ms"/> ', text)
+    text = re.sub(r"([,;])\s+", r'\1 <break time="50ms"/> ', text)
+    text = re.sub(r"([.!?])\s+", r'\1 <break time="160ms"/> ', text)
 
     if scene_id <= 2:
-        rate, pitch = "92%", "-2.5st"
+        rate, pitch = "95%", "-2.5st"
     elif scene_id >= 10:
-        rate, pitch = "98%", "-1.5st"
+        rate, pitch = "100%", "-1.5st"
     else:
         rate_pct = int(settings.VOICE_SPEAKING_RATE * 100)
         rate, pitch = f"{rate_pct}%", f"{settings.VOICE_PITCH:+.1f}st"
@@ -173,6 +173,51 @@ def synthesize_all_scenes(scenes: list[dict], audio_dir: Path, voice: str = DEFA
 
     total_duration = sum(r["duration"] for r in results)
     log.info("All %d scenes synthesized | total audio: %.1fs", len(results), total_duration)
+
+    target_duration = float(getattr(settings, "VIDEO_DURATION_TARGET", 50.0))
+    max_duration_cap = 52.0
+
+    if total_duration > max_duration_cap:
+        speedup = min(1.35, max(1.02, total_duration / target_duration))
+        log.info(
+            "⏱️ Total voice duration (%.1fs) exceeds %.1fs cap. Applying automatic FFmpeg atempo speedup of %.3fx to reach ~%.1fs target...",
+            total_duration, max_duration_cap, speedup, target_duration
+        )
+        for r in results:
+            mp3_path = Path(r["mp3_path"])
+            if mp3_path.exists():
+                tmp_mp3 = mp3_path.with_name(f"{mp3_path.stem}_speed.mp3")
+                cmd = [
+                    "ffmpeg", "-y", "-i", str(mp3_path),
+                    "-af", f"atempo={speedup:.4f}",
+                    "-vn", str(tmp_mp3)
+                ]
+                res = subprocess.run(cmd, capture_output=True, text=True)
+                if res.returncode == 0 and tmp_mp3.exists():
+                    tmp_mp3.replace(mp3_path)
+                    r["duration"] = get_audio_duration(mp3_path)
+                else:
+                    log.warning("FFmpeg atempo failed for %s: %s", mp3_path, res.stderr)
+                    r["duration"] = round(r["duration"] / speedup, 2)
+            else:
+                r["duration"] = round(r["duration"] / speedup, 2)
+
+            for wt in r.get("word_timings", []):
+                if "start" in wt:
+                    wt["start"] = round(wt["start"] / speedup, 3)
+                if "end" in wt:
+                    wt["end"] = round(wt["end"] / speedup, 3)
+
+            timings_path = Path(r["timings_path"])
+            if timings_path.exists():
+                timings_path.write_text(
+                    json.dumps(r["word_timings"], indent=2, ensure_ascii=False),
+                    encoding="utf-8"
+                )
+
+        new_total = sum(r["duration"] for r in results)
+        log.info("✅ Auto-compressed voice track duration: %.1fs -> %.1fs", total_duration, new_total)
+
     return results
 
 

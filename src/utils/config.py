@@ -78,9 +78,9 @@ class Settings:
     VIDEO_WIDTH: int = int(_get("VIDEO_WIDTH", default="1080"))
     VIDEO_HEIGHT: int = int(_get("VIDEO_HEIGHT", default="1920"))
     VIDEO_FPS: int = int(_get("VIDEO_FPS", default="30"))
-    VIDEO_DURATION_TARGET: int = int(_get("VIDEO_DURATION_TARGET", default="60"))
-    MIN_VIDEO_DURATION: float = float(_get("MIN_VIDEO_DURATION", default="40.0"))
-    MAX_VIDEO_DURATION: float = float(_get("MAX_VIDEO_DURATION", default="60.0"))
+    VIDEO_DURATION_TARGET: int = int(_get("VIDEO_DURATION_TARGET", default="50"))
+    MIN_VIDEO_DURATION: float = float(_get("MIN_VIDEO_DURATION", default="38.0"))
+    MAX_VIDEO_DURATION: float = float(_get("MAX_VIDEO_DURATION", default="58.0"))
     VISUAL_GENERATION_DELAY_SECONDS: float = float(_get("VISUAL_GENERATION_DELAY_SECONDS", default="10"))
     BGM_VOLUME_DB: float = float(_get("BGM_VOLUME_DB", default="-18"))
     BGM_MIX_RETRIES: int = int(_get("BGM_MIX_RETRIES", default="3"))
@@ -90,7 +90,7 @@ class Settings:
     # ── Voice Settings ─────────────────────────────────────────────
     # Look F: Fenrir is deep/cinematic. Orus was the robotic newsreader.
     VOICE_NAME: str = _get("VOICE_NAME", default="en-IN-Chirp3-HD-Fenrir") or "en-IN-Chirp3-HD-Fenrir"
-    VOICE_SPEAKING_RATE: float = float(_get("VOICE_SPEAKING_RATE", default="0.96"))
+    VOICE_SPEAKING_RATE: float = float(_get("VOICE_SPEAKING_RATE", default="1.02"))
     VOICE_PITCH: float = float(_get("VOICE_PITCH", default="-2.0"))
 
     # ── Deduplication ─────────────────────────────────────────────

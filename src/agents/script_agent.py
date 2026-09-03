@@ -26,8 +26,8 @@ class ScenePayload(BaseModel):
     def validate_narration(cls, value: str) -> str:
         cleaned = " ".join(value.split())
         word_count = len(cleaned.split())
-        if not 9 <= word_count <= 24:
-            raise ValueError(f"Each scene narration must be 9-24 words; got {word_count}.")
+        if not 6 <= word_count <= 18:
+            raise ValueError(f"Each scene narration must be 6-18 words; got {word_count}.")
         banned = ["as an ai", "not financial advice", "subscribe now"]
         if any(term in cleaned.lower() for term in banned):
             raise ValueError("Narration contains banned generic/disclaimer language.")
@@ -90,10 +90,10 @@ class ScriptPayload(BaseModel):
     @model_validator(mode="after")
     def check_narration_pacing(self):
         total_words = sum(len(scene.narration.split()) for scene in self.scenes)
-        # Ideal short narration target is 110-130 words (~44-52s audio). Allow 95-136 words.
-        if not 95 <= total_words <= 136:
+        # Target ~50s Short: 100-115 words (allow 85-122 words).
+        if not 85 <= total_words <= 122:
             raise ValueError(
-                f"Script must contain 95-136 narration words for a 40-55s Short; got {total_words}."
+                f"Script must contain 85-122 narration words for a ~50s Short; got {total_words}."
             )
         visual_prompts = [scene.visual_prompt.lower() for scene in self.scenes]
         if len(set(visual_prompts)) != len(visual_prompts):
@@ -139,11 +139,11 @@ NARRATION STYLE (CRITICAL FOR AUDIO):
   • Do not start with a statistic, a question-for-the-algorithm, or a definition.
   • Withhold the official finance term until scene 10 or 11.
   • Avoid three sentences of the same length and rhythm in a row.
-  • Write 110-125 narration words across all 12 scenes. Each scene 9-20 words.
+  • Write 100-115 narration words across all 12 scenes (target ~50-second Short runtime, ~8-10 words per scene). Each scene 6-16 words.
   • No generic disclaimers, no "not financial advice", no "let's dive in", no "subscribe".
 
 ──────────────────────────────────────────────────────────────────────────────
-THE 12-SCENE STORY ARC (Exactly 12 Scenes. 40-55 seconds total runtime):
+THE 12-SCENE STORY ARC (Exactly 12 Scenes. ~50 seconds total runtime):
 ──────────────────────────────────────────────────────────────────────────────
 
 Scenes 1-2 — THE HOOK (Arjun's inciting moment):
@@ -360,7 +360,7 @@ Before answering, internally check that:
 - scenes 11-12 mention Priya in visual_prompt;
 - every visual prompt has a specific prop/evidence object;
 - no scene invents precise facts outside the story_seed;
-- the total narration is 110-130 words (target 115-125 words, about 45-52 seconds)."""
+- the total narration is 100-115 words (target ~50 seconds)."""
 
     for model in _GEMINI_MODELS:
         log.info("Trying model: %s", model)
