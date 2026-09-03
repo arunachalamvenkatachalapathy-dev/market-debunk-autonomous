@@ -30,9 +30,8 @@ def _upload_binary_resumable(upload_uri: str, video_path: Path, token: str) -> b
 
     headers = {
         "Authorization": f"OAuth {token}",
-        "file_offset": "0",
-        "Content-Type": "application/octet-stream",
-        "Content-Length": str(file_size),
+        "offset": "0",
+        "file_size": str(file_size),
     }
 
     with open(video_path, "rb") as video_file:
