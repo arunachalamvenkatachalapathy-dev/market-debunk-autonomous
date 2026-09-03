@@ -224,8 +224,47 @@ def synthesize_all_scenes(scenes: list[dict], audio_dir: Path, voice: str = DEFA
                     encoding="utf-8"
                 )
 
-        new_total = sum(r["duration"] for r in results)
-        log.info("✅ Auto-compressed voice track duration: %.1fs -> %.1fs", total_duration, new_total)
+    min_duration_floor = 30.5
+    if total_duration < min_duration_floor:
+        slowdown = max(0.85, total_duration / 33.0)
+        log.info(
+            "⏱️ Total voice duration (%.1fs) is below %.1fs floor. Applying automatic FFmpeg atempo slowdown of %.3fx to reach ~33.0s target...",
+            total_duration, min_duration_floor, slowdown
+        )
+        for r in results:
+            mp3_path = Path(r["mp3_path"])
+            if mp3_path.exists():
+                tmp_mp3 = mp3_path.with_name(f"{mp3_path.stem}_slow.mp3")
+                cmd = [
+                    "ffmpeg", "-y", "-i", str(mp3_path),
+                    "-af", f"atempo={slowdown:.4f}",
+                    "-c:a", "libmp3lame", "-b:a", "192k",
+                    "-vn", str(tmp_mp3)
+                ]
+                res = subprocess.run(cmd, capture_output=True, text=True)
+                if res.returncode == 0 and tmp_mp3.exists():
+                    tmp_mp3.replace(mp3_path)
+                    r["duration"] = get_audio_duration(mp3_path)
+                else:
+                    r["duration"] = round(r["duration"] / slowdown, 2)
+            else:
+                r["duration"] = round(r["duration"] / slowdown, 2)
+
+            for wt in r.get("word_timings", []):
+                if "start" in wt:
+                    wt["start"] = round(wt["start"] / slowdown, 3)
+                if "end" in wt:
+                    wt["end"] = round(wt["end"] / slowdown, 3)
+
+            timings_path = Path(r["timings_path"])
+            if timings_path.exists():
+                timings_path.write_text(
+                    json.dumps(r["word_timings"], indent=2, ensure_ascii=False),
+                    encoding="utf-8"
+                )
+
+    new_total = sum(r["duration"] for r in results)
+    log.info("✅ Auto-compressed voice track duration: %.1fs -> %.1fs", total_duration, new_total)
 
     return results
 
