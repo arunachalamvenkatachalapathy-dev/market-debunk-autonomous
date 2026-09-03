@@ -52,18 +52,15 @@ def _ffmpeg(*args: str, description: str = "") -> None:
 
 def _build_scene_from_video(
     video_path: Path,
-    audio_path: Path,
     duration: float,
     output_path: Path,
 ) -> None:
     """
-    Crop and loop a stock video to match audio duration, scale to 1080×1920.
-    Scale to fill 1080x1920, crop excess, and loop to match audio.
-    Applies a subtle slow-zoom (1.04x) for visual energy.
+    Crop and loop a stock video to match duration, scale to 1080×1920.
+    Builds a pure video clip without audio so voice track remains continuous.
     """
     w, h = settings.VIDEO_WIDTH, settings.VIDEO_HEIGHT
     fps = settings.VIDEO_FPS
-    fade_start = max(duration - 0.08, 0)
 
     # Crop rather than pad: empty bars are a release-quality failure for Shorts.
     vf = (
@@ -74,19 +71,14 @@ def _build_scene_from_video(
     )
 
     _ffmpeg(
-        "-stream_loop", "-1",          # loop video if shorter than audio
+        "-stream_loop", "-1",          # loop video if shorter than duration
         "-i", str(video_path),
-        "-i", str(audio_path),
         "-vf", vf,
-        "-af", f"apad=pad_dur=0.12,afade=t=in:st=0:d=0.03,afade=t=out:st={fade_start:.3f}:d=0.08",
         "-t", str(duration),
         "-c:v", "libx264",
         "-preset", "fast",
         "-crf", "23",
-        "-c:a", "aac",
-        "-b:a", "192k",
-        "-map", "0:v:0",
-        "-map", "1:a:0",
+        "-an",
         str(output_path),
         description=f"build scene clip from video: {output_path.name}"
     )
@@ -94,18 +86,17 @@ def _build_scene_from_video(
 
 def _build_scene_from_image(
     image_path: Path,
-    audio_path: Path,
     duration: float,
     output_path: Path,
     scene_id: int = 1,
 ) -> None:
     """
     Scale image to fill (no black bars), crop to 1080x1920, and apply varied ken-burns zoom.
+    Builds a pure video clip without audio so voice track remains continuous.
     """
     w, h = settings.VIDEO_WIDTH, settings.VIDEO_HEIGHT
     fps = settings.VIDEO_FPS
     n_frames = int(duration * fps)
-    fade_start = max(duration - 0.08, 0)
 
     # Vary the zoom direction based on scene_id to prevent repetitive motion
     pan_type = scene_id % 3
@@ -130,18 +121,13 @@ def _build_scene_from_image(
         "-loop", "1",
         "-framerate", str(fps),
         "-i", str(image_path),
-        "-i", str(audio_path),
         "-vf", vf,
-        "-af", f"apad=pad_dur=0.12,afade=t=in:st=0:d=0.03,afade=t=out:st={fade_start:.3f}:d=0.08",
         "-t", str(duration),
         "-c:v", "libx264",
         "-preset", "fast",
         "-crf", "23",
         "-pix_fmt", "yuv420p",
-        "-c:a", "aac",
-        "-b:a", "192k",
-        "-map", "0:v:0",
-        "-map", "1:a:0",
+        "-an",
         str(output_path),
         description=f"build scene clip from image: {output_path.name}"
     )
@@ -153,7 +139,7 @@ def build_scene_clips(
     clips_dir: Path,
 ) -> list[Path]:
     """
-    Build a clip for each scene (video or image → looped video + audio).
+    Build a video-only clip for each scene (video or image → looped/animated video).
     Returns list of clip paths in scene order.
     """
     clips_dir.mkdir(parents=True, exist_ok=True)
@@ -167,7 +153,6 @@ def build_scene_clips(
         voice = voice_map[scene_id]
         visual = visual_map[scene_id]
 
-        audio_path = Path(voice["mp3_path"])
         duration = voice["duration"]
         asset_path = Path(visual["asset_path"])
         asset_type = visual["asset_type"]
@@ -180,9 +165,9 @@ def build_scene_clips(
         )
 
         if asset_type == "video":
-            _build_scene_from_video(asset_path, audio_path, duration, clip_path)
+            _build_scene_from_video(asset_path, duration, clip_path)
         else:
-            _build_scene_from_image(asset_path, audio_path, duration, clip_path, scene_id=scene_id)
+            _build_scene_from_image(asset_path, duration, clip_path, scene_id=scene_id)
 
         clip_paths.append(clip_path)
 
@@ -190,8 +175,48 @@ def build_scene_clips(
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-#  Step 2 — Concatenation
+#  Step 2 — Concatenation & Master Voice Track
 # ──────────────────────────────────────────────────────────────────────────────
+
+def concatenate_voice_audio(voice_results: list[dict], output_path: Path) -> Path:
+    """
+    Concatenate all scene voice tracks into a single continuous 48kHz stereo WAV track.
+    This prevents audio frame mismatches, clipping, or pops between scene cuts.
+    """
+    concat_list = output_path.parent / "voice_concat_list.txt"
+    with open(concat_list, "w", encoding="utf-8") as f:
+        for r in voice_results:
+            p = Path(r["mp3_path"]).resolve()
+            f.write(f"file '{p}'\n")
+
+    _ffmpeg(
+        "-f", "concat",
+        "-safe", "0",
+        "-i", str(concat_list),
+        "-ar", "48000",
+        "-ac", "2",
+        "-c:a", "pcm_s16le",
+        str(output_path),
+        description="concatenate voice audio tracks"
+    )
+    return output_path
+
+
+def mux_video_and_audio(video_path: Path, audio_path: Path, output_path: Path) -> Path:
+    """Mux concatenated video with continuous master voice audio at standard 48kHz AAC."""
+    _ffmpeg(
+        "-i", str(video_path),
+        "-i", str(audio_path),
+        "-c:v", "copy",
+        "-c:a", "aac",
+        "-b:a", "192k",
+        "-ar", "48000",
+        "-shortest",
+        str(output_path),
+        description="mux continuous video and master voice track"
+    )
+    return output_path
+
 
 def concatenate_clips(clip_paths: list[Path], output_path: Path) -> Path:
     """Concatenate all scene clips into a single continuous video."""
@@ -306,8 +331,9 @@ def mix_bgm(
         audio_filter = (
             "[0:a]aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asplit=2[voice_mix][voice_key];"
             f"[1:a]aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,volume={vol_factor:.4f}[bgm];"
-            "[bgm][voice_key]sidechaincompress=threshold=0.035:ratio=5:attack=35:release=350[ducked];"
+            "[bgm][voice_key]sidechaincompress=threshold=0.08:ratio=3:attack=50:release=450[ducked];"
             "[voice_mix][ducked]amix=inputs=2:duration=first:dropout_transition=0,"
+            "aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,"
             "loudnorm=I=-14:TP=-1:LRA=11[out]"
         )
         description = "BGM ducking mix + loudness normalisation"
@@ -316,6 +342,7 @@ def mix_bgm(
             "[0:a]aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo[voice];"
             f"[1:a]aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,volume={vol_factor:.4f}[bgm];"
             "[voice][bgm]amix=inputs=2:duration=first:dropout_transition=0,"
+            "aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,"
             "loudnorm=I=-14:TP=-1:LRA=11[out]"
         )
         description = "BGM simple mix + loudness normalisation"
@@ -330,6 +357,7 @@ def mix_bgm(
         "-c:v", "copy",
         "-c:a", "aac",
         "-b:a", "192k",
+        "-ar", "48000",
         str(output_path),
         description=description
     )
@@ -370,10 +398,11 @@ def finalize_without_bgm(video_path: Path, output_path: Path) -> Path:
     try:
         _ffmpeg(
             "-i", str(video_path),
-            "-af", "loudnorm=I=-14:TP=-1:LRA=11",
+            "-af", "aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,loudnorm=I=-14:TP=-1:LRA=11",
             "-c:v", "copy",
             "-c:a", "aac",
             "-b:a", "192k",
+            "-ar", "48000",
             str(output_path),
             description="fallback loudness normalisation without BGM"
         )
@@ -400,18 +429,25 @@ def assemble_video(
     Returns path to distribution_ready.mp4
     """
     clips_dir = run_dir / "clips"
+    raw_video_only = run_dir / "raw_video_only.mp4"
+    master_voice_wav = run_dir / "master_voice.wav"
     raw_video = run_dir / "raw_video.mp4"
     subtitled_video = run_dir / "subtitled_video.mp4"
     branded_video = run_dir / "branded_video.mp4"
     final_video = run_dir / "distribution_ready.mp4"
 
-    # Step 1: Build per-scene clips
+    # Step 1: Build per-scene clips (video-only)
     log.info("Step 1/5: Building %d scene clips …", len(voice_results))
     clip_paths = build_scene_clips(voice_results, visual_results, clips_dir)
 
-    # Step 2: Concatenate
-    log.info("Step 2/5: Concatenating clips …")
-    concatenate_clips(clip_paths, raw_video)
+    # Step 2: Concatenate video clips
+    log.info("Step 2/5: Concatenating video clips …")
+    concatenate_clips(clip_paths, raw_video_only)
+
+    # Step 2b: Create continuous master voice track and mux with video
+    log.info("Step 2b/5: Creating unified master voice track …")
+    concatenate_voice_audio(voice_results, master_voice_wav)
+    mux_video_and_audio(raw_video_only, master_voice_wav, raw_video)
 
     # Step 3: Burn subtitles
     log.info("Step 3/5: Burning subtitles …")
@@ -465,6 +501,7 @@ def assemble_video(
                 "-af", f"afade=t=out:st={fade_start:.2f}:d=0.3",
                 "-c:a", "aac",
                 "-b:a", "192k",
+                "-ar", "48000",
                 str(clamped_path),
                 description="clamping final video duration to Shorts limit"
             )

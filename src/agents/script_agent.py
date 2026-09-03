@@ -133,42 +133,44 @@ PRIYA (The Closer, scenes 11-12):
   • 33, Indian woman, charcoal silk, gold pendant, no bindi, no polite smile.
   • Calm, lethal. She names the concept in plain English and owns the lens on 12.
 
-NARRATION STYLE (CRITICAL FOR AUDIO):
-  • Write for the ear. Contractions. Fragments. Varied sentence length.
-  • Talk to ONE person: you. Never "folks", "you guys", "investors".
-  • Do not start with a statistic, a question-for-the-algorithm, or a definition.
-  • Withhold the official finance term until scene 10 or 11.
-  • Avoid three sentences of the same length and rhythm in a row.
+NARRATION STYLE (CRITICAL FOR VIRAL RETENTION & STORYTELLING):
+  • You are telling a gripping financial story directly to the viewer. Hook them within 2 seconds.
+  • Talk directly to "you". Make it personal, urgent, and cinematic.
+  • THE HOOK (Scenes 1-2): Must stop the scroll immediately! Open with a provocative question, an urgent warning, or a shocking counter-intuitive truth about their money. (e.g., "Think your salary account gives you free ATM cash? Think again." or "Your bank is quietly draining your balance every time you swipe at an ATM.")
+  • STORYTELLING FLOW (DO NOT READ A LIST OF FACTS!): Each sentence must build tension and naturally flow into the next beat like a documentary thriller. Do NOT output a list of isolated facts or bullet points.
   • Write 100-115 narration words across all 12 scenes (target ~50-second Short runtime, ~8-10 words per scene). Each scene 6-16 words.
+  • Speak to the viewer ("you"). Do not awkwardly repeat the name "Arjun" in every sentence. Arjun is the protagonist shown in the visuals.
   • No generic disclaimers, no "not financial advice", no "let's dive in", no "subscribe".
 
 ──────────────────────────────────────────────────────────────────────────────
-THE 12-SCENE STORY ARC (Exactly 12 Scenes. ~50 seconds total runtime):
+THE 12-SCENE STORY ARC (5-Beat High-Retention Arc, ~50 seconds total runtime):
 ──────────────────────────────────────────────────────────────────────────────
 
-Scenes 1-2 — THE HOOK (Arjun's inciting moment):
-  Arjun stares into camera or sits still in a dark teal room. Stop the scroll.
-  Present tense, film narrator. DO NOT start with a statistic or question.
-  Visuals: extreme close-up or CU. Split amber-left / teal-right light. No world map.
+BEAT 1: THE SCROLL-STOPPING HOOK (Scenes 1-2):
+  Scene 1: The Grab. Hit the viewer with an urgent, relatable, shocking truth or question about their money. Stop the scroll instantly.
+  Scene 2: The Stakes. Why this silently drains their wallet every single month.
+  Visuals: Arjun in extreme close-up, intense, direct gaze, split amber-teal light. Stop the scroll.
 
-Scenes 3-5 — THE MYTH / THE FLAW:
-  The common mistake, which Arjun is living. Looking down at a phone or chart.
-  Visuals: over-shoulder then CU. Blurred unreadable chart. Jaw tight.
+BEAT 2: THE ILLUSION & THE SETUP (Scenes 3-4):
+  Scene 3: The common belief or bank marketing promise that everyone falls for ("free transactions", "zero balance perks").
+  Scene 4: The hidden catch that catches people completely off guard.
+  Visuals: Arjun checking his phone or inserting a card, over-shoulder, split amber-teal lighting.
 
-Scenes 6-7 — THE FRUSTRATION:
-  The math is not adding up. Emotional low. More teal on the face.
+BEAT 3: THE HIDDEN MECHANICS (Scenes 5-7):
+  Scene 5: How the charges actually trigger behind the scenes (non-home ATMs, balance checks, mini-statements).
+  Scene 6: The slow, quiet drain where tiny debits slip past unnoticed on monthly statements.
+  Scene 7: The realization that the numbers don't add up.
+  Visuals: Arjun analyzing statements or laptop screen, tight jaw, moody bokeh lighting.
 
-Scenes 8-9 — THE EVIDENCE / REAL WORLD ANCHOR:
-  The actual market fact, law, or historical trend. Still no textbook name if possible.
-  Visuals: Arjun 3/4, unmarked document or abstract bars, amber lamp in bokeh.
+BEAT 4: THE BIG REVEAL & THE TAX BITE (Scenes 8-10):
+  Scene 8: The hidden layer most people miss: government taxes compounded on top of bank charges.
+  Scene 9: The math of how quickly it piles up into real money.
+  Scene 10: Arjun identifies the root cause and names the truth.
+  Visuals: Arjun examining proof/document, then Priya entering the frame.
 
-Scenes 10-11 — THE REVEAL (The Financial Concept):
-  Scene 10: Arjun almost-smirk, names or points at the truth.
-  Scene 11: Priya enters and names the official term in plain English.
-
-Scene 12 — THE CALL TO ACTION (CTA):
-  Priya owns the lens. Direct-to-camera. What should the viewer do differently.
-  No smile. No wave. No subscribe line.
+BEAT 5: THE RESOLUTION & ACTIONABLE CLOSER (Scenes 11-12):
+  Scene 11: Priya names the official financial rule/concept in plain, powerful English.
+  Scene 12: Priya delivers the one clear, non-obvious action the viewer must take starting today to protect their money. Direct to camera. No smile, no subscribe pitch.
 
 ──────────────────────────────────────────────────────────────────────────────
 VISUAL PROMPT GUIDELINES
@@ -212,7 +214,7 @@ OUTPUT FORMAT — Return ONLY valid JSON, nothing else, no markdown fences:
   ]
 }
 
-CRITICAL: Exactly 12 scenes. Use the story_seed facts provided. Arjun must appear by name in narrations."""
+CRITICAL: Exactly 12 scenes. Use the story_seed facts provided. Build a gripping story that flows, not a list of facts."""
 
 # ──────────────────────────────────────────────────────────────────────────────
 #  JSON Extraction
@@ -356,6 +358,8 @@ Remember: Exactly 12 scenes.
 
 Before answering, internally check that:
 - the title has no #Shorts tag;
+- scenes 1-2 have an urgent, scroll-stopping viral hook that speaks directly to the viewer;
+- the narrations tell a cohesive, suspenseful story that flows naturally across scenes, not a list of facts;
 - scenes 1-10 mention Arjun in visual_prompt;
 - scenes 11-12 mention Priya in visual_prompt;
 - every visual prompt has a specific prop/evidence object;

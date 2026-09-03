@@ -37,12 +37,13 @@ def get_audio_duration(mp3_path: Path) -> float:
         return 5.0
 
 def trim_audio_silence(input_path: Path, output_path: Path):
-    """Aggressively trims leading and trailing silence to prevent robotic stitching pauses."""
+    """Trims leading silence and subtle trailing dead air without cutting off word endings."""
     try:
         subprocess.run(
             [
                 "ffmpeg", "-y", "-i", str(input_path),
-                "-af", "silenceremove=start_periods=1:start_threshold=-45dB:start_duration=0.03,areverse,silenceremove=start_periods=1:start_threshold=-45dB:start_duration=0.03,areverse",
+                "-af", "silenceremove=start_periods=1:start_threshold=-50dB:start_duration=0.02,areverse,silenceremove=start_periods=1:start_threshold=-50dB:start_duration=0.10,areverse",
+                "-c:a", "libmp3lame", "-b:a", "192k",
                 str(output_path)
             ],
             capture_output=True, check=True
@@ -190,6 +191,7 @@ def synthesize_all_scenes(scenes: list[dict], audio_dir: Path, voice: str = DEFA
                 cmd = [
                     "ffmpeg", "-y", "-i", str(mp3_path),
                     "-af", f"atempo={speedup:.4f}",
+                    "-c:a", "libmp3lame", "-b:a", "192k",
                     "-vn", str(tmp_mp3)
                 ]
                 res = subprocess.run(cmd, capture_output=True, text=True)
