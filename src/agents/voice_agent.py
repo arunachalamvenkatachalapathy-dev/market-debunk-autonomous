@@ -38,16 +38,21 @@ def get_audio_duration(mp3_path: Path) -> float:
 
 def trim_audio_silence(input_path: Path, output_path: Path):
     """
-    Trims leading silence only. Trailing silence is preserved as the natural
-    inter-scene breath pause in the master voice track.
-    The previous double-reverse trailing trim was clipping word endings on
-    short 1-3 word scenes from Google TTS.
+    Trims leading silence and trailing silence cleanly, adding a tight 80ms
+    breath pad so inter-scene transitions are immediate without clipping consonant tails.
     """
     try:
+        af = (
+            "silenceremove=start_periods=1:start_duration=0.02:start_threshold=-45dB,"
+            "areverse,"
+            "silenceremove=start_periods=1:start_duration=0.05:start_threshold=-45dB,"
+            "areverse,"
+            "apad=pad_dur=0.08"
+        )
         subprocess.run(
             [
                 "ffmpeg", "-y", "-i", str(input_path),
-                "-af", "silenceremove=start_periods=1:start_threshold=-50dB:start_duration=0.02",
+                "-af", af,
                 "-c:a", "libmp3lame", "-b:a", "192k",
                 str(output_path)
             ],
@@ -61,18 +66,15 @@ def trim_audio_silence(input_path: Path, output_path: Path):
 
 
 def _build_ssml(narration: str, scene_id: int = 1) -> str:
-    """Scene-aware SSML so hooks are slower and reveals are a hair faster."""
+    """
+    Natural conversational SSML.
+    No artificial break tags: punctuation already drives natural prosody in Neural TTS.
+    Artificial break tags were causing awkward 1-second pauses mid-sentence.
+    """
     text = html.escape(" ".join(narration.split()))
-    text = re.sub(r"([,;])\s+", r'\1 <break time="50ms"/> ', text)
-    text = re.sub(r"([.!?])\s+", r'\1 <break time="160ms"/> ', text)
-
-    if scene_id <= 2:
-        rate, pitch = "95%", "-2.5st"
-    elif scene_id >= 10:
-        rate, pitch = "100%", "-1.5st"
-    else:
-        rate_pct = int(settings.VOICE_SPEAKING_RATE * 100)
-        rate, pitch = f"{rate_pct}%", f"{settings.VOICE_PITCH:+.1f}st"
+    rate_pct = int(settings.VOICE_SPEAKING_RATE * 100)
+    rate = f"{rate_pct}%"
+    pitch = f"{settings.VOICE_PITCH:+.1f}st"
 
     return (
         "<speak>"

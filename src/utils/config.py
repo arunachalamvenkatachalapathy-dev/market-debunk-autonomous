@@ -108,7 +108,7 @@ class Settings:
     BRAND_MARK_PADDING: int = int(_get("BRAND_MARK_PADDING", default="30"))
 
     # ── Subtitle Style ────────────────────────────────────────────
-    SUBTITLE_FONT: str = "BebasNeue"
+    SUBTITLE_FONT: str = "Bebas Neue"
     SUBTITLE_FONT_SIZE: int = 112
     SUBTITLE_PRIMARY_COLOR: str = "&H00FFFFFF"   # white
     SUBTITLE_OUTLINE_COLOR: str = "&H00000000"   # black

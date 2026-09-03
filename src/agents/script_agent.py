@@ -147,46 +147,38 @@ PRIYA (The Closer, scenes 11-12):
   • 33, Indian woman, charcoal silk, gold pendant, no bindi, no polite smile.
   • Calm, lethal. She names the concept in plain English and owns the lens on 12.
 
-NARRATION STYLE (CRITICAL FOR VIRAL RETENTION & STORYTELLING):
-  • You are telling a gripping financial story DIRECTLY TO THE VIEWER. Hook them within 2 seconds.
-  • Use "you" and "your" in AT LEAST 8 of the 12 scenes. This is the single most important rule.
-  • This is NOT a documentary about "they" or "everyone". The viewer IS the protagonist.
-  • THE HOOK (Scenes 1-2): Must stop the scroll immediately. Open with a provocative question or urgent warning addressed directly to "you". e.g., "Your bank is silently draining you." not "Banks drain customers."
-  • FLOW (Scenes 3-10): Continue speaking to "you" personally. "You believed..." "You didn't notice..." "You watched it recover..." NOT "People believe..." "Investors believe..." "They watch..."
-  • REVEAL (Scenes 11-12): Priya names the concept plainly, then tells "you" exactly what to do. Direct, calm, powerful.
-  • STORYTELLING FLOW (DO NOT READ A LIST OF FACTS!): Each sentence must flow into the next like a documentary thriller. Build tension. Do NOT produce isolated bullet facts.
-  • Write 100-115 narration words total across all 12 scenes. Each scene 6-16 words.
-  • No generic disclaimers, no "not financial advice", no "let's dive in", no "subscribe".
+NARRATION STYLE (CRITICAL: CONTINUOUS STORYTELLING — NEVER READ A LIST OF FACTS):
+  • You are telling a gripping financial story DIRECTLY TO THE VIEWER ("you").
+  • CRITICAL RULE: DO NOT write 12 disconnected bullet points or isolated facts!
+    Write a SINGLE continuous spoken story where every scene carries the narrative momentum
+    into the next with conversational bridges ("And", "So", "Until", "Because", "That is when",
+    "What you didn't see was").
+  • When read together aloud from Scene 1 to Scene 12 without scene numbers, it MUST sound like
+    ONE seamless, captivating, suspenseful spoken paragraph told by a master storyteller.
+  • The viewer is the protagonist: use "you" and "your" in AT LEAST 8 of the 12 scenes.
+  • THE HOOK (Scenes 1-2): Must stop the scroll in under 2 seconds. A vivid, personal event or shocking realization.
+  • STORY FLOW (Scenes 3-10): The story unfolds organically — the illusion, the hidden trap, the silent loss, the realization.
+  • CLIMAX & ADVICE (Scenes 11-12): Priya reveals the concept name and delivers the one sharp rule directly to you.
+  • Write 100-115 narration words total across all 12 scenes (6-16 words per scene).
+  • Banned: generic disclaimers, "not financial advice", "let's dive in", "subscribe", numbered lists, or robotic bullet points.
 
 ──────────────────────────────────────────────────────────────────────────────
-THE 12-SCENE STORY ARC (5-Beat High-Retention Arc, ~50 seconds total runtime):
+THE 12-SCENE CONTINUOUS STORY ARC (~50 seconds total runtime):
 ──────────────────────────────────────────────────────────────────────────────
+The narration MUST read as ONE continuous story told directly to "you":
 
-BEAT 1: THE SCROLL-STOPPING HOOK (Scenes 1-2) — MUST USE "YOU":
-  Scene 1: The Grab. Hit the viewer with an urgent, relatable, shocking truth or question addressed directly to THEM. "Did YOU panic?" "YOUR portfolio just—" Stop the scroll instantly.
-  Scene 2: The Stakes. Why this silently drains THEIR wallet. Keep "you/your" in this sentence.
-  Visuals: Arjun in extreme close-up, intense, direct gaze, split amber-teal light.
-
-BEAT 2: THE ILLUSION & THE SETUP (Scenes 3-4) — MUST USE "YOU":
-  Scene 3: The common trap YOU fell into (or nearly fell into). NOT "everyone believes". Say "You thought..." or "You've been told..."
-  Scene 4: The hidden catch that caught YOU completely off guard. "But here's what YOU missed."
-  Visuals: Arjun checking his phone or inserting a card, over-shoulder, split amber-teal lighting.
-
-BEAT 3: THE HIDDEN MECHANICS (Scenes 5-7) — USE "YOU" OR "YOUR":
-  Scene 5: The trigger behind the scenes — but frame it as something that happened to YOU or affects YOUR money.
-  Scene 6: The slow drain YOU didn't notice. "You didn't see it. The charges slipped past YOU."
-  Scene 7: YOUR realization. "That's when YOU realize—" or "YOU had been set up."
-  Visuals: Arjun analyzing statements or laptop screen, tight jaw, moody bokeh lighting.
-
-BEAT 4: THE BIG REVEAL (Scenes 8-10) — CONTRAST "smart money" vs "YOU":
-  Scene 8: What smart money does DIFFERENTLY from what YOU did. "The smart money waited. YOU reacted."
-  Scene 9: What it costs YOU when YOU miss this. The math hits YOUR portfolio.
-  Scene 10: Arjun names the truth that explains why YOU lost. Directly to camera.
-  Visuals: Arjun examining proof/document, tight jaw, split amber-teal.
-
-BEAT 5: THE RESOLUTION & ACTIONABLE CLOSER (Scenes 11-12) — DIRECT TO "YOU":
-  Scene 11: Priya names the official financial rule/concept in plain powerful English.
-  Scene 12: Priya tells YOU the one clear action to take starting today. "Here's what YOU do." Direct. No smile. No subscribe.
+Scene 1 (The Hook): A vivid, relatable event or warning that stops the scroll immediately.
+Scene 2 (The Complacency): How you felt confident, believing you were making a smart financial move.
+Scene 3 (The Setup): The promise or illusion that made you trust the deal or market signal.
+Scene 4 (The First Doubt): The subtle catch or fine print detail that you overlooked.
+Scene 5 (The Silent Trigger): The hidden process starting behind the scenes, silently affecting your money.
+Scene 6 (The Hidden Cost): The quiet charges or deductions that began slipping past you.
+Scene 7 (The Discovery): The moment you noticed the numbers didn't add up on your statement or chart.
+Scene 8 (The Contrast): How smart institutional players anticipate this exact trap while you reacted.
+Scene 9 (The Real Loss): What this illusion actually costs you when the true math is added up.
+Scene 10 (The Reality Check): The sobering realization that what you thought was an advantage was a trap.
+Scene 11 (The Concept Name): Priya steps in, naming the financial concept clearly and authoritatively.
+Scene 12 (The Actionable Defense): Priya gives you the one practical rule to protect your money right now.
 
 ──────────────────────────────────────────────────────────────────────────────
 VISUAL PROMPT GUIDELINES
@@ -223,14 +215,14 @@ OUTPUT FORMAT — Return ONLY valid JSON, nothing else, no markdown fences:
   "scenes": [
     {
       "scene_id": 1,
-      "narration": "Present-tense cinematic narration addressed to YOU. Max 20 words. Flows into next scene.",
+      "narration": "Present-tense cinematic narration addressed to YOU. Max 20 words. Flows seamlessly into scene 2.",
       "visual_prompt": "Arjun stares into camera in a dark teal room, amber lamp blurred behind his left shoulder, extreme close-up, split amber-teal light, photoreal cinematic, full-bleed 9:16",
       "duration_hint": 7.0
     }
   ]
 }
 
-CRITICAL: Exactly 12 scenes. Use the story_seed facts provided. Build a gripping story that flows, not a list of facts. USE "you/your" in AT LEAST 8 scenes."""
+CRITICAL: Exactly 12 scenes. Must sound like continuous personal storytelling, NOT a list of facts. Use 'you/your' in at least 8 scenes."""
 
 # ──────────────────────────────────────────────────────────────────────────────
 #  JSON Extraction
@@ -347,9 +339,10 @@ The previous attempt failed validation with error:
 CRITICAL RULES:
 1. Return ONLY pure valid JSON with no markdown code fences (no ```json).
 2. Exactly 12 scenes in the scenes array (scene_id 1 to 12).
-3. Ensure total narration word count across all 12 scenes is 95-115 words (~8-10 words per scene, 6-16 words per scene).
+3. Ensure total narration word count across all 12 scenes is 100-115 words (~8-10 words per scene, 6-16 words per scene).
 4. Scenes 1-10 visual_prompt must mention Arjun. Scenes 11-12 visual_prompt must mention Priya.
-5. Address the viewer directly ("you"), with an urgent viral hook in scenes 1-2 and a cohesive story. Use "you" or "your" in at least 8 scenes.
+5. Address the viewer directly ("you"), with an urgent viral hook in scenes 1-2.
+6. CONTINUOUS STORYTELLING: Narrations must read as ONE seamless spoken story with narrative conjunctions ("and", "so", "until", "because", "that's when"), NOT a list of facts or isolated bullets. Use "you" or "your" in at least 8 scenes.
 
 ATTEMPTED RESPONSE:
 {raw_response}
@@ -382,7 +375,7 @@ Remember: Exactly 12 scenes.
 Before answering, internally check that:
 - the title has no #Shorts tag;
 - scenes 1-2 have an urgent, scroll-stopping viral hook that speaks directly to the viewer;
-- the narrations tell a cohesive, suspenseful story that flows naturally across scenes, not a list of facts;
+- the narrations tell a single, continuous, suspenseful spoken story with natural connective flow ("and", "so", "until", "because", "that's when"), NEVER a list of facts or disconnected bullet points;
 - scenes 1-10 mention Arjun in visual_prompt;
 - scenes 11-12 mention Priya in visual_prompt;
 - every visual prompt has a specific prop/evidence object;

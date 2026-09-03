@@ -133,24 +133,15 @@ def _build_scene_from_image(
     )
 
 
-CROSSFADE_DURATION: float = 0.3
-
-
 def build_scene_clips(
     voice_results: list[dict],
     visual_results: list[dict],
     clips_dir: Path,
-    fade_duration: float = CROSSFADE_DURATION,
 ) -> list[Path]:
     """
     Build a video-only clip for each scene (video or image → looped/animated video).
+    Each clip duration matches exactly the voice narration duration.
     Returns list of clip paths in scene order.
-
-    To ensure each scene's audio fully finishes before transitioning to the next visual
-    (audio drives visual timing) and to prevent video duration from shrinking below audio:
-    Each clip (except the last) is extended by fade_duration seconds. When xfade dissolves
-    clip N into clip N+1 over fade_duration seconds, the transition starts exactly at
-    the end of scene N's voice narration, matching master audio duration perfectly.
     """
     clips_dir.mkdir(parents=True, exist_ok=True)
     clip_paths: list[Path] = []
@@ -164,9 +155,8 @@ def build_scene_clips(
         voice = voice_map[scene_id]
         visual = visual_map[scene_id]
 
+        # Clip duration = exact voice duration. No padding. Audio is master.
         duration = voice["duration"]
-        if idx < len(sorted_sids) - 1:
-            duration += fade_duration
 
         asset_path = Path(visual["asset_path"])
         asset_type = visual["asset_type"]
@@ -174,8 +164,8 @@ def build_scene_clips(
         clip_path = clips_dir / f"scene_{scene_id}_clip.mp4"
 
         log.info(
-            "Building scene %d clip | type: %s | duration: %.2fs (voice: %.2fs)",
-            scene_id, asset_type, duration, voice["duration"]
+            "Building scene %d clip | type: %s | duration: %.2fs",
+            scene_id, asset_type, duration,
         )
 
         if asset_type == "video":
@@ -204,8 +194,9 @@ def concatenate_voice_audio(voice_results: list[dict], output_path: Path) -> Pat
     wav_dir = output_path.parent / "voice_wavs"
     wav_dir.mkdir(parents=True, exist_ok=True)
 
+    sorted_results = sorted(voice_results, key=lambda r: r.get("scene_id", 0))
     wav_paths: list[Path] = []
-    for r in voice_results:
+    for r in sorted_results:
         mp3_path = Path(r["mp3_path"]).resolve()
         wav_path = wav_dir / f"{mp3_path.stem}.wav"
         # Decode MP3 to raw 48kHz stereo PCM WAV — no encoder delay artifacts
@@ -253,58 +244,30 @@ def mux_video_and_audio(video_path: Path, audio_path: Path, output_path: Path) -
     return output_path
 
 
-def crossfade_clips(clip_paths: list[Path], output_path: Path, fade_duration: float = 0.3) -> Path:
+def clean_concat_clips(clip_paths: list[Path], output_path: Path) -> Path:
     """
-    Concatenate all scene clips with a smooth crossfade/dissolve between each scene.
+    Concatenate all scene clips with a clean re-encode using FFmpeg filter_complex concat.
 
-    Uses FFmpeg's xfade filter to apply a 'fade' transition of fade_duration seconds
-    between consecutive clips. This eliminates the jarring hard-cut visual jump and
-    the H.264 B-frame codec boundary glitch caused by stream-copy concatenation.
-
-    The audio track is video-only at this stage; voice is added later via mux.
+    Unlike stream-copy (-c copy), this re-encodes video so there are zero codec
+    boundary artifacts, zero B-frame reference mismatches, and zero timing gaps.
+    The filter_complex approach also handles clips with slightly different time-bases
+    from the zoompan filter without any stutter or freeze at scene boundaries.
     """
     if len(clip_paths) == 1:
-        # Single clip — no crossfade needed
         _ffmpeg("-i", str(clip_paths[0]), "-c", "copy", str(output_path),
                 description="single clip passthrough")
         return output_path
 
-    log.info("Building xfade crossfade chain for %d clips (%.1fs fade)…", len(clip_paths), fade_duration)
+    log.info("Clean-concatenating %d scene clips with re-encode …", len(clip_paths))
 
-    # Get the duration of each clip so we can compute cumulative xfade offsets
-    def _get_duration(path: Path) -> float:
-        result = subprocess.run(
-            ["ffprobe", "-v", "quiet", "-show_entries", "format=duration",
-             "-of", "csv=p=0", str(path)],
-            capture_output=True, text=True, timeout=10
-        )
-        try:
-            return float(result.stdout.strip())
-        except (ValueError, AttributeError):
-            return 5.0
-
-    durations = [_get_duration(p) for p in clip_paths]
-
-    # Build the complex xfade filter chain:
-    # For N clips we need N-1 xfade operations chained sequentially.
-    # Each xfade offset = cumulative duration of all previous clips minus fade overlaps
     inputs = []
     for p in clip_paths:
         inputs += ["-i", str(p)]
 
-    filter_parts = []
-    prev_label = "[0:v]"
-    cumulative = 0.0
-    for i in range(1, len(clip_paths)):
-        cumulative += durations[i - 1] - fade_duration
-        offset = max(0.0, cumulative)
-        next_label = f"[xf{i}]" if i < len(clip_paths) - 1 else "[outv]"
-        filter_parts.append(
-            f"{prev_label}[{i}:v]xfade=transition=fade:duration={fade_duration:.3f}:offset={offset:.3f}{next_label}"
-        )
-        prev_label = f"[xf{i}]"
-
-    vf_complex = ";".join(filter_parts)
+    n = len(clip_paths)
+    # filter_complex: label each input video stream, concat all, output [outv]
+    input_labels = "".join(f"[{i}:v]" for i in range(n))
+    vf_complex = f"{input_labels}concat=n={n}:v=1:a=0[outv]"
 
     _ffmpeg(
         *inputs,
@@ -313,11 +276,15 @@ def crossfade_clips(clip_paths: list[Path], output_path: Path, fade_duration: fl
         "-c:v", "libx264",
         "-preset", "fast",
         "-crf", "23",
+        "-pix_fmt", "yuv420p",
         "-an",
         str(output_path),
-        description=f"crossfade {len(clip_paths)} clips with {fade_duration}s dissolve"
+        description=f"clean re-encode concat of {n} scene clips"
     )
     return output_path
+
+
+
 
 
 def concatenate_clips(clip_paths: list[Path], output_path: Path) -> Path:
@@ -542,12 +509,12 @@ def assemble_video(
     log.info("Step 1/5: Building %d scene clips …", len(voice_results))
     clip_paths = build_scene_clips(voice_results, visual_results, clips_dir)
 
-    # Step 2: Crossfade video clips (0.3s dissolve between each scene, with fallback)
-    log.info("Step 2/5: Applying crossfade transitions between scene clips …")
+    # Step 2: Concatenate scene video clips (clean re-encode, frame-accurate)
+    log.info("Step 2/5: Concatenating scene video clips with clean re-encode …")
     try:
-        crossfade_clips(clip_paths, raw_video_only, fade_duration=CROSSFADE_DURATION)
+        clean_concat_clips(clip_paths, raw_video_only)
     except Exception as exc:
-        log.warning("Crossfade failed (%s); falling back to direct concat", exc)
+        log.warning("Clean concat failed (%s); falling back to direct stream concat", exc)
         concatenate_clips(clip_paths, raw_video_only)
 
     # Step 2b: Create continuous master voice track and mux with video
