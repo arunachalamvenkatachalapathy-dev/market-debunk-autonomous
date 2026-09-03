@@ -29,7 +29,7 @@ def test_dedup_catches_case_and_hashtag_variants(tmp_path: Path, monkeypatch):
 
 
 def test_duration_gate_rejects_under_spec_video():
-    with pytest.raises(RuntimeError, match="outside the required"):
+    with pytest.raises(RuntimeError, match="outside the allowed"):
         validate_duration(26)
 
 
@@ -50,23 +50,49 @@ def test_visual_gate_rejects_identical_assets(tmp_path: Path, monkeypatch):
         )
 
 
-def test_script_gate_rejects_missing_priya_in_closing_scenes():
+def test_script_gate_requires_arjun_on_hook():
     scenes = []
     for scene_id in range(1, 13):
-        character = "Arjun"
         scenes.append(
             {
                 "scene_id": scene_id,
-                "narration": f"{character} studies the confusing portfolio move and slowly realizes the simple money lesson hidden inside today.",
+                "narration": f"You study the confusing market portfolio and realize the simple money lesson hidden inside today.",
                 "visual_prompt": (
-                    f"{character} reviews a blurred red portfolio chart on a phone at a compact desk, "
-                    "amber lamp against teal wall, over-shoulder full-bleed vertical frame"
+                    "A modern trading terminal with red candlestick chart, "
+                    "amber lamp against teal wall, macro full-bleed vertical frame"
                 ),
-                "duration_hint": 6.0,
+                "broll_keyword": "trading terminal chart",
+                "duration_hint": 4.2,
             }
         )
 
-    with pytest.raises(ValueError, match="Scene 11 visual_prompt must mention Priya"):
+    with pytest.raises(ValueError, match="Scene 1 visual_prompt must mention Arjun"):
+        ScriptPayload(
+            title="Why Smart Investors Still Lose",
+            description="A cinematic Market Debunk short explaining why a common investing habit quietly hurts returns.",
+            hashtags=["StockMarket", "InvestingIndia", "MarketDebunk"],
+            scenes=scenes,
+        )
+
+
+def test_script_gate_rejects_priya():
+    scenes = []
+    for scene_id in range(1, 13):
+        char = "Arjun" if scene_id == 1 else "Priya"
+        scenes.append(
+            {
+                "scene_id": scene_id,
+                "narration": f"You study the confusing market move and slowly realize the simple money lesson hidden inside today.",
+                "visual_prompt": (
+                    f"{char} reviews a blurred red portfolio chart on a phone at a compact desk, "
+                    "amber lamp against teal wall, full-bleed vertical frame"
+                ),
+                "broll_keyword": "trading terminal chart",
+                "duration_hint": 4.2,
+            }
+        )
+
+    with pytest.raises(ValueError, match="Priya is removed"):
         ScriptPayload(
             title="Why Smart Investors Still Lose",
             description="A cinematic Market Debunk short explaining why a common investing habit quietly hurts returns.",

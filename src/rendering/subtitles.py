@@ -98,15 +98,14 @@ def _fmt_time(seconds: float) -> str:
 def _build_dialogue_lines(
     word_timings: list[dict],
     scene_audio_offset: float = 0.0,
-    max_words_per_line: int = 5,
+    max_words_per_line: int = 4,
 ) -> list[str]:
     """
     Groups word timings into subtitle chunks and creates dynamic word-by-word highlighting.
     Creates multiple ASS Dialogue lines for the same chunk, shifting the highlight color
     to the actively spoken word.
 
-    Uses 5 words per group (up from 3) so captions stay on screen long enough to read
-    naturally without feeling choppy.
+    Uses 4 words per group for fast-paced, punchy, high-retention short-form pacing.
     """
     if not word_timings:
         return []
@@ -117,7 +116,8 @@ def _build_dialogue_lines(
         for i in range(0, len(word_timings), max_words_per_line)
     ]
 
-    highlight_color = r"{\c&H55A8E8&\fscx112\fscy112\t(0,120,\fscx100\fscy100)}"
+    # Vibrant viral Shorts yellow highlight with punch-in scale pop
+    highlight_color = r"{\c&H00FFFF&\fscx115\fscy115\t(0,100,\fscx100\fscy100)}"
     dim_color = r"{\c&HFFFFFF&}"
     reset_color = r"{\rDefault}"
 

@@ -75,26 +75,29 @@ flowchart TD
   * Exactly 12 scenes in strict order.
   * Word count bounded to 100–115 words total (~50s target).
   * Enforces `you`/`your` direct address in at least 8 scenes.
-  * Enforces character presence: Arjun in scenes 1–10, Priya in scenes 11–12.
-* Automated repair pass: Retries and self-repairs if schema or character constraints fail.
+  * **Visual Variety & Casting:** Enforces Arjun as host on Scene 1 (Hook) and Scene 12 (Closer). Scenes 2–11 are strictly contextual B-roll objects, screens, documents, and environments (NO repetitive portraits; Priya removed to eliminate male-voice/female-face dissonance).
+  * Automatically assigns `broll_keyword` to each scene for stock video search.
+* Automated repair pass: Retries and self-repairs if schema or constraints fail.
 
 ### 3. `VoiceAgent` (`src/agents/voice_agent.py`)
 * Synthesizes broadcast-quality audio via Google Cloud Text-to-Speech (`en-IN-Chirp3-HD-Fenrir`).
+* **Natural Prosody & Timbre:** Pitch normalized to `0.0st` (no vocoder distortion) and speaking rate set to energetic `1.05x`.
 * **Zero Artificial SSML Breaks:** Relies on neural prosody, eliminating unnatural pauses mid-sentence.
-* **Dual-Ended Silence Trimming with Breath Cushion:** Uses FFmpeg `silenceremove` (leading + trailing) combined with `apad=pad_dur=0.08`. Eliminates dead inter-scene gaps while guaranteeing trailing consonants are never clipped.
+* **Dual-Ended Silence Trimming with Breath Cushion:** Uses FFmpeg `silenceremove` combined with `apad=pad_dur=0.08`. Eliminates dead inter-scene gaps while guaranteeing trailing consonants are never clipped.
 * Generates character-weighted word timing metadata for dynamic subtitle styling.
 
 ### 4. `VisualAgent` (`src/agents/visual_agent.py`)
-* Generates 1080x1920 vertical cinematic images via Google Vertex AI Imagen 3 (`imagegeneration@006`).
-* Automatically injects the **Character Bible** to maintain visual facial, wardrobe, and aesthetic consistency across Arjun and Priya.
-* Enforces negative prompting against text overlays, watermarks, cartoons, and distorted anatomy.
+* **Hybrid B-Roll & Imagen Engine:**
+  * **Scenes 2–11 (Contextual B-Roll):** Queries Pexels Video API using `broll_keyword` to download 1080x1920 vertical HD stock video (trading floors, credit card terminals, cash counting, ATMs, crowds).
+  * **Fallback & Macro Objects:** If video is unavailable, generates cinematic macro object stills (credit card, bank passbook, dropping candlestick chart) via Google Vertex AI Imagen 3 with strict negative prompts against human faces.
+  * **Scenes 1 & 12 (The Host):** Generates photoreal portrait stills of Arjun with split amber-teal lighting (#E8A855 / #0D2A32).
 
 ### 5. `Assembler` (`src/rendering/assembler.py`)
-* **Dynamic Animation:** Applies subtle Ken Burns pan/zoom variations per scene (`zoompan`).
-* **Clean Re-encode Concatenation:** Concatenates scene clips via FFmpeg `filter_complex concat` with re-encoding, eliminating B-frame boundary freeze and container timing jitter.
+* **Frame-Accurate Video Concat:** Re-encodes scene clips via FFmpeg `filter_complex concat`, eliminating B-frame boundary freezing and container timing jitter.
+* **Dynamic SFX Engine:** Ingests `assets/audio/sfx/sfx_whoosh.webm` to lay down subtle, crisp whoosh transitions on every scene cut.
 * **Master Voice Track:** Decodes scene audio to uncompressed 48kHz PCM WAVs before concatenation, eliminating MP3 LAME encoder padding micro-gaps.
-* **Bebas Neue Subtitle Burning:** Hard-burns stylized ASS subtitles using the bundled `Bebas Neue` typeface with dynamic word-by-word highlight emphasis.
-* **Audio Mixing & Loudness:** Layers background music with sidechain ducking under speech and normalizes audio to **-14 LUFS** (YouTube standard).
+* **Viral Bebas Neue Subtitle Burn-in:** Burns word-by-word highlighted captions in Bebas Neue with vibrant yellow active highlights (`&H00FFFF&`).
+* **Sidechain BGM Ducking & Loudness:** Loops curated royalty-free BGM, ducking it under speech and normalizing to **-14 LUFS** (YouTube standard).
 
 ### 6. `QualityGate` (`src/agents/quality_gate.py`)
 * Pre-release automated verification checks:

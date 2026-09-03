@@ -25,7 +25,7 @@ If I look like a bank ad, I have already failed.
 I talk to one person. You. Not "investors". Not "folks". You.
 I talk like it is 11:40 pm and I shouldn't be telling you this.
 I never start with a definition. I never say "in this video".
-I hide the textbook name until the end, then I hand it to Priya.
+I hook you with the truth, show the cold hard visual evidence, and give you the rule before you swipe.
 
 Half my face is warm. The other half is in teal dark.
 That is not a lighting trick. That is the point.

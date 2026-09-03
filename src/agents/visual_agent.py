@@ -2,7 +2,9 @@ import os
 import hashlib
 import shutil
 import time
+import urllib.parse
 from pathlib import Path
+import requests
 
 from google import genai
 from google.genai import errors, types
@@ -36,20 +38,20 @@ _ARJUN_BIBLE = (
     "falling over the forehead, thick dark eyebrows, warm brown heavy-lidded eyes, "
     "defined jaw, default expression is no smile, intense and slightly tired. "
     "Wearing a charcoal linen shirt, top two buttons open, no tie, no glasses, "
-    "no gold chain. Optional thin stainless-steel watch on the left wrist if hands "
-    "are visible. Photoreal cinematic, not 3D cartoon, not Pixar, not illustration, "
+    "no gold chain. Photoreal cinematic, not 3D cartoon, not Pixar, not illustration, "
     "not plastic skin, not a smiling presenter."
 )
 
-_PRIYA_BIBLE = (
-    "Indian woman, 33, wheatish-brown skin, dark hair in a low slightly messy bun "
-    "with a few loose strands, no bindi, sharp dark brows, warm brown eyes, calm "
-    "lethal default expression with no polite smile. Wearing a deep charcoal silk "
-    "mandarin-collar blouse, one thin gold pendant, small gold hoops. Photoreal "
-    "cinematic, not 3D cartoon, not Pixar, not plastic skin."
+_OBJECT_STYLE_TAG = (
+    "photoreal cinematic macro still, 50mm lens, shallow depth of field, visible film grain, "
+    "full-bleed 1080x1920 vertical 9:16 composition, edge-to-edge filled frame, "
+    "no letterbox bars, no pillarbox bars, no unused black canvas. "
+    "LIGHTING: dramatic split lighting, warm amber key (#E8A855) and deep teal shadow (#0D2A32). "
+    "Subject is a detailed physical finance object, contract document, electronic terminal, or urban market scene. "
+    "NO PEOPLE, NO FACES, NO HUMAN BEINGS, NO BODY PARTS."
 )
 
-_NEGATIVE_PROMPT = (
+_NEGATIVE_PROMPT_PORTRAIT = (
     "NEGATIVE PROMPT: 3D cartoon, Pixar, Disney, Unreal Engine character, plastic "
     "skin, smooth doll face, toothy smile, customer-service smile, raised friendly "
     "eyebrows, powder-blue shirt, white office shirt, suit and tie, world map, "
@@ -57,42 +59,43 @@ _NEGATIVE_PROMPT = (
     "illustration, anime, comic, readable text, words, numbers, logos, watermarks, "
     "brand names, newspaper masthead, phone UI text, labelled charts, black "
     "letterbox bars, empty black canvas, stock photo, celebrity likeness, different "
-    "face, different hair, different outfit, glasses on Arjun, gold chain on Arjun, "
-    "bindi on Priya, waving, presenter hands, pointing at floating text, bright "
-    "office, daylight window, colourful infographic"
+    "face, different hair, glasses on Arjun, gold chain on Arjun, waving, presenter hands"
+)
+
+_NEGATIVE_PROMPT_OBJECT = (
+    "NEGATIVE PROMPT: human, person, man, woman, face, portrait, people, crowd of faces, "
+    "hands, body, 3D cartoon, Pixar, Disney, plastic skin, readable text, legible typography, "
+    "watermarks, brand logos, newspaper masthead, black letterbox bars, empty canvas, "
+    "colourful infographic, flat illustration"
 )
 
 
 def _build_enhanced_prompt(raw_prompt: str, scene_id: int) -> str:
     """
-    Enforces the consistent visual bible on every scene prompt.
-    - Scenes 1-10: Arjun only
-    - Scenes 11-12: Arjun or Priya (if Priya mentioned)
+    Enforces the consistent visual bible on every scene prompt:
+    - Scene 1 & 12: Arjun (Host hook and closer)
+    - Scenes 2-11: 100% Contextual B-Roll Macro Object/Scene (NO PEOPLE)
     """
     prompt = raw_prompt.strip()
     if not prompt:
         raise ValueError(f"Scene {scene_id} visual prompt is empty.")
 
-    priya_keywords = ["priya", "wife", "her ", "she ", "woman"]
-    needs_priya = any(kw in prompt.lower() for kw in priya_keywords)
-    
-    char_context = _ARJUN_BIBLE
-    character_rule = "This scene must show Arjun clearly and consistently."
-    if needs_priya and scene_id >= 10:
-        char_context = _PRIYA_BIBLE
-        character_rule = "This scene must show Priya clearly and consistently."
-
-    scene_directive = (
-        f"Scene {scene_id} of a 12-scene Market Debunk Short. "
-        "Create a premium cinematic thriller still, not a poster, not a slide, not a cartoon. "
-        "No readable text anywhere; financial information must appear as abstract charts, "
-        "blurred dashboards, arrows, colored bars, or document shapes."
-    )
-
-    enhanced = (
-        f"{scene_directive} {character_rule} Character bible: {char_context} "
-        f"Scene direction: {prompt} Style: {_STYLE_TAG} {_NEGATIVE_PROMPT}"
-    )
+    if scene_id in (1, 12):
+        character_rule = "This scene must show Arjun clearly and consistently looking directly into the camera."
+        enhanced = (
+            f"Scene {scene_id} of a 12-scene Market Debunk Short. "
+            f"Create a premium cinematic thriller portrait still. "
+            f"{character_rule} Character bible: {_ARJUN_BIBLE} "
+            f"Scene direction: {prompt} Style: {_STYLE_TAG} {_NEGATIVE_PROMPT_PORTRAIT}"
+        )
+    else:
+        # Contextual B-roll scene: strictly objects, charts, screens, documents, or environments
+        enhanced = (
+            f"Scene {scene_id} of a 12-scene Market Debunk Short. "
+            f"Create a photorealistic cinematic macro B-roll still of finance evidence. "
+            f"No human faces or people. Scene direction: {prompt} "
+            f"Style: {_OBJECT_STYLE_TAG} {_NEGATIVE_PROMPT_OBJECT}"
+        )
 
     log.info("Scene %d enhanced prompt: '%s...'", scene_id, enhanced[:120])
     return enhanced
@@ -167,33 +170,90 @@ def generate_image(prompt: str, output_path: Path, scene_id: int = 0) -> bool:
         raise exc
 
 
+def fetch_pexels_broll(query: str, pexels_key: str, output_path: Path) -> bool:
+    """
+    Search Pexels Video API for high-retention 1080x1920 vertical finance B-roll footage.
+    """
+    if not pexels_key or not query:
+        return False
+    try:
+        headers = {"Authorization": pexels_key}
+        clean_q = urllib.parse.quote(query.strip())
+        url = f"https://api.pexels.com/videos/search?query={clean_q}&per_page=6&orientation=portrait"
+        res = requests.get(url, headers=headers, timeout=12)
+        if res.status_code == 200:
+            videos = res.json().get("videos", [])
+            for v in videos:
+                for vf in v.get("video_files", []):
+                    w = vf.get("width", 0)
+                    h = vf.get("height", 0)
+                    link = vf.get("link")
+                    # Must be portrait/vertical orientation
+                    if h > w and link:
+                        r = requests.get(link, stream=True, timeout=25)
+                        if r.status_code == 200:
+                            output_path.parent.mkdir(parents=True, exist_ok=True)
+                            with open(output_path, "wb") as f:
+                                for chunk in r.iter_content(chunk_size=1024 * 1024):
+                                    if chunk:
+                                        f.write(chunk)
+                            if output_path.exists() and output_path.stat().st_size > 50000:
+                                log.info(" ✓ Pexels vertical video downloaded for '%s' (%d KB)", query, output_path.stat().st_size // 1024)
+                                return True
+    except Exception as e:
+        log.warning("Pexels video fetch failed for '%s': %s", query, e)
+    return False
+
+
 def source_all_visuals(scenes: list, output_dir: Path) -> list:
     if isinstance(output_dir, str):
         output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     visual_paths = []
+    pexels_key = settings.PEXELS_API_KEY
 
     for scene in scenes:
         scene_id = scene["scene_id"]
         raw_prompt = scene.get("visual_prompt", "")
+        broll_keyword = scene.get("broll_keyword", "").strip()
 
-        filename = f"scene_{scene_id}.jpg"
-        filepath = output_dir / filename
+        # Strategy:
+        # Scene 1: Arjun portrait (Hook) -> Vertex AI Imagen
+        # Scene 12: Arjun portrait (Closer) -> Vertex AI Imagen
+        # Scenes 2-11: Try Pexels vertical stock video first; fallback to Imagen Macro Object Still
+        sourced = False
 
-        success = generate_image(raw_prompt, filepath, scene_id)
+        if 2 <= scene_id <= 11 and pexels_key and broll_keyword:
+            video_filename = f"scene_{scene_id}.mp4"
+            video_filepath = output_dir / video_filename
+            log.info("Searching Pexels video for scene %d | keyword: '%s'...", scene_id, broll_keyword)
+            if fetch_pexels_broll(broll_keyword, pexels_key, video_filepath):
+                visual_paths.append({
+                    "scene_id": scene_id,
+                    "asset_type": "video",
+                    "asset_path": str(video_filepath.resolve()),
+                    "source": "pexels"
+                })
+                log.info(" ✓ Scene %d visual sourced | type: video (Pexels)", scene_id)
+                sourced = True
 
-        if success:
-            visual_paths.append({
-                "scene_id": scene_id,
-                "asset_type": "image",
-                "asset_path": str(filepath.resolve()),
-                "source": "vertex_ai"
-            })
-            log.info(" ✓ Scene %d visual sourced | type: image", scene_id)
-            delay = settings.VISUAL_GENERATION_DELAY_SECONDS
-            if delay > 0:
-                time.sleep(delay)
-        else:
-            raise RuntimeError(f"Failed to generate visual for scene {scene_id}.")
+        if not sourced:
+            # Sourced via Vertex AI Imagen (Portraits for 1 & 12, Macro Objects for 2-11)
+            img_filename = f"scene_{scene_id}.jpg"
+            img_filepath = output_dir / img_filename
+            success = generate_image(raw_prompt, img_filepath, scene_id)
+            if success:
+                visual_paths.append({
+                    "scene_id": scene_id,
+                    "asset_type": "image",
+                    "asset_path": str(img_filepath.resolve()),
+                    "source": "vertex_ai"
+                })
+                log.info(" ✓ Scene %d visual sourced | type: image (Vertex AI)", scene_id)
+                delay = settings.VISUAL_GENERATION_DELAY_SECONDS
+                if delay > 0:
+                    time.sleep(delay)
+            else:
+                raise RuntimeError(f"Failed to generate visual for scene {scene_id}.")
 
     return visual_paths

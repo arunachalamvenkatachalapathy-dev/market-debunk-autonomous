@@ -88,10 +88,10 @@ class Settings:
     BGM_MIN_BYTES: int = int(_get("BGM_MIN_BYTES", default="1000000"))
 
     # ── Voice Settings ─────────────────────────────────────────────
-    # Look F: Fenrir is deep/cinematic. Orus was the robotic newsreader.
+    # Natural human prosody: pitch 0.0 avoids vocoder distortion, 1.05x speaking rate ensures crisp Shorts momentum
     VOICE_NAME: str = _get("VOICE_NAME", default="en-IN-Chirp3-HD-Fenrir") or "en-IN-Chirp3-HD-Fenrir"
-    VOICE_SPEAKING_RATE: float = float(_get("VOICE_SPEAKING_RATE", default="1.02"))
-    VOICE_PITCH: float = float(_get("VOICE_PITCH", default="-2.0"))
+    VOICE_SPEAKING_RATE: float = float(_get("VOICE_SPEAKING_RATE", default="1.05"))
+    VOICE_PITCH: float = float(_get("VOICE_PITCH", default="0.0"))
 
     # ── Deduplication ─────────────────────────────────────────────
     DEDUP_THRESHOLD: float = float(_get("DEDUP_THRESHOLD", default="0.75"))

@@ -22,6 +22,7 @@ import subprocess
 import sys
 import shutil
 import time
+import wave
 from pathlib import Path
 from typing import Optional
 
@@ -226,6 +227,78 @@ def concatenate_voice_audio(voice_results: list[dict], output_path: Path) -> Pat
         description="concatenate decoded WAV voice tracks into master voice"
     )
     return output_path
+
+
+def build_sfx_track(
+    voice_results: list[dict],
+    total_duration: float,
+    output_path: Path,
+) -> Optional[Path]:
+    """
+    Build a continuous 48kHz stereo WAV track containing subtle whooshes on scene cuts.
+    Returns path to sfx WAV file or None if SFX assets are missing.
+    """
+    whoosh_src = settings.ASSETS_DIR / "audio" / "sfx" / "sfx_whoosh.webm"
+    if not whoosh_src.is_file():
+        whoosh_src = settings.ASSETS_DIR / "audio" / "whoosh.mp3"
+    if not whoosh_src.is_file():
+        log.warning("SFX whoosh asset not found — skipping SFX track generation")
+        return None
+
+    temp_whoosh = output_path.parent / "temp_whoosh.wav"
+    try:
+        # Decode whoosh to 48kHz stereo 16-bit PCM, volume attenuated (-18dB)
+        _ffmpeg(
+            "-i", str(whoosh_src),
+            "-t", "0.5",
+            "-af", "volume=0.20",
+            "-ar", "48000",
+            "-ac", "2",
+            "-c:a", "pcm_s16le",
+            str(temp_whoosh),
+            description="decode whoosh sfx"
+        )
+
+        with wave.open(str(temp_whoosh), "rb") as wf:
+            whoosh_frames = wf.getnframes()
+            whoosh_bytes = wf.readframes(whoosh_frames)
+
+        # 48000 samples/sec * 2 channels * 2 bytes/sample = 192000 bytes/sec
+        bytes_per_sec = 48000 * 2 * 2
+        total_bytes = int(total_duration * bytes_per_sec) + bytes_per_sec
+        sfx_buffer = bytearray(total_bytes)
+
+        # Place whoosh at each scene transition (scenes 2, 3, 4, ... 12)
+        sorted_voices = sorted(voice_results, key=lambda r: r["scene_id"])
+        current_time = 0.0
+        for i, voice in enumerate(sorted_voices):
+            dur = voice["duration"]
+            if i > 0:  # Start of scene 2 onwards (the cut)
+                byte_offset = int(current_time * bytes_per_sec)
+                # Word-aligned 4-byte sample offset
+                byte_offset = (byte_offset // 4) * 4
+                # Mix whoosh bytes into buffer
+                for j in range(0, min(len(whoosh_bytes), len(sfx_buffer) - byte_offset), 2):
+                    orig_val = int.from_bytes(sfx_buffer[byte_offset + j : byte_offset + j + 2], "little", signed=True)
+                    whoosh_val = int.from_bytes(whoosh_bytes[j : j + 2], "little", signed=True)
+                    mixed_val = max(-32768, min(32767, orig_val + whoosh_val))
+                    sfx_buffer[byte_offset + j : byte_offset + j + 2] = mixed_val.to_bytes(2, "little", signed=True)
+            current_time += dur
+
+        with wave.open(str(output_path), "wb") as out_wf:
+            out_wf.setnchannels(2)
+            out_wf.setsampwidth(2)
+            out_wf.setframerate(48000)
+            out_wf.writeframes(sfx_buffer)
+
+        log.info(" ✓ Master SFX track built successfully: %s (%.2fs)", output_path.name, total_duration)
+        return output_path
+    except Exception as e:
+        log.warning("Failed to build SFX track (%s) — proceeding without SFX", e)
+        return None
+    finally:
+        if temp_whoosh.exists():
+            temp_whoosh.unlink()
 
 
 def mux_video_and_audio(video_path: Path, audio_path: Path, output_path: Path) -> Path:
@@ -517,10 +590,31 @@ def assemble_video(
         log.warning("Clean concat failed (%s); falling back to direct stream concat", exc)
         concatenate_clips(clip_paths, raw_video_only)
 
-    # Step 2b: Create continuous master voice track and mux with video
-    log.info("Step 2b/5: Creating unified master voice track …")
+    # Step 2b: Create continuous master voice track and dynamic SFX track, then mux with video
+    log.info("Step 2b/5: Creating unified master voice track & dynamic SFX track …")
     concatenate_voice_audio(voice_results, master_voice_wav)
-    mux_video_and_audio(raw_video_only, master_voice_wav, raw_video)
+
+    master_sfx_wav = run_dir / "master_sfx.wav"
+    total_voice_duration = get_audio_duration(master_voice_wav)
+    sfx_path = build_sfx_track(voice_results, total_voice_duration, master_sfx_wav)
+
+    if sfx_path and sfx_path.is_file():
+        mixed_voice_sfx = run_dir / "voice_sfx_mix.wav"
+        try:
+            _ffmpeg(
+                "-i", str(master_voice_wav),
+                "-i", str(sfx_path),
+                "-filter_complex", "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=0,aformat=sample_fmts=s16:sample_rates=48000:channel_layouts=stereo",
+                "-c:a", "pcm_s16le",
+                str(mixed_voice_sfx),
+                description="mix master voice with sfx track"
+            )
+            mux_video_and_audio(raw_video_only, mixed_voice_sfx, raw_video)
+        except Exception as e:
+            log.warning("Voice/SFX mix failed (%s); falling back to pure voice track", e)
+            mux_video_and_audio(raw_video_only, master_voice_wav, raw_video)
+    else:
+        mux_video_and_audio(raw_video_only, master_voice_wav, raw_video)
 
     # Step 3: Burn subtitles
     log.info("Step 3/5: Burning subtitles …")
