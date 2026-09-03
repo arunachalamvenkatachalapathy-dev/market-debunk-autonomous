@@ -251,6 +251,7 @@ def _extract_json(text: str) -> dict:
 
 _GEMINI_MODELS = [
     "gemini-2.5-flash",
+    "gemini-1.5-flash",
     "gemini-2.0-flash",
     "gemini-2.5-pro",
 ]
@@ -276,20 +277,20 @@ def _call_gemma(user_prompt: str) -> str:
 
 def _template_script(thesis: str) -> ScriptPayload:
     """Guaranteed schema-valid emergency script when every LLM is unavailable."""
-    clean_thesis = " ".join(thesis.split())[:45].strip()
+    clean_thesis = " ".join(thesis.split())[:35].strip()
     narrations = [
-        f"Wait—{clean_thesis} is not what it looks like.",
-        "The market headline sounds alarming, but headlines hide the truth.",
-        "Most retail investors panic and sell at the worst moment.",
-        "That panic is exactly what institutional players count on.",
-        "A sudden price drop never proves that an asset is broken.",
-        "Look at the underlying volume before calling it a crash.",
-        "Ask who benefits from pushing prices down right now.",
-        "Big players quietly accumulate while everyone else runs away.",
-        "This classic market pattern is known as a Bear Trap.",
-        "Smart money buys the exact dip that panic created.",
-        "Always demand hard data before making an emotional trade.",
-        "Protect your hard-earned capital. Check the facts first.",
+        f"Wait—you think {clean_thesis} is real, but it is not.",
+        "You saw that scary headline, but headlines deceive you.",
+        "When prices dip, you might panic and sell immediately.",
+        "That exact fear you feel is what institutions expect.",
+        "Before you sell your assets, verify if anything broke.",
+        "Check your volume charts before you call a crash.",
+        "Ask yourself who profits from prices dropping before you.",
+        "Big funds quietly accumulate while you run in fear.",
+        "What you see is a classic Bear Trap.",
+        "Smart money buys the dip your panic just created.",
+        "Demand data before you let emotions drive your trade.",
+        "Protect your hard-earned money and check facts before investing.",
     ]
     prompts = [
         "Arjun looking directly into the camera with an intense, serious expression, split amber-teal lighting, dark textured background, extreme close-up, full-bleed vertical frame",
@@ -413,17 +414,32 @@ Before answering, internally check that:
             raw = _call_gemini(user_prompt, model)
             log.debug("Raw response: %d chars", len(raw))
 
+            data = None
             try:
                 data = _extract_json(raw)
             except (json.JSONDecodeError, ValueError) as parse_error:
-                log.warning("Model returned malformed JSON; requesting one repair pass: %s", parse_error)
+                log.warning("Model returned malformed JSON; requesting repair pass: %s", parse_error)
+                try:
+                    repaired_raw = _repair_json(raw, parse_error, model)
+                    data = _extract_json(repaired_raw)
+                except Exception as repair_err:
+                    log.warning("JSON repair pass failed: %s", repair_err)
+                    continue
+
+            if not data:
+                continue
+
             try:
                 script = ScriptPayload(**data)
             except Exception as val_error:
                 log.warning("Script failed validation (%s); attempting repair pass", val_error)
-                repaired_raw = _repair_json(raw, val_error, model)
-                data = _extract_json(repaired_raw)
-                script = ScriptPayload(**data)
+                try:
+                    repaired_raw = _repair_json(raw, val_error, model)
+                    data = _extract_json(repaired_raw)
+                    script = ScriptPayload(**data)
+                except Exception as val_repair_err:
+                    log.warning("Validation repair pass failed: %s", val_repair_err)
+                    continue
 
             total_words = sum(len(s.narration.split()) for s in script.scenes)
             log.info(
