@@ -66,7 +66,7 @@ def _ass_header(
         f"PlayResY: {video_height}\n"
         "ScaledBorderAndShadow: yes\n"
         "YCbCr Matrix: TV.709\n"
-        "WrapStyle: 2\n"
+        "WrapStyle: 0\n"
         "\n"
         "[V4+ Styles]\n"
         "Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\n"

@@ -349,7 +349,7 @@ CRITICAL RULES:
 2. Exactly 12 scenes in the scenes array (scene_id 1 to 12).
 3. Ensure total narration word count across all 12 scenes is 95-115 words (~8-10 words per scene, 6-16 words per scene).
 4. Scenes 1-10 visual_prompt must mention Arjun. Scenes 11-12 visual_prompt must mention Priya.
-5. Address the viewer directly ("you"), with an urgent viral hook in scenes 1-2 and a cohesive story.
+5. Address the viewer directly ("you"), with an urgent viral hook in scenes 1-2 and a cohesive story. Use "you" or "your" in at least 8 scenes.
 
 ATTEMPTED RESPONSE:
 {raw_response}

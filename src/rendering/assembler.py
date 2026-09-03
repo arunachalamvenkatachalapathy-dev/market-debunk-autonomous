@@ -222,7 +222,7 @@ def concatenate_voice_audio(voice_results: list[dict], output_path: Path) -> Pat
     concat_list = output_path.parent / "voice_concat_list.txt"
     with open(concat_list, "w", encoding="utf-8") as f:
         for wav_path in wav_paths:
-            f.write(f"file '{wav_path}'\n")
+            f.write(f"file '{wav_path.resolve().as_posix()}'\n")
 
     _ffmpeg(
         "-f", "concat",
@@ -325,7 +325,7 @@ def concatenate_clips(clip_paths: list[Path], output_path: Path) -> Path:
     concat_list = output_path.parent / "concat_list.txt"
     with open(concat_list, "w", encoding="utf-8") as f:
         for clip in clip_paths:
-            f.write(f"file '{clip.resolve()}'\n")
+            f.write(f"file '{clip.resolve().as_posix()}'\n")
 
     _ffmpeg(
         "-f", "concat",
