@@ -212,7 +212,10 @@ def fetch_pexels_broll(query: str, pexels_key: str, output_path: Path, used_ids:
     return False
 
 
-def source_all_visuals(scenes: list, output_dir: Path) -> list:
+from src.agents import broll_agent
+
+
+def source_all_visuals(scenes: list, output_dir: Path, story_seed: Optional[dict] = None) -> list:
     if isinstance(output_dir, str):
         output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -223,30 +226,35 @@ def source_all_visuals(scenes: list, output_dir: Path) -> list:
     for scene in scenes:
         scene_id = scene["scene_id"]
         raw_prompt = scene.get("visual_prompt", "")
-        broll_keyword = scene.get("broll_keyword", "").strip()
-
-        # Strategy:
-        # Scenes 1-11: Try Pexels vertical stock video first (cold proof hook for scene 1, contextual B-roll for 2-11);
-        #              fallback to Imagen Macro Object Still
-        # Scene 12: Actionable closer -> Imagen or Pexels
         sourced = False
 
-        if 1 <= scene_id <= 11 and pexels_key and broll_keyword:
+        # Scenes 1-11: Use dedicated BRollAgent to find fresh, never-before-used vertical footage
+        if 1 <= scene_id <= 11 and pexels_key:
             video_filename = f"scene_{scene_id}.mp4"
             video_filepath = output_dir / video_filename
-            log.info("Searching Pexels video for scene %d | keyword: '%s'...", scene_id, broll_keyword)
-            if fetch_pexels_broll(broll_keyword, pexels_key, video_filepath, used_ids=used_video_ids):
+            queries = broll_agent.generate_scene_queries(scene, story_seed=story_seed)
+            log.info("Scene %d dynamic B-roll query options: %s", scene_id, queries)
+
+            broll_result = broll_agent.fetch_fresh_pexels_broll(
+                queries=queries,
+                pexels_key=pexels_key,
+                output_path=video_filepath,
+                session_used_ids=used_video_ids,
+            )
+            if broll_result:
                 visual_paths.append({
                     "scene_id": scene_id,
                     "asset_type": "video",
                     "asset_path": str(video_filepath.resolve()),
-                    "source": "pexels"
+                    "source": "pexels",
+                    "video_id": broll_result.get("video_id"),
+                    "query": broll_result.get("query"),
                 })
-                log.info(" ✓ Scene %d visual sourced | type: video (Pexels)", scene_id)
+                log.info(" ✓ Scene %d fresh B-roll sourced (Pexels ID %s)", scene_id, broll_result.get("video_id"))
                 sourced = True
 
         if not sourced:
-            # Sourced via Vertex AI Imagen (Portraits for 1 & 12, Macro Objects for 2-11)
+            # Fallback or Scene 12: High-fidelity Vertex AI Imagen still
             img_filename = f"scene_{scene_id}.jpg"
             img_filepath = output_dir / img_filename
             success = generate_image(raw_prompt, img_filepath, scene_id)

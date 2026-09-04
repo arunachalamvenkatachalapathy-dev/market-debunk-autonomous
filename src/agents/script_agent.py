@@ -80,14 +80,31 @@ class ScriptPayload(BaseModel):
         scene_ids = [scene.scene_id for scene in v]
         if scene_ids != list(range(1, 13)):
             raise ValueError(f"Scene IDs must be exactly 1 through 12 in order; got {scene_ids}.")
-        # Scene 1 must show Arjun (the host face-cam hook)
-        if "arjun" not in v[0].visual_prompt.lower():
-            raise ValueError("Scene 1 visual_prompt must mention Arjun as the hook host.")
+        # Scene 1 hook: allows cold visual proof (chart, screen, alert) or Arjun host hook
         # Scenes 2 to 11 must be contextual B-roll / objects / environment, NOT Priya
         for scene in v[1:11]:
             if "priya" in scene.visual_prompt.lower():
                 raise ValueError(f"Scene {scene.scene_id} mentions Priya. Priya is removed; use contextual B-roll objects.")
         return v
+
+    @model_validator(mode="after")
+    def enforce_spoken_comment_cta(self):
+        """
+        Guarantees that Scene 12 voiceover explicitly speaks the comment CTA aloud.
+        Ensures Google TTS voices 'Comment GUIDE below' and subtitles display it.
+        """
+        scene_12 = self.scenes[-1]
+        narration = scene_12.narration.strip()
+        has_cta = any(phrase in narration.lower() for phrase in ["comment 'guide'", "comment guide", "comment below"])
+        if not has_cta:
+            cta_phrase = "Comment 'GUIDE' below and I'll send you the complete playbook."
+            sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", narration) if s.strip()]
+            if len(sentences) > 1 and len(narration.split()) > 10:
+                scene_12.narration = f"{sentences[0]} {cta_phrase}"
+            else:
+                scene_12.narration = f"{narration.rstrip('.')} — {cta_phrase}"
+            log.info("✓ Auto-enforced spoken comment CTA in Scene 12 narration: '%s'", scene_12.narration)
+        return self
 
     @model_validator(mode="after")
     def check_narration_pacing(self):
@@ -97,6 +114,9 @@ class ScriptPayload(BaseModel):
             # Auto-trim excess words from long scenes rather than failing fatally
             diff = total_words - 140
             for s in reversed(self.scenes):
+                # Don't trim the Scene 12 CTA
+                if s.scene_id == 12:
+                    continue
                 words = s.narration.split()
                 if len(words) > 10 and diff > 0:
                     trim = min(len(words) - 9, diff)
@@ -172,10 +192,10 @@ SCENES 2 THROUGH 11: 100% CONTEXTUAL B-ROLL & OBJECTS (NO PEOPLE/PORTRAITS!):
     - ATM screen with an unexpected fee deduction alert
   • For every scene, provide a "broll_keyword": 2-3 English search words for vertical 4K stock video (e.g. "credit card payment", "stock chart drop", "counting money", "shopping mall", "atm machine").
 
-SCENE 12 (THE CLOSER & COMMENT ENGAGEMENT TRIGGER):
+SCENE 12 (THE CLOSER & SPOKEN COMMENT ENGAGEMENT TRIGGER):
   • Delivers the single actionable takeaway rule directly to "you".
-  • MUST END with an irresistible comment engagement call-to-action (e.g., "Comment 'GUIDE' below and I'll send you the full risk playbook", "Comment 'TRAP' below for the 3-step checklist", "Drop your stock in the comments to see if you're exposed").
-  • In vertical video algorithms (YouTube/Instagram), comments and saves trigger viral distribution.
+  • MUST END WITH THE EXACT SPOKEN PHRASE: "Comment 'GUIDE' below and I'll send you the complete playbook."
+  • This voiceover CTA is voiced aloud by TTS and triggers viral comment-section ranking in the 2026 algorithm.
 
 NARRATION STYLE (CRITICAL: CONTINUOUS STORYTELLING — NEVER READ A LIST OF FACTS):
   • You are telling a gripping financial story DIRECTLY TO THE VIEWER ("you").
@@ -190,7 +210,7 @@ NARRATION STYLE (CRITICAL: CONTINUOUS STORYTELLING — NEVER READ A LIST OF FACT
   • The viewer is the protagonist: use "you" and "your" in AT LEAST 8 of the 12 scenes.
   • THE HOOK (Scenes 1-2): Must stop the scroll in under 2 seconds. A vivid, personal event or shocking realization.
   • STORY FLOW (Scenes 3-10): The story unfolds organically — the illusion, the hidden trap, the silent loss, the realization.
-  • CLIMAX & ADVICE (Scenes 11-12): Reveal the concept name and deliver the one sharp rule directly to you, ending with the comment trigger.
+  • CLIMAX & ADVICE (Scenes 11-12): Reveal the concept name and deliver the one sharp rule directly to you, ending with the spoken comment trigger.
   • Write 100-115 narration words total across all 12 scenes (6-16 words per scene).
   • Banned: generic disclaimers, "not financial advice", "let's dive in", "subscribe", numbered lists, or robotic bullet points.
 
@@ -210,7 +230,7 @@ Scene 8 (The Contrast): Contextual B-roll. How smart institutional players antic
 Scene 9 (The Real Loss): Contextual B-roll. What this illusion actually costs you when the true math is added up.
 Scene 10 (The Reality Check): Contextual B-roll. The sobering realization that what you thought was an advantage was a trap.
 Scene 11 (The Concept Name): Contextual B-roll / Motion Graphic. Names the financial concept clearly and authoritatively.
-Scene 12 (The Actionable Defense & Comment Trigger): The one practical rule to protect your money right now, ending with a direct trigger to comment (e.g. "Comment 'GUIDE' below for the playbook").
+Scene 12 (The Actionable Defense & Spoken Comment Trigger): The one practical rule to protect your money right now, strictly ending with: "Comment 'GUIDE' below and I'll send you the complete playbook."
 
 ──────────────────────────────────────────────────────────────────────────────
 VISUAL PROMPT GUIDELINES

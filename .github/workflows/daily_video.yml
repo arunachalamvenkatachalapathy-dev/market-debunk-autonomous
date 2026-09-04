@@ -126,9 +126,9 @@ jobs:
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add data/used_topics.json data/channel_ids.json
+          git add data/used_topics.json data/channel_ids.json data/used_broll.json
           # Only commit if there are changes
-          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: update topic dedup history [skip ci]" && git push)
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: update topic and broll dedup history [skip ci]" && git push)
 
       - name: Trigger Tamil companion pipeline
         if: success()

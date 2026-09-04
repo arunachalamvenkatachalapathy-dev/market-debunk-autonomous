@@ -109,7 +109,9 @@ def run_pipeline():
 
         # ── Phase 4: Visual Sourcing ──────────────────────────────────────
         with PhaseTimer("Phase 4: Visual Sourcing"):
-            visual_results = visual_agent.source_all_visuals(script_dict["scenes"], visuals_dir)
+            visual_results = visual_agent.source_all_visuals(
+                script_dict["scenes"], visuals_dir, story_seed=story_seed
+            )
             stats["visual_sources"] = ", ".join(set(r["source"] for r in visual_results))
             quality_gate.validate_visual_assets(
                 visual_results,

@@ -41,7 +41,16 @@ from src.utils.logger import get_logger
 log = get_logger(__name__, phase="topic_discovery")
 
 _CHANNEL_IDS_PATH = settings.DATA_DIR / "channel_ids.json"
-_SERP_QUERIES = ("nifty50", "sensex", "share market")
+_SERP_QUERIES = (
+    "mutual fund expense ratio trap India",
+    "credit card hidden charges India",
+    "health insurance claim rejection rules India",
+    "SEBI rule changes retail options trading India",
+    "fixed deposit tax real return inflation India",
+    "no cost EMI trap hidden interest India",
+    "gold loan auction risk India",
+    "banking fraud safe OTP warning India",
+)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -126,42 +135,42 @@ def rotate_channel(day_override: Optional[int] = None) -> str:
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-#  Latest Video Fetching
+#  Recent Videos Fetching (Top 5 for deep scanning)
 # ──────────────────────────────────────────────────────────────────────────────
 
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
-def _fetch_latest_video_api(channel_id: str) -> Optional[dict]:
-    """Primary: YouTube Data API v3."""
+def _fetch_recent_videos_api(channel_id: str, limit: int = 5) -> list[dict]:
+    """Primary: YouTube Data API v3 (returns up to limit recent videos)."""
     url = "https://www.googleapis.com/youtube/v3/search"
     params = {
         "part": "snippet",
         "channelId": channel_id,
         "order": "date",
         "type": "video",
-        "maxResults": 1,
+        "maxResults": limit,
         "key": settings.YT_API_KEY,
     }
     resp = requests.get(url, params=params, timeout=15)
     resp.raise_for_status()
     items = resp.json().get("items", [])
-    if not items:
-        return None
-    item = items[0]
-    return {
-        "video_id": item["id"]["videoId"],
-        "title": item["snippet"]["title"],
-        "published_at": item["snippet"]["publishedAt"],
-    }
+    results = []
+    for item in items:
+        results.append({
+            "video_id": item["id"]["videoId"],
+            "title": item["snippet"]["title"],
+            "published_at": item["snippet"]["publishedAt"],
+        })
+    return results
 
 
-def _fetch_latest_video_ytdlp(channel_id: str) -> Optional[dict]:
-    """Fallback: yt-dlp to scrape latest video (bypasses RSS IP blocks)."""
+def _fetch_recent_videos_ytdlp(channel_id: str, limit: int = 5) -> list[dict]:
+    """Fallback: yt-dlp to scrape recent videos (bypasses RSS IP blocks)."""
     try:
         import yt_dlp
         ydl_opts = {
             'quiet': True,
             'extract_flat': True,
-            'playlist_items': '1', # Get only the latest 1 video
+            'playlist_items': f'1-{limit}',
             'force_generic_extractor': False,
         }
         uploads_playlist_id = f"UU{channel_id[2:]}" if channel_id.startswith("UC") else channel_id
@@ -169,47 +178,56 @@ def _fetch_latest_video_ytdlp(channel_id: str) -> Optional[dict]:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
             if 'entries' in info and info['entries']:
-                entry = info['entries'][0]
-                video_id = entry.get("id") or entry.get("url")
-                if not video_id or video_id == channel_id:
-                    log.warning("yt-dlp returned an invalid video id for channel %s: %s", channel_id, video_id)
-                    return None
-                return {
-                    "video_id": video_id,
-                    "title": entry.get("title", ""),
-                    "published_at": "", # We can't easily get date from flat extract, but it's not strictly needed
-                }
+                results = []
+                for entry in info['entries']:
+                    if not entry:
+                        continue
+                    video_id = entry.get("id") or entry.get("url")
+                    if not video_id or video_id == channel_id:
+                        continue
+                    results.append({
+                        "video_id": video_id,
+                        "title": entry.get("title", ""),
+                        "published_at": "",
+                    })
+                return results
     except Exception as exc:
         log.error("yt-dlp fetch failed for channel %s: %s", channel_id, exc)
-    return None
+    return []
 
 
-def fetch_latest_video(channel_name: str) -> Optional[dict]:
+def fetch_recent_videos(channel_name: str, limit: int = 5) -> list[dict]:
     """
-    Fetches the latest video metadata for a channel.
-    Returns dict with keys: video_id, title, published_at
+    Fetches up to `limit` recent video metadata for a channel.
+    Returns list of dicts with keys: video_id, title, published_at
     """
     channel_id = resolve_channel_id(channel_name)
 
     # Try API first
     if channel_id and settings.YT_API_KEY:
         try:
-            video = _fetch_latest_video_api(channel_id)
-            if video:
-                log.info("Found video via API: [%s] %s", video["video_id"], video["title"])
-                return video
+            videos = _fetch_recent_videos_api(channel_id, limit=limit)
+            if videos:
+                log.info("Found %d videos via API for %s", len(videos), channel_name)
+                return videos
         except Exception as exc:
             log.warning("API fetch failed, falling back to yt-dlp: %s", exc)
 
     # yt-dlp fallback (requires channel_id)
     if channel_id:
-        video = _fetch_latest_video_ytdlp(channel_id)
-        if video:
-            log.info("Found video via yt-dlp: [%s] %s", video["video_id"], video["title"])
-            return video
+        videos = _fetch_recent_videos_ytdlp(channel_id, limit=limit)
+        if videos:
+            log.info("Found %d videos via yt-dlp for %s", len(videos), channel_name)
+            return videos
 
-    log.error("Could not fetch latest video for channel: %s", channel_name)
-    return None
+    log.error("Could not fetch videos for channel: %s", channel_name)
+    return []
+
+
+def fetch_latest_video(channel_name: str) -> Optional[dict]:
+    """Backwards-compatible helper returning the single latest video."""
+    videos = fetch_recent_videos(channel_name, limit=1)
+    return videos[0] if videos else None
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -516,56 +534,56 @@ def discover_topic(day_override: Optional[int] = None) -> dict:
         log.info("--- Attempt %d/7: Scanning channel '%s' ---", offset + 1, channel_name)
         
         try:
-            video_meta = fetch_latest_video(channel_name)
+            videos = fetch_recent_videos(channel_name, limit=5)
 
-            if not video_meta:
-                log.warning("No video found for %s. Cascading to next channel...", channel_name)
+            if not videos:
+                log.warning("No videos found for %s. Cascading to next channel...", channel_name)
                 continue
 
-            video_id = video_meta["video_id"]
-            video_title = video_meta["title"]
-            source_id = f"youtube:{video_id}"
-            if evaluator.is_source_id_used(source_id):
-                log.info("Already-used source ID %s. Cascading...", source_id)
-                continue
-            if evaluator.is_source_video_used(video_id):
-                log.info("Already-used source video %s. Cascading...", video_id)
-                continue
-            if title_only_candidate is None:
-                title_only_candidate = {
+            for video_meta in videos:
+                video_id = video_meta["video_id"]
+                video_title = video_meta["title"]
+                source_id = f"youtube:{video_id}"
+                if evaluator.is_source_id_used(source_id):
+                    log.info("Already-used source ID %s. Trying next video in %s...", source_id, channel_name)
+                    continue
+                if evaluator.is_source_video_used(video_id):
+                    log.info("Already-used source video %s. Trying next video in %s...", video_id, channel_name)
+                    continue
+                if title_only_candidate is None:
+                    title_only_candidate = {
+                        "channel": channel_name,
+                        "video_id": video_id,
+                        "video_title": video_title,
+                    }
+
+                transcript = download_transcript(video_id)
+                if not transcript or not transcript.strip():
+                    log.warning("Empty transcript for [%s] %s. Trying next video in %s...", video_id, video_title, channel_name)
+                    continue
+
+                seed_data = summarize_to_story_seed(transcript, video_title)
+
+                thesis = seed_data.get("thesis", video_title)
+                story_seed = seed_data.get("story_seed", {})
+
+                # Check deduplication against past 15 days
+                if evaluator.is_duplicate(thesis)[0] or evaluator.is_duplicate(video_title, threshold=0.88)[0]:
+                    log.info("Candidate [%s] '%s' is duplicate/too similar. Trying next video in %s...", video_id, video_title, channel_name)
+                    continue
+
+                log.info("Success! Extracted fresh topic from %s: [%s] %s", channel_name, video_id, video_title)
+                return {
                     "channel": channel_name,
                     "video_id": video_id,
+                    "source_id": source_id,
                     "video_title": video_title,
+                    "thesis": thesis,
+                    "story_seed": story_seed,
+                    "transcript_length": len(transcript),
                 }
 
-            transcript = download_transcript(video_id)
-            if not transcript or not transcript.strip():
-                log.warning("Empty transcript for %s. Cascading to next channel...", channel_name)
-                continue
-
-            seed_data = summarize_to_story_seed(transcript, video_title)
-
-            thesis = seed_data.get("thesis", video_title)
-            story_seed = seed_data.get("story_seed", {})
-
-            # A channel may have a new upload that is still the same market
-            # story already covered by this channel. Cascade instead of
-            # stopping the entire run; SerpAPI is then used after all seven
-            # channel candidates are exhausted.
-            if evaluator.is_duplicate(thesis)[0] or evaluator.is_duplicate(video_title, threshold=0.90)[0]:
-                log.info("Channel candidate is already covered. Cascading to the next source.")
-                continue
-
-            log.info("Success! Extracted topic from %s", channel_name)
-            return {
-                "channel": channel_name,
-                "video_id": video_id,
-                "source_id": source_id,
-                "video_title": video_title,
-                "thesis": thesis,
-                "story_seed": story_seed,
-                "transcript_length": len(transcript),
-            }
+            log.info("All scanned recent videos in channel %s exhausted/duplicate. Cascading to next channel...", channel_name)
         except Exception as exc:
             log.error("Failed processing %s: %s. Cascading to next channel...", channel_name, exc)
             continue
