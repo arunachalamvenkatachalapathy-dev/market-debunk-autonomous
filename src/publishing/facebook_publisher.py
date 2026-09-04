@@ -45,6 +45,18 @@ def publish_reel(
 
     base_url = f"https://graph.facebook.com/{settings.INSTAGRAM_GRAPH_VERSION}"
 
+    # Auto-resolve page-specific access token if user/system token provided
+    try:
+        acc_res = requests.get(f"{base_url}/me/accounts?access_token={token}", timeout=10).json()
+        if "data" in acc_res:
+            for acc in acc_res["data"]:
+                if str(acc.get("id")) == str(page_id):
+                    token = acc.get("access_token", token)
+                    log.info("✓ Resolved dedicated Facebook Page token for %s", page_id)
+                    break
+    except Exception as tok_err:
+        log.debug("Page token auto-resolution skipped: %s", tok_err)
+
     try:
         log.info("Initializing Facebook Reel upload on Page %s...", page_id)
         # Step 1: Initialize Reel session
