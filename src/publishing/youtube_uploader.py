@@ -25,6 +25,7 @@ from src.utils.youtube_titles import normalize_youtube_title
 log = get_logger(__name__, phase="youtube_upload")
 
 _DESCRIPTION_FOOTER = (
+    "💬 Comment 'GUIDE' below for the complete breakdown & checklist!\n\n"
     "Subscribe for daily market myth-busting.\n\n"
     "Ask your market doubts on Telegram:\n"
     "English: https://t.me/MarketDebunk\n"

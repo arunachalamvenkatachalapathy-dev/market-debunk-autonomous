@@ -72,24 +72,24 @@ _NEGATIVE_PROMPT_OBJECT = (
 
 def _build_enhanced_prompt(raw_prompt: str, scene_id: int) -> str:
     """
-    Enforces the consistent visual bible on every scene prompt:
-    - Scene 1 & 12: Arjun (Host hook and closer)
-    - Scenes 2-11: 100% Contextual B-Roll Macro Object/Scene (NO PEOPLE)
+    Enforces the visual bible on every scene prompt:
+    - Scenes 1-11: 100% Contextual B-Roll Macro Object/Financial Evidence (NO PEOPLE)
+    - Scene 12: Actionable Closer Takeaway
     """
     prompt = raw_prompt.strip()
     if not prompt:
         raise ValueError(f"Scene {scene_id} visual prompt is empty.")
 
-    if scene_id in (1, 12):
-        character_rule = "This scene must show Arjun clearly and consistently looking directly into the camera."
+    if scene_id == 12:
+        character_rule = "This scene delivers the final warning directly and authoritatively."
         enhanced = (
             f"Scene {scene_id} of a 12-scene Market Debunk Short. "
-            f"Create a premium cinematic thriller portrait still. "
+            f"Create a premium cinematic thriller takeaway still. "
             f"{character_rule} Character bible: {_ARJUN_BIBLE} "
             f"Scene direction: {prompt} Style: {_STYLE_TAG} {_NEGATIVE_PROMPT_PORTRAIT}"
         )
     else:
-        # Contextual B-roll scene: strictly objects, charts, screens, documents, or environments
+        # Contextual B-roll scenes 1-11: strictly objects, charts, screens, documents, or environments (no human faces)
         enhanced = (
             f"Scene {scene_id} of a 12-scene Market Debunk Short. "
             f"Create a photorealistic cinematic macro B-roll still of finance evidence. "
@@ -226,12 +226,12 @@ def source_all_visuals(scenes: list, output_dir: Path) -> list:
         broll_keyword = scene.get("broll_keyword", "").strip()
 
         # Strategy:
-        # Scene 1: Arjun portrait (Hook) -> Vertex AI Imagen
-        # Scene 12: Arjun portrait (Closer) -> Vertex AI Imagen
-        # Scenes 2-11: Try Pexels vertical stock video first; fallback to Imagen Macro Object Still
+        # Scenes 1-11: Try Pexels vertical stock video first (cold proof hook for scene 1, contextual B-roll for 2-11);
+        #              fallback to Imagen Macro Object Still
+        # Scene 12: Actionable closer -> Imagen or Pexels
         sourced = False
 
-        if 2 <= scene_id <= 11 and pexels_key and broll_keyword:
+        if 1 <= scene_id <= 11 and pexels_key and broll_keyword:
             video_filename = f"scene_{scene_id}.mp4"
             video_filepath = output_dir / video_filename
             log.info("Searching Pexels video for scene %d | keyword: '%s'...", scene_id, broll_keyword)

@@ -72,9 +72,10 @@ def publish_reel(
         log.error("Video file does not exist or is empty: %s — skipping Instagram upload", video_path)
         return None
 
-    # Construct clean caption
+    # Construct high-converting caption with comment trigger & engagement CTA
     clean_tags = " ".join(t if t.startswith("#") else f"#{t}" for t in hashtags)
-    caption = f"{title}\n\n{description}\n\n{clean_tags}".strip()[:2200]
+    cta = "💬 Comment 'GUIDE' below to get the full risk playbook sent directly to your DMs!\n📌 Save this Reel before your next trade."
+    caption = f"{title}\n\n{description}\n\n{cta}\n\n{clean_tags}".strip()[:2200]
 
     base_url = f"https://graph.facebook.com/{settings.INSTAGRAM_GRAPH_VERSION}"
 

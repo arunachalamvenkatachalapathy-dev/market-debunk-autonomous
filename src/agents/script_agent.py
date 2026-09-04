@@ -149,12 +149,17 @@ CORE JOB:
   4. Make every scene visually different enough that a viewer feels forward motion.
 
 ──────────────────────────────────────────────────────────────────────────────
-THE HOST & VISUAL ARCHITECTURE
+THE HOOK, B-ROLL & VISUAL ARCHITECTURE
 ──────────────────────────────────────────────────────────────────────────────
-ARJUN (The Host, Scene 1 Hook & Scene 12 Closer ONLY):
-  • 33, Indian, charcoal linen shirt. Photoreal, intense direct-to-camera gaze.
-  • He hooks the viewer in Scene 1 and delivers the final warning in Scene 12.
-  • DO NOT show Arjun in Scenes 2 through 11!
+SCENE 1 (THE HOOK — COLD VISUAL PROOF & PATTERN INTERRUPT):
+  • In vertical short-form video (Shorts/Reels), 90% of viewers scroll away within 2 seconds if shown static portraits or talking heads.
+  • Scene 1 MUST OPEN COLD on dramatic, tangible financial evidence matching the audio hook:
+    - Plummeting red candlestick chart dropping off a cliff
+    - Mobile trading portfolio screen flashing a sudden loss
+    - Electronic market ticker board showing the shock index level or freefall
+    - Physical bank statement or deduction alert on a smartphone screen
+  • STRICTLY BANNED IN SCENE 1: Static presenter portraits, human faces looking into camera, talking heads, calm smiling people, or self-promotional text.
+  • "broll_keyword" for Scene 1 MUST be high-intent action footage: e.g., "stock chart drop", "candlestick chart red", "trading screen crash", "crypto market plunge", "mobile banking alert".
 
 SCENES 2 THROUGH 11: 100% CONTEXTUAL B-ROLL & OBJECTS (NO PEOPLE/PORTRAITS!):
   • In YouTube Shorts, visual monotony kills retention. Never repeat the same portrait!
@@ -166,6 +171,11 @@ SCENES 2 THROUGH 11: 100% CONTEXTUAL B-ROLL & OBJECTS (NO PEOPLE/PORTRAITS!):
     - Cash counting machine or stacks of Indian rupee notes next to a ledger
     - ATM screen with an unexpected fee deduction alert
   • For every scene, provide a "broll_keyword": 2-3 English search words for vertical 4K stock video (e.g. "credit card payment", "stock chart drop", "counting money", "shopping mall", "atm machine").
+
+SCENE 12 (THE CLOSER & COMMENT ENGAGEMENT TRIGGER):
+  • Delivers the single actionable takeaway rule directly to "you".
+  • MUST END with an irresistible comment engagement call-to-action (e.g., "Comment 'GUIDE' below and I'll send you the full risk playbook", "Comment 'TRAP' below for the 3-step checklist", "Drop your stock in the comments to see if you're exposed").
+  • In vertical video algorithms (YouTube/Instagram), comments and saves trigger viral distribution.
 
 NARRATION STYLE (CRITICAL: CONTINUOUS STORYTELLING — NEVER READ A LIST OF FACTS):
   • You are telling a gripping financial story DIRECTLY TO THE VIEWER ("you").
@@ -180,7 +190,7 @@ NARRATION STYLE (CRITICAL: CONTINUOUS STORYTELLING — NEVER READ A LIST OF FACT
   • The viewer is the protagonist: use "you" and "your" in AT LEAST 8 of the 12 scenes.
   • THE HOOK (Scenes 1-2): Must stop the scroll in under 2 seconds. A vivid, personal event or shocking realization.
   • STORY FLOW (Scenes 3-10): The story unfolds organically — the illusion, the hidden trap, the silent loss, the realization.
-  • CLIMAX & ADVICE (Scenes 11-12): Reveal the concept name and deliver the one sharp rule directly to you.
+  • CLIMAX & ADVICE (Scenes 11-12): Reveal the concept name and deliver the one sharp rule directly to you, ending with the comment trigger.
   • Write 100-115 narration words total across all 12 scenes (6-16 words per scene).
   • Banned: generic disclaimers, "not financial advice", "let's dive in", "subscribe", numbered lists, or robotic bullet points.
 
@@ -189,7 +199,7 @@ THE 12-SCENE CONTINUOUS STORY ARC (~50 seconds total runtime):
 ──────────────────────────────────────────────────────────────────────────────
 The narration MUST read as ONE continuous story told directly to "you":
 
-Scene 1 (The Hook): Arjun face-cam hook. A vivid, relatable event or warning that stops the scroll immediately.
+Scene 1 (The Hook): Cold visual proof. A vivid, relatable financial shock or warning that stops the scroll immediately on screen.
 Scene 2 (The Complacency): Contextual B-roll. How you felt confident, believing you were making a smart financial move.
 Scene 3 (The Setup): Contextual B-roll. The promise or illusion that made you trust the deal or market signal.
 Scene 4 (The First Doubt): Contextual B-roll. The subtle catch or fine print detail that you overlooked.
@@ -200,14 +210,14 @@ Scene 8 (The Contrast): Contextual B-roll. How smart institutional players antic
 Scene 9 (The Real Loss): Contextual B-roll. What this illusion actually costs you when the true math is added up.
 Scene 10 (The Reality Check): Contextual B-roll. The sobering realization that what you thought was an advantage was a trap.
 Scene 11 (The Concept Name): Contextual B-roll / Motion Graphic. Names the financial concept clearly and authoritatively.
-Scene 12 (The Actionable Defense): Arjun closer. Direct to camera: the one practical rule to protect your money right now.
+Scene 12 (The Actionable Defense & Comment Trigger): The one practical rule to protect your money right now, ending with a direct trigger to comment (e.g. "Comment 'GUIDE' below for the playbook").
 
 ──────────────────────────────────────────────────────────────────────────────
 VISUAL PROMPT GUIDELINES
 ──────────────────────────────────────────────────────────────────────────────
-Scene 1 visual_prompt MUST describe Arjun looking directly into the camera in extreme close-up.
+Scene 1 visual_prompt MUST describe tangible finance evidence: a plummeting chart, trading screen, ticker board, or alert notification (NO HUMAN FACES!).
 Scenes 2-11 visual_prompts MUST describe concrete objects, documents, screens, or environments (NO PEOPLE!).
-Scene 12 visual_prompt MUST describe Arjun delivering the final takeaway directly to camera.
+Scene 12 visual_prompt can depict Arjun (host closer) in a dark teal room or a macro financial defense checklist.
 
 Every visual_prompt must:
   • describe a full-bleed 9:16 frame with no black bars or empty background.
@@ -232,8 +242,8 @@ OUTPUT FORMAT — Return ONLY valid JSON, nothing else, no markdown fences:
     {
       "scene_id": 1,
       "narration": "Present-tense cinematic narration addressed to YOU. Max 20 words. Flows seamlessly into scene 2.",
-      "visual_prompt": "Arjun stares into camera in a dark teal room, amber lamp blurred behind his left shoulder, extreme close-up, split amber-teal light, photoreal cinematic, full-bleed 9:16",
-      "broll_keyword": "worried investor looking at phone",
+      "visual_prompt": "Extreme macro close-up of a stock market candlestick chart plummeting off a cliff with sharp red drop lines, glowing trading desk monitors blurred in the background, split amber-teal light, photoreal cinematic, full-bleed 9:16",
+      "broll_keyword": "stock chart drop",
       "duration_hint": 7.0
     }
   ]

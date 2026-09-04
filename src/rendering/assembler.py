@@ -452,7 +452,8 @@ def overlay_brand_mark(video_path: Path, output_path: Path) -> Path:
         return output_path
 
     pad = settings.BRAND_MARK_PADDING
-    vf = f"[1:v]scale={settings.BRAND_MARK_WIDTH}:-1[logo];[0:v][logo]overlay=W-w-{pad}:{pad}"
+    # Delay brand mark until after the 2-second hook (t >= 3.5s) to eliminate opening friction
+    vf = f"[1:v]scale={settings.BRAND_MARK_WIDTH}:-1[logo];[0:v][logo]overlay=W-w-{pad}:{pad}:enable='gte(t,3.5)'"
     try:
         _ffmpeg(
             "-i", str(video_path),
