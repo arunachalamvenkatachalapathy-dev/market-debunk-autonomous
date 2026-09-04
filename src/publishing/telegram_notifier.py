@@ -25,6 +25,7 @@ def send_completion_notification(
     facebook_url: Optional[str] = None,
     video_path: Optional[Path] = None,
     run_stats: Optional[dict] = None,
+    custom_message: Optional[str] = None,
 ) -> bool:
     """
     Send a Telegram message containing the YouTube, Instagram, and Facebook links and summary.
@@ -44,29 +45,32 @@ def send_completion_notification(
 
         base_url = f"https://api.telegram.org/bot{settings.TELEGRAM_BOT_TOKEN}"
 
-        # Build message
-        stats_block = ""
-        if run_stats:
-            stats_block = (
-                f"\n📊 Stats:\n"
-                f"  • Total duration: {run_stats.get('total_duration', 0):.1f}s\n"
-                f"  • Visual sources: {run_stats.get('visual_sources', '')}\n"
-                f"  • Voice: {run_stats.get('voice', 'Google Cloud Chirp3 Fenrir')}"
+        if custom_message:
+            message = custom_message
+        else:
+            # Build default message
+            stats_block = ""
+            if run_stats:
+                stats_block = (
+                    f"\n📊 Stats:\n"
+                    f"  • Total duration: {run_stats.get('total_duration', 0):.1f}s\n"
+                    f"  • Visual sources: {run_stats.get('visual_sources', '')}\n"
+                    f"  • Voice: {run_stats.get('voice', 'Google Cloud Chirp3 Fenrir')}"
+                )
+
+            yt_line = f"\n🎬 YouTube: {youtube_url}" if youtube_url else ""
+            ig_line = f"\n📸 Instagram: {instagram_url}" if instagram_url else ""
+            fb_line = f"\n📘 Facebook: {facebook_url}" if facebook_url else ""
+
+            message = (
+                f"✅ *Market Debunk — New Short Ready!*\n\n"
+                f"📌 *Title:* {title}\n"
+                f"💡 *Thesis:* _{thesis}_"
+                f"{yt_line}"
+                f"{ig_line}"
+                f"{fb_line}"
+                f"{stats_block}"
             )
-
-        yt_line = f"\n🎬 YouTube: {youtube_url}" if youtube_url else ""
-        ig_line = f"\n📸 Instagram: {instagram_url}" if instagram_url else ""
-        fb_line = f"\n📘 Facebook: {facebook_url}" if facebook_url else ""
-
-        message = (
-            f"✅ *Market Debunk — New Short Ready!*\n\n"
-            f"📌 *Title:* {title}\n"
-            f"💡 *Thesis:* _{thesis}_"
-            f"{yt_line}"
-            f"{ig_line}"
-            f"{fb_line}"
-            f"{stats_block}"
-        )
 
         resp = requests.post(
             f"{base_url}/sendMessage",

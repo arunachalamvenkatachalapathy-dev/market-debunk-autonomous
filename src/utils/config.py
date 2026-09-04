@@ -67,12 +67,15 @@ class Settings:
     TELEGRAM_BOT_TOKEN: str = _get("TELEGRAM_BOT_TOKEN", default="") or ""
     TELEGRAM_CHAT_ID: str = _get("TELEGRAM_CHAT_ID", default="") or ""
 
-    # ── Instagram Graph API publishing ───────────────────────────
+    # ── Instagram & Facebook Graph API publishing ────────────────
     ENABLE_INSTAGRAM: bool = _get("ENABLE_INSTAGRAM", default="false").lower() == "true"
     INSTAGRAM_ACCESS_TOKEN: str = _get("INSTAGRAM_ACCESS_TOKEN", default="") or ""
     INSTAGRAM_USER_ID: str = _get("INSTAGRAM_USER_ID", default="") or ""
     INSTAGRAM_VIDEO_URL: str = _get("INSTAGRAM_VIDEO_URL", default="") or ""
     INSTAGRAM_GRAPH_VERSION: str = _get("INSTAGRAM_GRAPH_VERSION", default="v23.0") or "v23.0"
+    ENABLE_FACEBOOK: bool = (_get("ENABLE_FACEBOOK", default="true") or "true").lower() == "true"
+    FACEBOOK_PAGE_ID: str = _get("FACEBOOK_PAGE_ID", default="") or ""
+    FACEBOOK_ACCESS_TOKEN: str = _get("FACEBOOK_ACCESS_TOKEN", default="") or ""
 
     # ── Video Settings ─────────────────────────────────────────────
     VIDEO_WIDTH: int = int(_get("VIDEO_WIDTH", default="1080"))
@@ -82,7 +85,7 @@ class Settings:
     MIN_VIDEO_DURATION: float = float(_get("MIN_VIDEO_DURATION", default="30.0"))
     MAX_VIDEO_DURATION: float = float(_get("MAX_VIDEO_DURATION", default="58.0"))
     VISUAL_GENERATION_DELAY_SECONDS: float = float(_get("VISUAL_GENERATION_DELAY_SECONDS", default="10"))
-    BGM_VOLUME_DB: float = float(_get("BGM_VOLUME_DB", default="-20.5"))
+    BGM_VOLUME_DB: float = float(_get("BGM_VOLUME_DB", default="-25.0"))
     BGM_MIX_RETRIES: int = int(_get("BGM_MIX_RETRIES", default="3"))
     BGM_MIX_REQUIRED: bool = (_get("BGM_MIX_REQUIRED", default="true") or "true").lower() == "true"
     BGM_MIN_BYTES: int = int(_get("BGM_MIN_BYTES", default="1000000"))

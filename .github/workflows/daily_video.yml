@@ -2,9 +2,15 @@ name: Daily Autonomous Video Pipeline
 
 on:
   schedule:
-    # 8:00 AM IST (02:30 UTC) and 7:30 PM IST (14:00 UTC)
+    # 4 videos per day across peak Indian engagement hours (IST = UTC + 5:30)
+    # 1. 08:00 AM IST (02:30 UTC) - Morning pre-market commute
     - cron: '30 2 * * *'
-    - cron: '0 14 * * *'
+    # 2. 01:00 PM IST (07:30 UTC) - Lunch break & mid-day market update
+    - cron: '30 7 * * *'
+    # 3. 05:30 PM IST (12:00 UTC) - Post-market close wrap
+    - cron: '0 12 * * *'
+    # 4. 09:00 PM IST (15:30 UTC) - Prime evening leisure
+    - cron: '30 15 * * *'
   workflow_dispatch: # Allow manual trigger from GitHub UI
 
 jobs:
@@ -95,6 +101,7 @@ jobs:
           INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
           INSTAGRAM_VIDEO_URL: ${{ secrets.INSTAGRAM_VIDEO_URL }}
           FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
+          FACEBOOK_ACCESS_TOKEN: ${{ secrets.FACEBOOK_ACCESS_TOKEN || secrets.INSTAGRAM_ACCESS_TOKEN }}
           ENABLE_FACEBOOK: ${{ secrets.ENABLE_FACEBOOK || 'true' }}
         run: python -m src.agents.manager
 
