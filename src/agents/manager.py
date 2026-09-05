@@ -206,8 +206,7 @@ def run_pipeline():
                     hashtags=dist_pkg.facebook.topic_tags,
                 )
 
-        total_time = time.time() - total_start
-if settings.ENABLE_TELEGRAM:
+            if settings.ENABLE_TELEGRAM:
                 telegram_notifier.send_completion_notification(
                     title=dist_pkg.youtube.title,
                     thesis=thesis,
@@ -217,6 +216,8 @@ if settings.ENABLE_TELEGRAM:
                     video_path=final_video,
                     run_stats=stats,
                 )
+
+        total_time = time.time() - total_start
         log.info("==================================================")
         log.info("✅ PIPELINE COMPLETED SUCCESSFULLY in %.1fs", total_time)
         log.info("Output Video: %s", final_video.resolve())
