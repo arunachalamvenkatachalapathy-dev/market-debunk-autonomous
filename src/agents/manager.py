@@ -25,6 +25,7 @@ from src.utils.master_package import export_master_package
 
 # Import agents
 from src.agents import topic_agent, script_agent, voice_agent, visual_agent, evaluator, quality_gate
+from src.agents.distribution_seo_agent import DistributionSEOAgent
 from src.rendering import subtitles, assembler
 from src.publishing import youtube_uploader, telegram_notifier, instagram_publisher, facebook_publisher
 
@@ -173,15 +174,24 @@ def run_pipeline():
             )
             log.info("✓ Multi-platform SEO Distribution Package generated successfully.")
 
+        # ── Phase 6.5: Multi-Platform Distribution SEO ─────────────────────
+        with PhaseTimer("Phase 6.5: Distribution SEO Package"):
+            dist_pkg = DistributionSEOAgent().generate_package(
+                thesis=thesis,
+                script_dict=script_dict,
+                topic_data=topic_data,
+            )
+            log.info("✓ Distribution package ready | yt_title: '%s'", dist_pkg.youtube.title)
+
         # ── Phase 7: Publishing ───────────────────────────────────────────
         with PhaseTimer("Phase 7: Publishing"):
             yt_url = None
             if settings.ENABLE_YT_UPLOAD:
                 yt_id = youtube_uploader.upload_video(
                     video_path=final_video,
-                    title=dist_package.youtube.title,
-                    description=dist_package.get_youtube_description(),
-                    hashtags=dist_package.youtube.hashtags,
+                    title=dist_pkg.youtube.title,
+                    description=dist_pkg.get_youtube_description(),
+                    hashtags=dist_pkg.youtube.hashtags,
                 )
                 if yt_id:
                     yt_url = f"https://www.youtube.com/shorts/{yt_id}"
@@ -190,9 +200,9 @@ def run_pipeline():
             if settings.ENABLE_INSTAGRAM:
                 ig_url = instagram_publisher.publish_reel(
                     video_path=final_video,
-                    title=dist_package.youtube.title,
-                    description=dist_package.get_instagram_caption(),
-                    hashtags=dist_package.instagram.hashtags,
+                    title=dist_pkg.instagram.first_line_hook,
+                    description=f"{dist_pkg.instagram.body_copy}\n\n{dist_pkg.instagram.comment_trigger}\n\n{dist_pkg.instagram.share_save_cta}",
+                    hashtags=dist_pkg.instagram.hashtags,
                 )
 
             fb_url = None
@@ -200,21 +210,9 @@ def run_pipeline():
             if fb_page:
                 fb_url = facebook_publisher.publish_reel(
                     video_path=final_video,
-                    title=dist_package.youtube.title,
-                    description=dist_package.get_facebook_caption(),
-                    hashtags=dist_package.facebook.topic_tags,
-                )
-
-            if settings.ENABLE_TELEGRAM:
-                telegram_notifier.send_completion_notification(
-                    title=dist_package.youtube.title,
-                    thesis=thesis,
-                    youtube_url=yt_url,
-                    instagram_url=ig_url,
-                    facebook_url=fb_url,
-                    video_path=final_video,
-                    run_stats=stats,
-                    custom_message=dist_package.get_telegram_post(video_link=yt_url or ig_url),
+                    title=dist_pkg.facebook.story_hook,
+                    description=f"{dist_pkg.facebook.narrative_body}\n\n{dist_pkg.facebook.discussion_question}",
+                    hashtags=dist_pkg.facebook.topic_tags,
                 )
 
         total_time = time.time() - total_start
