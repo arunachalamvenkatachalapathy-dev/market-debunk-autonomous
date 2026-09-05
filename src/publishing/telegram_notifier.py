@@ -61,18 +61,11 @@ def send_completion_notification(
 
             links_block = ("\n\n" + "\n\n".join(links)) if links else ""
 
-            stats_block = ""
-            if run_stats:
-                duration = run_stats.get("total_duration", 0)
-                voice = run_stats.get("voice", "Google Cloud Chirp3 Fenrir")
-                stats_block = f"\n\n📊 Stats: {duration:.1f}s | Voice: {voice}"
-
             message = (
                 f"🚨 Market Debunk — New Short Released!\n\n"
                 f"📌 Topic: {title}\n"
                 f"💡 Debunk Thesis: {thesis}"
                 f"{links_block}"
-                f"{stats_block}"
             )
 
         resp = requests.post(
