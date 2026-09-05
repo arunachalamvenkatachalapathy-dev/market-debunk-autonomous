@@ -207,7 +207,7 @@ Generate the complete multi-platform SEO package as JSON matching the schema."""
         clean_thesis = re.sub(r'[^a-zA-Z0-9\s]', '', thesis or "Market Truth")
         words = [w for w in clean_thesis.split() if len(w) > 2]
         hook_phrase = " ".join(words[:4]).title() if words else "Stock Market Truth"
-        yt_title = normalize_youtube_title(f"{hook_phrase}: The Hidden Trap #Shorts")
+        yt_title = normalize_youtube_title(f"Is {hook_phrase}: The Hidden Trap #Shorts")
 
         return PlatformDistributionPackage(
             youtube=YouTubeDistribution(
