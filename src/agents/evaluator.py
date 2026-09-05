@@ -135,6 +135,11 @@ _FINANCIAL_CONCEPTS: dict[str, tuple[str, ...]] = {
     "personal_loan": ("personal loan trap", "flat interest rate vs reducing", "instant loan app"),
     "car_loan": ("balloon payment car loan", "7 year car loan", "car depreciation loan"),
     "atm_fees": ("atm transaction", "free atm", "atm fee", "atm charges"),
+    "loan_guarantor": ("co-signing", "co-guarantor", "co-signer", "loan guarantor", "guarantor liability", "co signer", "co-borrower"),
+    "cibil_credit_score": ("cibil", "credit score", "cibil drop", "cibil impact", "cibil score", "credit score drop"),
+    "bnpl": ("bnpl", "buy now pay later", "pay later trap", "lazy pay", "simpl"),
+    "real_estate_home_loan": ("home loan", "buying a house", "buying a home", "home buying", "builder trap", "property registration"),
+    "retirement_pension": ("pension tax", "nps annuity", "retiree tax", "pension scheme tax", "retirement tax"),
 }
 
 

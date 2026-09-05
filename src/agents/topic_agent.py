@@ -114,6 +114,12 @@ def resolve_channel_id(channel_name: str) -> Optional[str]:
     if cache.get(channel_name):
         return cache[channel_name]
 
+    # Case-insensitive / normalized lookup
+    norm = channel_name.strip().upper()
+    for k, v in cache.items():
+        if k.strip().upper() == norm:
+            return v
+
     if not settings.YT_API_KEY:
         log.warning("YT_API_KEY not set — cannot resolve channel ID for '%s'", channel_name)
         return None
@@ -182,9 +188,45 @@ def _fetch_recent_videos_api(channel_id: str, limit: int = 5) -> list[dict]:
         results.append({
             "video_id": item["id"]["videoId"],
             "title": item["snippet"]["title"],
+            "description": item["snippet"].get("description", ""),
             "published_at": item["snippet"]["publishedAt"],
         })
     return results
+
+
+def _fetch_recent_videos_rss(channel_id: str, limit: int = 5) -> list[dict]:
+    """Fast, zero-quota YouTube RSS feed fetcher. Always returns real-time uploads with descriptions."""
+    import urllib.request
+    import xml.etree.ElementTree as ET
+    url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            root = ET.fromstring(resp.read())
+            results = []
+            ns = {
+                "atom": "http://www.w3.org/2005/Atom",
+                "yt": "http://www.youtube.com/xml/schemas/2015",
+                "media": "http://search.yahoo.com/mrss/"
+            }
+            for entry in root.findall("atom:entry", ns)[:limit]:
+                vid_el = entry.find("yt:videoId", ns)
+                title_el = entry.find("atom:title", ns)
+                pub_el = entry.find("atom:published", ns)
+                desc_el = entry.find(".//media:description", ns)
+                if vid_el is not None and title_el is not None:
+                    results.append({
+                        "video_id": vid_el.text.strip(),
+                        "title": title_el.text.strip(),
+                        "description": desc_el.text.strip() if desc_el is not None and desc_el.text else "",
+                        "published_at": pub_el.text.strip() if pub_el is not None and pub_el.text else "",
+                    })
+            if results:
+                log.info("Found %d fresh videos via YouTube RSS for channel ID %s", len(results), channel_id)
+                return results
+    except Exception as exc:
+        log.warning("YouTube RSS feed fetch failed for channel %s: %s", channel_id, exc)
+    return []
 
 
 def _fetch_recent_videos_ytdlp(channel_id: str, limit: int = 5) -> list[dict]:
@@ -212,6 +254,7 @@ def _fetch_recent_videos_ytdlp(channel_id: str, limit: int = 5) -> list[dict]:
                     results.append({
                         "video_id": video_id,
                         "title": entry.get("title", ""),
+                        "description": entry.get("description", ""),
                         "published_at": "",
                     })
                 return results
@@ -223,12 +266,21 @@ def _fetch_recent_videos_ytdlp(channel_id: str, limit: int = 5) -> list[dict]:
 def fetch_recent_videos(channel_name: str, limit: int = 5) -> list[dict]:
     """
     Fetches up to `limit` recent video metadata for a channel.
-    Returns list of dicts with keys: video_id, title, published_at
+    Prioritizes real-time YouTube RSS feed (zero quota, real-time uploads).
+    Falls back to YouTube Data API v3 and yt-dlp.
     """
     channel_id = resolve_channel_id(channel_name)
+    if not channel_id:
+        log.error("Could not resolve channel ID for: %s", channel_name)
+        return []
 
-    # Try API first
-    if channel_id and settings.YT_API_KEY:
+    # Priority 1: Real-time YouTube RSS feed (zero quota, real-time uploads, includes descriptions)
+    rss_videos = _fetch_recent_videos_rss(channel_id, limit=limit)
+    if rss_videos:
+        return rss_videos
+
+    # Priority 2: YouTube Data API v3
+    if settings.YT_API_KEY:
         try:
             videos = _fetch_recent_videos_api(channel_id, limit=limit)
             if videos:
@@ -237,12 +289,11 @@ def fetch_recent_videos(channel_name: str, limit: int = 5) -> list[dict]:
         except Exception as exc:
             log.warning("API fetch failed, falling back to yt-dlp: %s", exc)
 
-    # yt-dlp fallback (requires channel_id)
-    if channel_id:
-        videos = _fetch_recent_videos_ytdlp(channel_id, limit=limit)
-        if videos:
-            log.info("Found %d videos via yt-dlp for %s", len(videos), channel_name)
-            return videos
+    # Priority 3: yt-dlp fallback
+    videos = _fetch_recent_videos_ytdlp(channel_id, limit=limit)
+    if videos:
+        log.info("Found %d videos via yt-dlp for %s", len(videos), channel_name)
+        return videos
 
     log.error("Could not fetch videos for channel: %s", channel_name)
     return []
@@ -466,55 +517,132 @@ def _fallback_story_seed(video_title: str) -> dict:
     }
 
 
+def _is_strictly_within_24h(date_str: str) -> bool:
+    """Validate that the date string represents content published within the last 24 hours."""
+    if not date_str:
+        return False
+    ds = date_str.lower().strip()
+    # Typical relative timestamps in Google News / Search
+    if any(unit in ds for unit in ("hour", "hr", "min", "sec", "just now", "1 day ago", "yesterday")):
+        return True
+    # Today's date check e.g. '05 Sep' or 'Sep 5'
+    from datetime import datetime, timezone
+    now = datetime.now(timezone.utc)
+    t1 = now.strftime("%d %b").lower()
+    t2 = now.strftime("%b %d").lower()
+    if t1 in ds or t2 in ds:
+        return True
+    return False
+
+
 def _fetch_serp_google_result(query: str) -> Optional[dict]:
-    """Use a fresh India-localized Google search after all channel sources fail."""
+    """Use a fresh India-localized Google News/Search result strictly within the last 24 hours."""
     if not settings.SERPAPI_KEY:
         return None
-    response = requests.get(
-        "https://serpapi.com/search.json",
-        params={
-            "engine": "google",
-            "q": query,
-            "api_key": settings.SERPAPI_KEY,
-            "gl": "in",
-            "hl": "en",
-            "tbs": "qdr:d",  # results indexed in the last day
-            "num": 10,
-        },
-        timeout=20,
-    )
-    response.raise_for_status()
-    results = response.json().get("organic_results", [])
-    for item in results:
-        title = (item.get("title") or "").strip()
-        snippet = (item.get("snippet") or "").strip()
-        link = (item.get("link") or "").strip()
-        date = (item.get("date") or "").strip()
-        source = (item.get("source") or item.get("displayed_link") or "").strip()
-        source_key = link or f"{source}:{title}"
-        source_id = "serp:" + hashlib.sha256(source_key.lower().encode("utf-8")).hexdigest()[:16]
-        # A headline alone is not enough for a factual finance script. Require
-        # a fresh-looking date and a result URL/snippet that can form a source seed.
-        if (
-            not title
-            or not snippet
-            or not link
-            or not date
-            or evaluator.is_source_id_used(source_id)
-            or evaluator.is_duplicate(title)[0]
-        ):
-            continue
-        raw_text = (
-            f"Latest Google Search result for '{query}'. Headline: {title}. "
-            f"Summary: {snippet}. Source: {source}. Published: {date}. URL: {link}."
+
+    # Priority 1: Google News engine (breaking market news from ET, Mint, Moneycontrol, etc.)
+    try:
+        resp_news = requests.get(
+            "https://serpapi.com/search.json",
+            params={
+                "engine": "google_news",
+                "q": query,
+                "api_key": settings.SERPAPI_KEY,
+                "gl": "in",
+                "hl": "en",
+            },
+            timeout=20,
         )
-        return {
-            "channel": "SERPAPI Google Search",
-            "video_id": "",
-            "source_id": source_id,
-            "video_title": title,
-            "raw_text": raw_text,
-        }
+        if resp_news.status_code == 200:
+            news_items = resp_news.json().get("news_results", [])
+            for item in news_items:
+                title = (item.get("title") or "").strip()
+                snippet = (item.get("snippet") or "").strip()
+                link = (item.get("link") or "").strip()
+                date = (item.get("date") or "").strip()
+                source = (item.get("source", {}).get("name") if isinstance(item.get("source"), dict) else item.get("source") or "").strip()
+
+                if not title or not link or not _is_strictly_within_24h(date):
+                    continue
+
+                source_key = link or f"{source}:{title}"
+                source_id = "serp:" + hashlib.sha256(source_key.lower().encode("utf-8")).hexdigest()[:16]
+
+                if (
+                    evaluator.is_source_id_used(source_id)
+                    or evaluator.is_duplicate(title)[0]
+                    or evaluator.is_concept_duplicate(title)[0]
+                ):
+                    continue
+
+                raw_text = (
+                    f"Breaking Indian Financial News from '{source}' ({date}) regarding '{query}'. "
+                    f"Headline: {title}. Context: {snippet}. URL: {link}."
+                )
+                log.info("✓ Found verified 24h-fresh Google News article: '%s' (%s)", title, date)
+                return {
+                    "channel": f"Google News: {source}",
+                    "video_id": "",
+                    "source_id": source_id,
+                    "video_title": title,
+                    "raw_text": raw_text,
+                }
+    except Exception as exc:
+        log.warning("SerpApi google_news query failed: %s", exc)
+
+    # Priority 2: Standard Google Search with qdr:d (last 24h), strictly verified by date
+    try:
+        response = requests.get(
+            "https://serpapi.com/search.json",
+            params={
+                "engine": "google",
+                "q": query,
+                "api_key": settings.SERPAPI_KEY,
+                "gl": "in",
+                "hl": "en",
+                "tbs": "qdr:d",  # results indexed in the last day
+                "num": 10,
+            },
+            timeout=20,
+        )
+        response.raise_for_status()
+        results = response.json().get("organic_results", [])
+        for item in results:
+            title = (item.get("title") or "").strip()
+            snippet = (item.get("snippet") or "").strip()
+            link = (item.get("link") or "").strip()
+            date = (item.get("date") or "").strip()
+            source = (item.get("source") or item.get("displayed_link") or "").strip()
+
+            # Enforce strict 24-hour freshness
+            if not title or not snippet or not link or not _is_strictly_within_24h(date):
+                continue
+
+            source_key = link or f"{source}:{title}"
+            source_id = "serp:" + hashlib.sha256(source_key.lower().encode("utf-8")).hexdigest()[:16]
+
+            if (
+                evaluator.is_source_id_used(source_id)
+                or evaluator.is_duplicate(title)[0]
+                or evaluator.is_concept_duplicate(title)[0]
+            ):
+                continue
+
+            raw_text = (
+                f"Latest 24h-verified Google Search result for '{query}'. Headline: {title}. "
+                f"Summary: {snippet}. Source: {source}. Published: {date}. URL: {link}."
+            )
+            log.info("✓ Found verified 24h-fresh Google Search result: '%s' (%s)", title, date)
+            return {
+                "channel": "SERPAPI Google Search",
+                "video_id": "",
+                "source_id": source_id,
+                "video_title": title,
+                "raw_text": raw_text,
+            }
+    except Exception as exc:
+        log.warning("SerpApi organic search failed: %s", exc)
+
     return None
 
 
@@ -598,21 +726,47 @@ def discover_topic(day_override: Optional[int] = None) -> dict:
                     }
 
                 transcript = download_transcript(video_id)
-                if not transcript or not transcript.strip():
-                    log.warning("Empty transcript for [%s] %s. Trying next video in %s...", video_id, video_title, channel_name)
-                    continue
+                raw_content = ""
+                content_type = ""
+                if transcript and transcript.strip():
+                    raw_content = transcript
+                    content_type = "transcript"
+                else:
+                    desc = (video_meta.get("description") or "").strip()
+                    if len(desc) >= 30:
+                        log.info(
+                            "Transcript not yet available for fresh video [%s] '%s'. Using rich description (%d chars) for story seed distillation.",
+                            video_id,
+                            video_title,
+                            len(desc),
+                        )
+                        raw_content = f"VIDEO TITLE: {video_title}\nCHANNEL: {channel_name}\n\nVIDEO DESCRIPTION:\n{desc}"
+                        content_type = "description"
+                    else:
+                        log.info(
+                            "No transcript or description for [%s] '%s'. Using video title as topic seed.",
+                            video_id,
+                            video_title,
+                        )
+                        raw_content = f"VIDEO TITLE: {video_title}\nCHANNEL: {channel_name}"
+                        content_type = "title"
 
-                seed_data = summarize_to_story_seed(transcript, video_title)
+                seed_data = summarize_to_story_seed(raw_content, video_title)
 
                 thesis = seed_data.get("thesis", video_title)
                 story_seed = seed_data.get("story_seed", {})
 
-                # Check deduplication against past 15 days
-                if evaluator.is_duplicate(thesis)[0] or evaluator.is_duplicate(video_title, threshold=0.88)[0]:
+                # Check deduplication against past 15 days (fuzzy title, thesis, and concept taxonomy)
+                if (
+                    evaluator.is_duplicate(thesis)[0]
+                    or evaluator.is_duplicate(video_title, threshold=0.88)[0]
+                    or evaluator.is_concept_duplicate(thesis)[0]
+                    or evaluator.is_concept_duplicate(video_title)[0]
+                ):
                     log.info("Candidate [%s] '%s' is duplicate/too similar. Trying next video in %s...", video_id, video_title, channel_name)
                     continue
 
-                log.info("Success! Extracted fresh topic from %s: [%s] %s", channel_name, video_id, video_title)
+                log.info("Success! Extracted fresh topic from %s: [%s] %s (source: %s)", channel_name, video_id, video_title, content_type)
                 return {
                     "channel": channel_name,
                     "video_id": video_id,
@@ -620,7 +774,7 @@ def discover_topic(day_override: Optional[int] = None) -> dict:
                     "video_title": video_title,
                     "thesis": thesis,
                     "story_seed": story_seed,
-                    "transcript_length": len(transcript),
+                    "transcript_length": len(raw_content),
                 }
 
             log.info("All scanned recent videos in channel %s exhausted/duplicate. Cascading to next channel...", channel_name)
