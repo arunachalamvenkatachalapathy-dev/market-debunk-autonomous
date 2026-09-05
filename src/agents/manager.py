@@ -73,7 +73,7 @@ def run_pipeline():
             script = script_agent.generate_script(thesis, channel, story_seed=story_seed)
             script_dict = script_agent.script_to_dict(script)
 
-            is_dup, score, match = evaluator.is_duplicate(script_dict["title"], threshold=0.90)
+            is_dup, score, match = evaluator.is_duplicate(script_dict["title"], threshold=0.78)
             if is_dup:
                 log.warning("Generated title duplicates '%s' (similarity %.2f). Auto-correcting title angle...", match, score)
                 concept = story_seed.get("concept", "") if isinstance(story_seed, dict) else ""

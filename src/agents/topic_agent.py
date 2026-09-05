@@ -42,14 +42,38 @@ log = get_logger(__name__, phase="topic_discovery")
 
 _CHANNEL_IDS_PATH = settings.DATA_DIR / "channel_ids.json"
 _SERP_QUERIES = (
-    "mutual fund expense ratio trap India",
-    "credit card hidden charges India",
-    "health insurance claim rejection rules India",
-    "SEBI rule changes retail options trading India",
-    "fixed deposit tax real return inflation India",
-    "no cost EMI trap hidden interest India",
-    "gold loan auction risk India",
-    "banking fraud safe OTP warning India",
+    "credit card hidden charges annual fee trap India",
+    "health insurance claim rejection rules room rent capping India",
+    "SEBI rule changes retail options trading 90 percent loss India",
+    "fixed deposit tax TDS real return inflation risk India",
+    "no cost EMI trap hidden GST interest India",
+    "gold loan auction risk LTV rules RBI India",
+    "banking cyber fraud digital arrest safe warning India",
+    "peer to peer P2P lending defaults RBI clampdown India",
+    "car loan 7 year balloon payment depreciation trap India",
+    "ULIP vs mutual fund endowment policy surrender trap India",
+    "EPFO claim rejection rules joint declaration delay India",
+    "personal loan instant lending app hidden fees India",
+    "REITs dividend tax classification real estate trap India",
+    "dark patterns quick commerce credit card charges India",
+    "Sovereign Gold Bonds capital gains premature exit India",
+    "bank locker compensation rules RBI guidelines India",
+    "co-signing loan danger legal liability CIBIL impact India",
+    "buy now pay later BNPL credit score damage CIBIL India",
+    "health insurance waiting period pre existing disease clause India",
+    "mutual fund direct plan switch regular plan commission drag India",
+    "ATM transaction charges GST hidden deduction salary account India",
+    "unclaimed bank deposit investor education protection fund IEPF India",
+    "guaranteed return insurance scheme IRR math real return India",
+    "zero brokerage hidden regulatory turnover charges STT SEBI India",
+    "motor insurance third party vs comprehensive cashless claim rejected India",
+    "credit score CIBIL sudden drop unauthorized enquiry dispute India",
+    "pension scheme NPS annuity taxation reality retirement India",
+    "gold ETF vs physical gold making charges GST sovereign risk India",
+    "stock manipulation pump and dump Telegram SEBI penalty India",
+    "finfluencer SEBI registration unregistered advisory crackdown India",
+    "algorithmic trading retail loss SEBI warning India",
+    "student education loan collateral margin money subsidy trap India",
 )
 
 
@@ -495,15 +519,31 @@ def _fetch_serp_google_result(query: str) -> Optional[dict]:
 
 
 def _discover_from_serp() -> Optional[dict]:
-    for query in _SERP_QUERIES:
+    import random
+    from datetime import datetime, timezone
+
+    # Dynamically rotate queries based on date and hour so every run samples a fresh domain
+    now = datetime.now(timezone.utc)
+    seed = now.year * 10000 + now.month * 100 + now.day + now.hour
+    queries = list(_SERP_QUERIES)
+    random.Random(seed).shuffle(queries)
+
+    for query in queries:
         try:
             candidate = _fetch_serp_google_result(query)
             if not candidate:
                 continue
             seed_data = summarize_to_story_seed(candidate["raw_text"], candidate["video_title"])
+            thesis = seed_data.get("thesis", candidate["video_title"])
+
+            # Check candidate thesis against both concept and fuzzy deduplication gates
+            if evaluator.is_duplicate(thesis)[0]:
+                log.info("Candidate thesis '%s' blocked by deduplication gate. Trying next SERP query...", thesis[:60])
+                continue
+
             return {
                 **{key: candidate[key] for key in ("channel", "video_id", "video_title", "source_id")},
-                "thesis": seed_data.get("thesis", candidate["video_title"]),
+                "thesis": thesis,
                 "story_seed": seed_data.get("story_seed", {}),
                 "transcript_length": len(candidate["raw_text"]),
             }

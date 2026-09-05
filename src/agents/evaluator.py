@@ -116,21 +116,93 @@ def _normalize_for_similarity(topic: str) -> str:
 
 
 # ──────────────────────────────────────────────────────────────────────────────
+#  Financial Concept Gate (Semantic Anti-Repetition)
+# ──────────────────────────────────────────────────────────────────────────────
+
+_FINANCIAL_CONCEPTS: dict[str, tuple[str, ...]] = {
+    "expense_ratio": ("expense ratio", "regular plan", "direct plan", "mutual fund fee", "commission cut", "expense ratios", "fund fee"),
+    "no_cost_emi": ("no cost emi", "no-cost emi", "zero cost emi", "subvention", "hidden interest emi"),
+    "options_trading": ("f&o", "options trading", "expiry day", "call option", "put option", "sebi options"),
+    "health_insurance": ("claim rejection", "waiting period", "room rent capping", "copay", "health insurance claim"),
+    "credit_card": ("credit card charge", "minimum due", "revolving credit", "apr charge", "credit card fee", "credit card trap"),
+    "fixed_deposit": ("fixed deposit tax", "fd inflation", "tds on fd", "real return fd"),
+    "gold_loan": ("gold loan auction", "ltv ratio", "gold auction risk"),
+    "cyber_banking_fraud": ("banking fraud", "fake otp", "sim swap", "digital arrest", "aeps fraud"),
+    "p2p_lending": ("p2p lending", "peer to peer default", "rbi p2p rules"),
+    "reits": ("reit dividend tax", "reit yield trap", "invit tax"),
+    "ulip": ("ulip trap", "endowment policy", "insurance investment mix", "surrender value"),
+    "epfo": ("epfo rejection", "pf withdrawal rules", "epf interest delay"),
+    "personal_loan": ("personal loan trap", "flat interest rate vs reducing", "instant loan app"),
+    "car_loan": ("balloon payment car loan", "7 year car loan", "car depreciation loan"),
+    "atm_fees": ("atm transaction", "free atm", "atm fee", "atm charges"),
+}
+
+
+def extract_concepts(text: str) -> set[str]:
+    """Extract known core financial concepts from text."""
+    t = text.lower()
+    found = set()
+    for concept, keywords in _FINANCIAL_CONCEPTS.items():
+        if any(kw in t for kw in keywords):
+            found.add(concept)
+    return found
+
+
+def is_concept_duplicate(topic: str, max_lookback_days: int = 14) -> tuple[bool, str]:
+    """
+    Checks if any core financial concept in `topic` was covered within the last max_lookback_days.
+    Returns (is_duplicate: bool, matched_concept: str).
+    """
+    candidate_concepts = extract_concepts(topic)
+    if not candidate_concepts:
+        return False, ""
+
+    buffer = _load_buffer()
+    cutoff = datetime.now(timezone.utc) - timedelta(days=max_lookback_days)
+
+    for past_topic, ts_str in buffer.items():
+        if past_topic.startswith((_SOURCE_PREFIX, _SOURCE_ID_PREFIX)):
+            continue
+        try:
+            ts = datetime.fromisoformat(ts_str)
+            if ts.tzinfo is None:
+                ts = ts.replace(tzinfo=timezone.utc)
+            if ts < cutoff:
+                continue
+        except (ValueError, TypeError):
+            continue
+
+        past_concepts = extract_concepts(past_topic)
+        overlap = candidate_concepts.intersection(past_concepts)
+        if overlap:
+            matched_concept = sorted(list(overlap))[0]
+            log.warning(
+                "CONCEPT DUPLICATE BLOCKED — concept '%s' recently covered in '%s'",
+                matched_concept, past_topic[:60]
+            )
+            return True, matched_concept
+
+    return False, ""
+
+
+# ──────────────────────────────────────────────────────────────────────────────
 #  Public API
 # ──────────────────────────────────────────────────────────────────────────────
 
 def is_duplicate(topic: str, threshold: Optional[float] = None) -> tuple[bool, float, str]:
     """
-    Check whether `topic` is too similar to a recently used topic.
+    Check whether `topic` is too similar to a recently used topic or covers
+    the same core financial concept within the 14-day anti-repetition window.
 
     Returns:
         (is_dup: bool, similarity_score: float, matched_topic: str)
-
-    Example:
-        is_dup, score, match = is_duplicate("Reliance Industries Q4 profit beat")
-        if is_dup:
-            print(f"Blocked! Matches '{match}' with score {score:.2f}")
     """
+    # 1. Concept-level deduplication (catches differently-phrased repeats like Axis expense ratio vs general expense ratio)
+    concept_dup, concept_name = is_concept_duplicate(topic, max_lookback_days=10)
+    if concept_dup:
+        return True, 0.99, f"Concept '{concept_name}' already covered within 10 days"
+
+    # 2. Fuzzy text similarity
     thresh = threshold if threshold is not None else settings.DEDUP_THRESHOLD
     buffer = _load_buffer()
     buffer = _evict_old_entries(buffer)
