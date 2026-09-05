@@ -167,21 +167,12 @@ def run_pipeline():
         with PhaseTimer("Phase 6.5: SEO & Distribution Engineering"):
             from src.agents.distribution_seo_agent import DistributionSEOAgent
             seo_agent = DistributionSEOAgent()
-            dist_package = seo_agent.generate_package(
+            dist_pkg = seo_agent.generate_package(
                 thesis=thesis,
                 script_dict=script_dict,
                 topic_data=topic_data,
             )
             log.info("✓ Multi-platform SEO Distribution Package generated successfully.")
-
-        # ── Phase 6.5: Multi-Platform Distribution SEO ─────────────────────
-        with PhaseTimer("Phase 6.5: Distribution SEO Package"):
-            dist_pkg = DistributionSEOAgent().generate_package(
-                thesis=thesis,
-                script_dict=script_dict,
-                topic_data=topic_data,
-            )
-            log.info("✓ Distribution package ready | yt_title: '%s'", dist_pkg.youtube.title)
 
         # ── Phase 7: Publishing ───────────────────────────────────────────
         with PhaseTimer("Phase 7: Publishing"):
@@ -216,6 +207,16 @@ def run_pipeline():
                 )
 
         total_time = time.time() - total_start
+if settings.ENABLE_TELEGRAM:
+                telegram_notifier.send_completion_notification(
+                    title=dist_pkg.youtube.title,
+                    thesis=thesis,
+                    youtube_url=yt_url,
+                    instagram_url=ig_url,
+                    facebook_url=fb_url,
+                    video_path=final_video,
+                    run_stats=stats,
+                )
         log.info("==================================================")
         log.info("✅ PIPELINE COMPLETED SUCCESSFULLY in %.1fs", total_time)
         log.info("Output Video: %s", final_video.resolve())
