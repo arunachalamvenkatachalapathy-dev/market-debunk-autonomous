@@ -28,14 +28,18 @@ def _upload_binary_resumable(upload_uri: str, video_path: Path, token: str) -> b
     file_size = video_path.stat().st_size
     log.info("Streaming %d KB directly to Meta resumable upload endpoint...", file_size // 1024)
 
+    with open(video_path, "rb") as video_file:
+        video_bytes = video_file.read()
+
     headers = {
         "Authorization": f"OAuth {token}",
         "offset": "0",
-        "file_size": str(file_size),
+        "file_size": str(len(video_bytes)),
+        "Content-Length": str(len(video_bytes)),
+        "Content-Type": "application/octet-stream",
     }
 
-    with open(video_path, "rb") as video_file:
-        res = requests.post(upload_uri, headers=headers, data=video_file, timeout=300)
+    res = requests.post(upload_uri, headers=headers, data=video_bytes, timeout=300)
 
     if res.status_code not in (200, 201):
         log.error("Binary upload failed: HTTP %d: %s", res.status_code, res.text[:300])
@@ -43,6 +47,33 @@ def _upload_binary_resumable(upload_uri: str, video_path: Path, token: str) -> b
 
     log.info("✓ Binary video bytes received by Meta.")
     return True
+
+
+def _get_public_video_url_via_release(video_path: Path) -> Optional[str]:
+    """Upload video to the public repository's latest-assets release to get a direct HTTPS URL for Meta."""
+    import shutil
+    import subprocess
+
+    if not shutil.which("gh"):
+        return None
+
+    tag = "latest-assets"
+    repo = "arunachalamvenkatachalapathy-dev/market-debunk-autonomous"
+    target_filename = video_path.name
+
+    try:
+        log.info("Publishing temporary public asset via GitHub release '%s'...", tag)
+        cmd = ["gh", "release", "upload", tag, str(video_path), "--clobber", "-R", repo]
+        run_res = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+        if run_res.returncode == 0:
+            public_url = f"https://github.com/{repo}/releases/download/{tag}/{target_filename}"
+            log.info("✓ Public video URL available for Meta: %s", public_url)
+            return public_url
+        else:
+            log.warning("gh release upload failed (%d): %s", run_res.returncode, run_res.stderr[:200])
+    except Exception as exc:
+        log.warning("Could not upload video to GitHub release: %s", exc)
+    return None
 
 
 def publish_reel(
@@ -81,45 +112,58 @@ def publish_reel(
 
     try:
         # Step 1: Initialize Container
-        # Prefer direct resumable upload of local file, unless a valid HTTPS video URL is explicitly configured.
-        if settings.INSTAGRAM_VIDEO_URL and settings.INSTAGRAM_VIDEO_URL.startswith("https://"):
-            log.info("Using configured INSTAGRAM_VIDEO_URL for container creation...")
+        # Priority 1: Direct Resumable Binary Upload
+        # Priority 2: Configured INSTAGRAM_VIDEO_URL
+        # Priority 3: Automatic fallback to public GitHub Release video URL
+        video_url = settings.INSTAGRAM_VIDEO_URL if (settings.INSTAGRAM_VIDEO_URL and settings.INSTAGRAM_VIDEO_URL.startswith("https://")) else None
+        creation_id = None
+
+        if not video_url:
+            try:
+                log.info("Initiating direct Meta resumable upload session for '%s'...", video_path.name)
+                create_payload = {
+                    "media_type": "REELS",
+                    "upload_type": "resumable",
+                    "caption": caption,
+                    "access_token": token,
+                }
+                init_res = requests.post(f"{base_url}/{user_id}/media", data=create_payload, timeout=30)
+                init_json = init_res.json()
+                if "error" in init_json:
+                    raise RuntimeError(f"Meta Graph API container error: {init_json['error']}")
+                creation_id = init_json.get("id")
+                upload_uri = init_json.get("uri")
+
+                if creation_id and upload_uri:
+                    log.info("✓ Meta container created (ID: %s)", creation_id)
+                    _upload_binary_resumable(upload_uri, video_path, token)
+            except Exception as res_err:
+                log.warning("Direct resumable upload failed (%s). Attempting hosted URL fallback via GitHub Release...", res_err)
+                video_url = _get_public_video_url_via_release(video_path)
+                creation_id = None
+
+        if video_url and not creation_id:
+            log.info("Creating Meta container using public video URL: %s", video_url)
             create_payload = {
                 "media_type": "REELS",
-                "video_url": settings.INSTAGRAM_VIDEO_URL,
+                "video_url": video_url,
                 "caption": caption,
                 "access_token": token,
             }
-        else:
-            log.info("Initiating direct Meta resumable upload session for '%s'...", video_path.name)
-            create_payload = {
-                "media_type": "REELS",
-                "upload_type": "resumable",
-                "caption": caption,
-                "access_token": token,
-            }
-
-        init_res = requests.post(f"{base_url}/{user_id}/media", data=create_payload, timeout=30)
-        init_json = init_res.json()
-
-        if "error" in init_json:
-            err_msg = init_json["error"].get("message", str(init_json["error"]))
-            raise RuntimeError(f"Meta Graph API container error: {err_msg}")
-
-        creation_id = init_json.get("id")
-        upload_uri = init_json.get("uri")
+            init_res = requests.post(f"{base_url}/{user_id}/media", data=create_payload, timeout=30)
+            init_json = init_res.json()
+            if "error" in init_json:
+                raise RuntimeError(f"Meta Graph API container error with video_url: {init_json['error']}")
+            creation_id = init_json.get("id")
+            if not creation_id:
+                raise RuntimeError(f"Meta did not return a media container ID. Response: {init_json}")
+            log.info("✓ Meta container created via video_url (ID: %s)", creation_id)
 
         if not creation_id:
-            raise RuntimeError(f"Meta did not return a media container ID. Response: {init_json}")
-
-        log.info("✓ Meta container created (ID: %s)", creation_id)
-
-        # Step 2: Upload Binary Bytes if Resumable
-        if upload_uri:
-            _upload_binary_resumable(upload_uri, video_path, token)
+            raise RuntimeError("Failed to create Meta media container via both resumable and URL methods.")
 
         # Step 3: Poll Container Processing Status
-        log.info("Polling Meta media processing status...")
+        log.info("Polling Meta media processing status for container %s...", creation_id)
         max_attempts = 30  # 30 * 5s = 150 seconds max
         for attempt in range(1, max_attempts + 1):
             time.sleep(5)
