@@ -324,18 +324,18 @@ def _template_script(thesis: str) -> ScriptPayload:
     short_thesis = clean_thesis[:35]
 
     narrations = [
-        f"You heard that {short_thesis} is simple, but look closer.",
-        "Most retail investors see the surface story and make quick moves.",
-        "When market volatility hits, panic overrides the real balance sheet.",
-        "Smart money looks at institutional positioning before reacting.",
-        f"The underlying driver behind {hook_phrase} is structural data.",
-        "Always verify real cash flow and volume before trusting claims.",
-        "Ask yourself who stands to profit from sudden market sentiment.",
-        "Institutional desks quietly analyze facts while crowds chase noise.",
-        "The real mechanism here is disciplined valuation analysis.",
-        "Informed investors protect their capital by ignoring the hype.",
-        "Demand verifiable numbers before executing your next trade.",
-        "Protect your hard-earned money and check facts before investing.",
+        f"You think {short_thesis} is safe, but look closer.",
+        "You see retail investors make quick emotional moves on headlines.",
+        "When volatility hits your portfolio, fear overrides your balance sheet.",
+        "You must watch institutional positioning before you react.",
+        f"What you need to check about {hook_phrase} is structural data.",
+        "Always verify your cash flow data before you trust claims.",
+        "Ask yourself who stands to profit before you hit sell.",
+        "Big funds quietly accumulate assets while you run in fear.",
+        "Your biggest investment edge is disciplined valuation analysis.",
+        "You protect your hard-earned money by ignoring market hype.",
+        "Demand verifiable numbers before you execute your next trade.",
+        "Protect your capital and check the facts before you invest.",
     ]
     prompts = [
         "Arjun looking directly into the camera with an intense, serious expression, split amber-teal lighting, dark textured background, extreme close-up, full-bleed vertical frame",
