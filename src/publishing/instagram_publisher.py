@@ -51,28 +51,63 @@ def _upload_binary_resumable(upload_uri: str, video_path: Path, token: str) -> b
 
 def _get_public_video_url_via_release(video_path: Path) -> Optional[str]:
     """Upload video to the public repository's latest-assets release to get a direct HTTPS URL for Meta."""
-    import shutil
-    import subprocess
+    import os
+    import requests
 
-    if not shutil.which("gh"):
-        return None
-
-    tag = "latest-assets"
+    token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN") or ""
     repo = "arunachalamvenkatachalapathy-dev/market-debunk-autonomous"
+    tag = "latest-assets"
     target_filename = video_path.name
 
-    try:
-        log.info("Publishing temporary public asset via GitHub release '%s'...", tag)
-        cmd = ["gh", "release", "upload", tag, str(video_path), "--clobber", "-R", repo]
-        run_res = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
-        if run_res.returncode == 0:
-            public_url = f"https://github.com/{repo}/releases/download/{tag}/{target_filename}"
-            log.info("✓ Public video URL available for Meta: %s", public_url)
-            return public_url
-        else:
-            log.warning("gh release upload failed (%d): %s", run_res.returncode, run_res.stderr[:200])
-    except Exception as exc:
-        log.warning("Could not upload video to GitHub release: %s", exc)
+    # Method 1: Direct GitHub REST API
+    if token:
+        try:
+            log.info("Uploading video to GitHub release '%s' via REST API...", tag)
+            gh_headers = {"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"}
+            rel_res = requests.get(f"https://api.github.com/repos/{repo}/releases/tags/{tag}", headers=gh_headers, timeout=15)
+            if rel_res.status_code == 200:
+                rel_json = rel_res.json()
+                upload_url_base = rel_json.get("upload_url", "").split("{")[0]
+                # Delete existing asset with same name if present
+                for asset in rel_json.get("assets", []):
+                    if asset.get("name") == target_filename:
+                        requests.delete(f"https://api.github.com/repos/{repo}/releases/assets/{asset.get('id')}", headers=gh_headers, timeout=15)
+                        break
+                with open(video_path, "rb") as f:
+                    up_res = requests.post(
+                        f"{upload_url_base}?name={target_filename}",
+                        headers={"Authorization": f"Bearer {token}", "Content-Type": "application/octet-stream"},
+                        data=f,
+                        timeout=300,
+                    )
+                if up_res.status_code in (200, 201):
+                    public_url = f"https://github.com/{repo}/releases/download/{tag}/{target_filename}"
+                    log.info("✓ Public video URL ready for Meta via GitHub API: %s", public_url)
+                    return public_url
+                else:
+                    log.warning("REST API release upload returned %d: %s", up_res.status_code, up_res.text[:200])
+        except Exception as exc:
+            log.warning("REST API release upload failed: %s", exc)
+
+    # Method 2: Fallback to gh CLI
+    import shutil
+    import subprocess
+    if shutil.which("gh"):
+        try:
+            log.info("Publishing temporary public asset via gh CLI release '%s'...", tag)
+            env = os.environ.copy()
+            if token:
+                env["GH_TOKEN"] = token
+            cmd = ["gh", "release", "upload", tag, str(video_path), "--clobber", "-R", repo]
+            run_res = subprocess.run(cmd, env=env, capture_output=True, text=True, timeout=120)
+            if run_res.returncode == 0:
+                public_url = f"https://github.com/{repo}/releases/download/{tag}/{target_filename}"
+                log.info("✓ Public video URL available for Meta: %s", public_url)
+                return public_url
+            else:
+                log.warning("gh release upload failed (%d): %s", run_res.returncode, run_res.stderr[:200])
+        except Exception as exc:
+            log.warning("Could not upload video to GitHub release: %s", exc)
     return None
 
 
