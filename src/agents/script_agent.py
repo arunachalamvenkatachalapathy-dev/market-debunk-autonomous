@@ -318,19 +318,23 @@ def _call_gemma(user_prompt: str) -> str:
 
 def _template_script(thesis: str) -> ScriptPayload:
     """Guaranteed schema-valid emergency script when every LLM is unavailable."""
-    clean_thesis = " ".join(thesis.split())[:35].strip()
+    clean_thesis = " ".join(thesis.split()).strip()
+    words = [w for w in re.sub(r'[^a-zA-Z0-9\s]', '', clean_thesis).split() if len(w) > 2]
+    hook_phrase = " ".join(words[:4]).title() if words else "Market Reality"
+    short_thesis = clean_thesis[:35]
+
     narrations = [
-        f"Wait—you think {clean_thesis} is real, but it is not.",
-        "You saw that scary headline, but headlines deceive you.",
-        "When prices dip, you might panic and sell immediately.",
-        "That exact fear you feel is what institutions expect.",
-        "Before you sell your assets, verify if anything broke.",
-        "Check your volume charts before you call a crash.",
-        "Ask yourself who profits from prices dropping before you.",
-        "Big funds quietly accumulate while you run in fear.",
-        "What you see is a classic Bear Trap.",
-        "Smart money buys the dip your panic just created.",
-        "Demand data before you let emotions drive your trade.",
+        f"You heard that {short_thesis} is simple, but look closer.",
+        "Most retail investors see the surface story and make quick moves.",
+        "When market volatility hits, panic overrides the real balance sheet.",
+        "Smart money looks at institutional positioning before reacting.",
+        f"The underlying driver behind {hook_phrase} is structural data.",
+        "Always verify real cash flow and volume before trusting claims.",
+        "Ask yourself who stands to profit from sudden market sentiment.",
+        "Institutional desks quietly analyze facts while crowds chase noise.",
+        "The real mechanism here is disciplined valuation analysis.",
+        "Informed investors protect their capital by ignoring the hype.",
+        "Demand verifiable numbers before executing your next trade.",
         "Protect your hard-earned money and check facts before investing.",
     ]
     prompts = [
@@ -386,10 +390,16 @@ def _template_script(thesis: str) -> ScriptPayload:
 
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=2, min=3, max=20))
 def _call_gemini(user_prompt: str, model_name: str) -> str:
-    """Call Gemini via Vertex AI and return raw response."""
+    """Call Gemini via Google AI Studio API key or Vertex AI fallback and return raw response."""
     from google import genai
     from google.genai import types
-    client = genai.Client(vertexai=True, project="exalted-shape-502013-q5", location="us-central1")
+    import os
+
+    api_key = getattr(settings, "GEMINI_SCRIPT_API_KEY", "") or getattr(settings, "GEMINI_API_KEY", "") or os.getenv("GEMINI_SCRIPT_API_KEY") or os.getenv("GEMINI_API_KEY")
+    if api_key:
+        client = genai.Client(api_key=api_key)
+    else:
+        client = genai.Client(vertexai=True, project="exalted-shape-502013-q5", location="us-central1")
 
     response = client.models.generate_content(
         model=model_name,
