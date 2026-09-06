@@ -140,7 +140,166 @@ _FINANCIAL_CONCEPTS: dict[str, tuple[str, ...]] = {
     "bnpl": ("bnpl", "buy now pay later", "pay later trap", "lazy pay", "simpl"),
     "real_estate_home_loan": ("home loan", "buying a house", "buying a home", "home buying", "builder trap", "property registration"),
     "retirement_pension": ("pension tax", "nps annuity", "retiree tax", "pension scheme tax", "retirement tax"),
+    "nifty_market_crash_beartrap": (
+        "nifty crash", "market crash", "bear trap", "bull trap", "downtrend", "nifty downtrend",
+        "timing the market", "nifty 24000", "nifty 25000", "nifty 24,000", "nifty 25,000",
+        "market correction", "timing trap", "crash prediction", "bse at nifty", "fql scam",
+        "market blood bath", "severe equity market fall"
+    ),
+    "ipo_valuation_trap": ("ipo trap", "overvalued ipo", "ipo listing gain", "ipo grey market", "sme ipo", "gmp trap"),
+    "dividend_yield_trap": ("dividend yield trap", "high dividend trap", "dividend payout ratio", "dividend myth", "chasing high dividend"),
+    "algorithmic_trading_scam": ("algo trading scam", "algorithmic trading scam", "guaranteed algo", "trading bot scam"),
 }
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+#  Macro Domain Taxonomy (Hard Rotation & Cooldown)
+# ──────────────────────────────────────────────────────────────────────────────
+
+MACRO_DOMAINS: dict[str, tuple[str, ...]] = {
+    "INDEX_MACRO": (
+        "nifty_market_crash_beartrap",
+        "options_trading",
+        "algorithmic_trading_scam",
+    ),
+    "PERSONAL_CREDIT": (
+        "loan_guarantor",
+        "cibil_credit_score",
+        "bnpl",
+        "personal_loan",
+        "credit_card",
+        "no_cost_emi",
+        "car_loan",
+        "gold_loan",
+        "atm_fees",
+    ),
+    "INVESTMENT_FUNDS": (
+        "expense_ratio",
+        "fixed_deposit",
+        "reits",
+        "ulip",
+        "real_estate_home_loan",
+        "ipo_valuation_trap",
+        "dividend_yield_trap",
+        "p2p_lending",
+    ),
+    "CONSUMER_PROTECTION": (
+        "health_insurance",
+        "cyber_banking_fraud",
+        "epfo",
+        "retirement_pension",
+    ),
+}
+
+_DOMAIN_HEURISTIC_KEYWORDS: dict[str, tuple[str, ...]] = {
+    "INDEX_MACRO": (
+        "nifty", "sensex", "crash", "downtrend", "bear trap", "bull trap",
+        "f&o", "options", "call option", "put option", "expiry day", "trading loss",
+        "bond yield", "market correction", "stock market dip", "sell on rise"
+    ),
+    "PERSONAL_CREDIT": (
+        "loan", "cibil", "credit score", "credit card", "emi", "no-cost emi",
+        "bnpl", "buy now pay later", "debt", "borrow", "guarantor", "co-signer",
+        "atm charge", "atm fee"
+    ),
+    "INVESTMENT_FUNDS": (
+        "mutual fund", "expense ratio", "direct plan", "regular plan", "sip",
+        "fixed deposit", "fd tax", "reit", "real estate", "home loan", "buying a house",
+        "dream home", "ipo", "dividend yield", "gold loan", "p2p lending", "ulip"
+    ),
+    "CONSUMER_PROTECTION": (
+        "health insurance", "claim rejection", "banking fraud", "digital arrest",
+        "fake otp", "sim swap", "epfo", "pf withdrawal", "pension tax", "nps annuity",
+        "finfluencer scam", "telegram scam"
+    ),
+}
+
+
+def get_topic_domain(text: str) -> Optional[str]:
+    """Identify the macro financial domain of a topic or title."""
+    concepts = extract_concepts(text)
+    for concept in concepts:
+        for domain, domain_concepts in MACRO_DOMAINS.items():
+            if concept in domain_concepts:
+                return domain
+
+    # Fallback to heuristic keywords
+    t = text.lower()
+    for domain, keywords in _DOMAIN_HEURISTIC_KEYWORDS.items():
+        if any(kw in t for kw in keywords):
+            return domain
+
+    return None
+
+
+def is_domain_on_cooldown(
+    topic: str,
+    cooldown_hours: int = 36,
+    max_recent_domain_repeats: int = 1,
+) -> tuple[bool, str]:
+    """
+    Checks if the macro domain of `topic` has already been covered too recently.
+    Prevents back-to-back index/crash/options videos or repetitive domain streaks.
+    Rule 1: If the most recent topic belongs to this domain, strictly blocked (no back-to-back).
+    Rule 2: In the last 4 distinct topics, the domain cannot appear more than max_recent_domain_repeats.
+    Rule 3: Time-based window (cooldown_hours).
+    Returns (is_on_cooldown: bool, domain_name: str).
+    """
+    domain = get_topic_domain(topic)
+    if not domain:
+        return False, ""
+
+    buffer = _load_buffer()
+    recent_entries = []
+    for past_topic, ts_str in buffer.items():
+        if past_topic.startswith((_SOURCE_PREFIX, _SOURCE_ID_PREFIX)):
+            continue
+        try:
+            ts = datetime.fromisoformat(ts_str)
+            if ts.tzinfo is None:
+                ts = ts.replace(tzinfo=timezone.utc)
+            recent_entries.append((past_topic, ts))
+        except (ValueError, TypeError):
+            continue
+
+    recent_entries.sort(key=lambda x: x[1], reverse=True)
+
+    if not recent_entries:
+        return False, ""
+
+    # Rule 1: Immediate back-to-back block
+    last_topic, last_ts = recent_entries[0]
+    last_domain = get_topic_domain(last_topic)
+    if last_domain == domain:
+        log.warning(
+            "DOMAIN COOLDOWN BLOCKED (Back-to-back) — domain '%s' was just used in '%s' (%s)",
+            domain, last_topic[:60], last_ts.strftime("%Y-%m-%d %H:%M")
+        )
+        return True, domain
+
+    # Rule 2: Cannot dominate recent history (max 1 occurrence in last 4 topics)
+    recent_4 = recent_entries[:4]
+    domain_count = sum(1 for t, _ in recent_4 if get_topic_domain(t) == domain)
+    if domain_count >= max_recent_domain_repeats:
+        log.warning(
+            "DOMAIN COOLDOWN BLOCKED (Frequency) — domain '%s' already appeared %d time(s) in last 4 topics",
+            domain, domain_count
+        )
+        return True, domain
+
+    # Rule 3: Time window (cooldown_hours)
+    cutoff = datetime.now(timezone.utc) - timedelta(hours=cooldown_hours)
+    for past_topic, ts in recent_entries:
+        if ts < cutoff:
+            break
+        if get_topic_domain(past_topic) == domain:
+            log.warning(
+                "DOMAIN COOLDOWN BLOCKED (Time window) — domain '%s' was covered on %s in '%s'",
+                domain, ts.strftime("%Y-%m-%d %H:%M"), past_topic[:60]
+            )
+            return True, domain
+
+    return False, ""
 
 
 def extract_concepts(text: str) -> set[str]:
@@ -194,10 +353,15 @@ def is_concept_duplicate(topic: str, max_lookback_days: int = 14) -> tuple[bool,
 #  Public API
 # ──────────────────────────────────────────────────────────────────────────────
 
-def is_duplicate(topic: str, threshold: Optional[float] = None) -> tuple[bool, float, str]:
+def is_duplicate(
+    topic: str,
+    threshold: Optional[float] = None,
+    enforce_domain_cooldown: bool = True,
+) -> tuple[bool, float, str]:
     """
-    Check whether `topic` is too similar to a recently used topic or covers
-    the same core financial concept within the 14-day anti-repetition window.
+    Check whether `topic` is too similar to a recently used topic, covers
+    the same core financial concept within 10 days, or falls into a macro domain
+    currently under cooldown (3 days).
 
     Returns:
         (is_dup: bool, similarity_score: float, matched_topic: str)
@@ -207,7 +371,13 @@ def is_duplicate(topic: str, threshold: Optional[float] = None) -> tuple[bool, f
     if concept_dup:
         return True, 0.99, f"Concept '{concept_name}' already covered within 10 days"
 
-    # 2. Fuzzy text similarity
+    # 2. Macro Domain Cooldown (prevents clustering e.g. multiple Nifty crash/timing videos)
+    if enforce_domain_cooldown:
+        domain_on_cd, domain_name = is_domain_on_cooldown(topic, cooldown_hours=36)
+        if domain_on_cd:
+            return True, 0.95, f"Macro Domain '{domain_name}' is on cooldown"
+
+    # 3. Fuzzy text similarity
     thresh = threshold if threshold is not None else settings.DEDUP_THRESHOLD
     buffer = _load_buffer()
     buffer = _evict_old_entries(buffer)

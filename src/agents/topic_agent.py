@@ -28,13 +28,14 @@ import http.cookiejar
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
-
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import feedparser
 import requests
 from tenacity import retry, stop_after_attempt, wait_exponential
 from youtube_transcript_api import YouTubeTranscriptApi, NoTranscriptFound
 
 from src.agents import evaluator
+from src.agents.market_api_adapter import DedicatedMarketAPIAdapter
 from src.utils.config import settings
 from src.utils.logger import get_logger
 
@@ -681,117 +682,207 @@ def _discover_from_serp() -> Optional[dict]:
 
 
 # ──────────────────────────────────────────────────────────────────────────────
+#  Parallel Multi-Channel Scanner (Global Recency First)
+# ──────────────────────────────────────────────────────────────────────────────
+
+def scan_all_channels_parallel(limit_per_channel: int = 5) -> list[dict]:
+    """
+    Scans ALL 7 registered Indian financial channels concurrently.
+    Extracts up to `limit_per_channel` recent videos per channel.
+    Normalizes timestamps, discards already-used source IDs/videos,
+    and sorts the entire pool globally by `published_at DESC` (newest first across YouTube).
+    """
+    from datetime import datetime, timezone
+
+    all_candidates: list[dict] = []
+    channel_list = list(settings.CHANNEL_REGISTRY)
+
+    log.info("Initiating parallel scan across all %d network channels...", len(channel_list))
+
+    def _fetch_channel(ch_name: str) -> list[dict]:
+        try:
+            vids = fetch_recent_videos(ch_name, limit=limit_per_channel)
+            for v in vids:
+                v["channel"] = ch_name
+            return vids
+        except Exception as err:
+            log.warning("Parallel fetch failed for '%s': %s", ch_name, err)
+            return []
+
+    with ThreadPoolExecutor(max_workers=len(channel_list)) as executor:
+        future_to_channel = {executor.submit(_fetch_channel, name): name for name in channel_list}
+        for future in as_completed(future_to_channel):
+            channel_name = future_to_channel[future]
+            try:
+                videos = future.result()
+                all_candidates.extend(videos)
+            except Exception as err:
+                log.warning("Channel '%s' worker threw exception: %s", channel_name, err)
+
+    if not all_candidates:
+        log.warning("Parallel scan returned 0 videos across all channels.")
+        return []
+
+    # Filter out already used source IDs and videos
+    filtered_candidates: list[dict] = []
+    for v in all_candidates:
+        v_id = v.get("video_id", "")
+        source_id = f"youtube:{v_id}"
+        if not v_id:
+            continue
+        if evaluator.is_source_id_used(source_id) or evaluator.is_source_video_used(v_id):
+            log.debug("Skipping already-used video [%s] '%s'", v_id, v.get("title", ""))
+            continue
+        filtered_candidates.append(v)
+
+    # Parse published_at for accurate chronological sorting
+    def _parse_published_at(entry: dict) -> datetime:
+        raw = entry.get("published_at", "")
+        if not raw:
+            return datetime(2000, 1, 1, tzinfo=timezone.utc)
+        try:
+            clean_str = raw.replace("Z", "+00:00")
+            dt = datetime.fromisoformat(clean_str)
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            return dt
+        except Exception:
+            return datetime(2000, 1, 1, tzinfo=timezone.utc)
+
+    filtered_candidates.sort(key=_parse_published_at, reverse=True)
+    log.info(
+        "Parallel scan completed: %d total candidates collected, %d fresh after dedup filter.",
+        len(all_candidates), len(filtered_candidates)
+    )
+    return filtered_candidates
+
+
+# ──────────────────────────────────────────────────────────────────────────────
 #  Main Entry Point
 # ──────────────────────────────────────────────────────────────────────────────
 
 def discover_topic(day_override: Optional[int] = None) -> dict:
     """
-    Full topic discovery pipeline with cascading fallback.
-    Starts with the channel of the day, and if it fails (no video or empty transcript),
-    cascades to the next channel in the rotation until a valid topic is found.
-    
-    Returns dict with keys: channel, video_id, video_title, thesis, story_seed, transcript_length
+    Full topic discovery pipeline with global recency across all 7 channels.
+    1. Scans ALL 7 channels simultaneously and sorts by exact upload timestamp (newest first).
+    2. Evaluates candidates in global chronological order against:
+       - exact source_id / source_video dedup
+       - concept deduplication (10-day block)
+       - macro-domain cooldown (36-hour / frequency block)
+       - title and thesis fuzzy deduplication
+    3. Primary Fallback: Dedicated Indian Share Market API (if configured).
+    4. Secondary Fallback: Verified 24-hour fresh Google News / Search via SerpApi.
     """
-    start_day = day_override if day_override is not None else datetime.now().weekday()
     title_only_candidate: Optional[dict] = None
-    
-    for offset in range(7):
-        current_day_index = (start_day + offset) % 7
-        channel_name = settings.CHANNEL_REGISTRY[current_day_index]
-        
-        log.info("--- Attempt %d/7: Scanning channel '%s' ---", offset + 1, channel_name)
-        
-        try:
-            videos = fetch_recent_videos(channel_name, limit=5)
 
-            if not videos:
-                log.warning("No videos found for %s. Cascading to next channel...", channel_name)
-                continue
+    # Step 1: Parallel scan across all 7 channels sorted by newest globally
+    candidates = scan_all_channels_parallel(limit_per_channel=5)
 
-            for video_meta in videos:
-                video_id = video_meta["video_id"]
-                video_title = video_meta["title"]
-                source_id = f"youtube:{video_id}"
-                if evaluator.is_source_id_used(source_id):
-                    log.info("Already-used source ID %s. Trying next video in %s...", source_id, channel_name)
-                    continue
-                if evaluator.is_source_video_used(video_id):
-                    log.info("Already-used source video %s. Trying next video in %s...", video_id, channel_name)
-                    continue
-                if title_only_candidate is None:
-                    title_only_candidate = {
-                        "channel": channel_name,
-                        "video_id": video_id,
-                        "video_title": video_title,
-                    }
+    for cand in candidates:
+        channel_name = cand["channel"]
+        video_id = cand["video_id"]
+        video_title = cand["title"]
+        source_id = f"youtube:{video_id}"
+        published_at = cand.get("published_at", "")
 
-                transcript = download_transcript(video_id)
-                raw_content = ""
-                content_type = ""
-                if transcript and transcript.strip():
-                    raw_content = transcript
-                    content_type = "transcript"
-                else:
-                    desc = (video_meta.get("description") or "").strip()
-                    if len(desc) >= 30:
-                        log.info(
-                            "Transcript not yet available for fresh video [%s] '%s'. Using rich description (%d chars) for story seed distillation.",
-                            video_id,
-                            video_title,
-                            len(desc),
-                        )
-                        raw_content = f"VIDEO TITLE: {video_title}\nCHANNEL: {channel_name}\n\nVIDEO DESCRIPTION:\n{desc}"
-                        content_type = "description"
-                    else:
-                        log.info(
-                            "No transcript or description for [%s] '%s'. Using video title as topic seed.",
-                            video_id,
-                            video_title,
-                        )
-                        raw_content = f"VIDEO TITLE: {video_title}\nCHANNEL: {channel_name}"
-                        content_type = "title"
-
-                seed_data = summarize_to_story_seed(raw_content, video_title)
-
-                thesis = seed_data.get("thesis", video_title)
-                story_seed = seed_data.get("story_seed", {})
-
-                # Check deduplication against past 15 days (fuzzy title, thesis, and concept taxonomy)
-                if (
-                    evaluator.is_duplicate(thesis)[0]
-                    or evaluator.is_duplicate(video_title, threshold=0.88)[0]
-                    or evaluator.is_concept_duplicate(thesis)[0]
-                    or evaluator.is_concept_duplicate(video_title)[0]
-                ):
-                    log.info("Candidate [%s] '%s' is duplicate/too similar. Trying next video in %s...", video_id, video_title, channel_name)
-                    continue
-
-                log.info("Success! Extracted fresh topic from %s: [%s] %s (source: %s)", channel_name, video_id, video_title, content_type)
-                return {
-                    "channel": channel_name,
-                    "video_id": video_id,
-                    "source_id": source_id,
-                    "video_title": video_title,
-                    "thesis": thesis,
-                    "story_seed": story_seed,
-                    "transcript_length": len(raw_content),
-                }
-
-            log.info("All scanned recent videos in channel %s exhausted/duplicate. Cascading to next channel...", channel_name)
-        except Exception as exc:
-            log.error("Failed processing %s: %s. Cascading to next channel...", channel_name, exc)
+        # Fast gate: Check title before expensive transcript download
+        is_title_dup, score, reason = evaluator.is_duplicate(video_title, threshold=0.88)
+        if is_title_dup:
+            log.info(
+                "Skipping candidate [%s] '%s' (%s) — title blocked: %s",
+                video_id, video_title[:50], channel_name, reason
+            )
             continue
 
+        if title_only_candidate is None:
+            title_only_candidate = {
+                "channel": channel_name,
+                "video_id": video_id,
+                "video_title": video_title,
+                "published_at": published_at,
+            }
+
+        # Download transcript
+        transcript = download_transcript(video_id)
+        raw_content = ""
+        content_type = ""
+        if transcript and transcript.strip():
+            raw_content = transcript
+            content_type = "transcript"
+        else:
+            desc = (cand.get("description") or "").strip()
+            if len(desc) >= 30:
+                log.info(
+                    "Transcript not yet available for fresh video [%s] '%s'. Using rich description (%d chars).",
+                    video_id, video_title, len(desc)
+                )
+                raw_content = f"VIDEO TITLE: {video_title}\nCHANNEL: {channel_name}\n\nVIDEO DESCRIPTION:\n{desc}"
+                content_type = "description"
+            else:
+                log.info(
+                    "No transcript or description for [%s] '%s'. Using video title as topic seed.",
+                    video_id, video_title
+                )
+                raw_content = f"VIDEO TITLE: {video_title}\nCHANNEL: {channel_name}"
+                content_type = "title"
+
+        seed_data = summarize_to_story_seed(raw_content, video_title)
+        thesis = seed_data.get("thesis", video_title)
+        story_seed = seed_data.get("story_seed", {})
+
+        # Comprehensive deduplication on extracted thesis
+        is_thesis_dup, score, reason = evaluator.is_duplicate(thesis)
+        if is_thesis_dup:
+            log.info(
+                "Candidate [%s] '%s' thesis blocked by gate: %s. Trying next newest video...",
+                video_id, thesis[:50], reason
+            )
+            continue
+
+        log.info(
+            "✓ Success! Extracted fresh topic from newest global video: [%s] '%s' from %s (published: %s, source: %s)",
+            video_id, video_title, channel_name, published_at, content_type
+        )
+        return {
+            "channel": channel_name,
+            "video_id": video_id,
+            "source_id": source_id,
+            "video_title": video_title,
+            "thesis": thesis,
+            "story_seed": story_seed,
+            "transcript_length": len(raw_content),
+        }
+
+    log.warning("All YouTube candidates exhausted or blocked by anti-repetition gates.")
+
+    # Step 2: Dedicated Indian Share Market API Adapter (Priority Fallback)
+    market_adapter = DedicatedMarketAPIAdapter()
+    if market_adapter.is_configured():
+        log.info("Attempting topic discovery via Dedicated Indian Share Market API...")
+        market_candidate = market_adapter.get_topic_seed()
+        if market_candidate:
+            seed_data = summarize_to_story_seed(market_candidate["raw_text"], market_candidate["video_title"])
+            thesis = seed_data.get("thesis", market_candidate["video_title"])
+            if not evaluator.is_duplicate(thesis)[0]:
+                log.info("✓ Discovered topic from Dedicated Market API: %s", thesis[:60])
+                return {
+                    **{k: market_candidate[k] for k in ("channel", "video_id", "video_title", "source_id")},
+                    "thesis": thesis,
+                    "story_seed": seed_data.get("story_seed", {}),
+                    "transcript_length": len(market_candidate["raw_text"]),
+                }
+
+    # Step 3: Google News / Search via SerpApi (Secondary Fallback)
     serp_result = _discover_from_serp()
     if serp_result:
-        log.info("No fresh channel source available; selected the newest SERPAPI Google Search result.")
+        log.info("Selected verified 24h-fresh SERPAPI Google result: %s", serp_result.get("video_title", ""))
         return serp_result
 
+    # Step 4: Title-only candidate fallback if available
     if title_only_candidate:
         log.warning(
-            "All transcript providers failed. Falling back to title-only topic seed from %s: %s",
-            title_only_candidate["channel"],
-            title_only_candidate["video_title"],
+            "Falling back to title-only topic seed from %s: %s",
+            title_only_candidate["channel"], title_only_candidate["video_title"]
         )
         seed_data = _fallback_story_seed(title_only_candidate["video_title"])
         return {
@@ -802,5 +893,6 @@ def discover_topic(day_override: Optional[int] = None) -> dict:
             "transcript_length": 0,
         }
 
-    raise RuntimeError("Cascading scan failed: Could not fetch a valid video and transcript from ANY of the 7 channels.")
+    raise RuntimeError("Global scan failed: Could not fetch a valid fresh topic from YouTube, Market API, or Search.")
+
 
