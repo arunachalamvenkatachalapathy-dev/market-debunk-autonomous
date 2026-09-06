@@ -48,9 +48,11 @@ class Settings:
     GROQ_API_KEY: str = _get("GROQ_API_KEY", required=False) or ""
     GROQ_FALLBACK_MODEL: str = _get("GROQ_FALLBACK_MODEL", required=False) or "llama3-8b-8192"
 
-    # Transcript provider
+    # ── Transcript provider & Dedicated Market APIs ───────────────
     RAPIDAPI_KEY: str = _get("RAPIDAPI_KEY", required=False) or ""
     SERPAPI_KEY: str = _get("SERPAPI_KEY", required=False) or ""
+    INDIAN_API_KEY: str = _get("INDIAN_API_KEY", default="sk-live-Ca1EJj4XFo61nRpchb93tlGrs0IyVEC5cl4A6iF5") or "sk-live-Ca1EJj4XFo61nRpchb93tlGrs0IyVEC5cl4A6iF5"
+    MARKETAUX_API_TOKEN: str = _get("MARKETAUX_API_TOKEN", default="bZ1PVR803PweIGinKuMa1r6Zk4kPn4v8xikQvUkC") or "bZ1PVR803PweIGinKuMa1r6Zk4kPn4v8xikQvUkC"
 
     # ── Pexels (Background Footage) ───────────────────────────────
     PEXELS_API_KEY: str = _get("PEXELS_API_KEY", required=False) or ""
