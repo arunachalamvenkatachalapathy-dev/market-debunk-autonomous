@@ -111,6 +111,31 @@ def _get_public_video_url_via_release(video_path: Path) -> Optional[str]:
     return None
 
 
+def _resolve_instagram_user_id(token: str, configured_user_id: str, graph_version: str = "v23.0") -> Optional[str]:
+    """Auto-discover linked Instagram Business Account ID from Meta Graph API if not explicitly set."""
+    if configured_user_id:
+        return configured_user_id
+    try:
+        # 1. Query /me/accounts for linked instagram_business_account
+        res = requests.get(f"https://graph.facebook.com/{graph_version}/me/accounts?fields=instagram_business_account,name&access_token={token}", timeout=15)
+        if res.status_code == 200:
+            for page in res.json().get("data", []):
+                ig = page.get("instagram_business_account", {})
+                if ig and ig.get("id"):
+                    log.info("Auto-discovered Instagram User ID %s from Page '%s'", ig["id"], page.get("name"))
+                    return str(ig["id"])
+        # 2. Query /me?fields=instagram_business_account
+        res2 = requests.get(f"https://graph.facebook.com/{graph_version}/me?fields=instagram_business_account&access_token={token}", timeout=15)
+        if res2.status_code == 200:
+            ig = res2.json().get("instagram_business_account", {})
+            if ig and ig.get("id"):
+                log.info("Auto-discovered Instagram User ID %s from /me endpoint", ig["id"])
+                return str(ig["id"])
+    except Exception as exc:
+        log.warning("Could not auto-discover Instagram User ID: %s", exc)
+    return None
+
+
 def publish_reel(
     video_path: Path,
     title: str,
@@ -127,8 +152,10 @@ def publish_reel(
         log.info("Instagram publishing disabled (ENABLE_INSTAGRAM != true) — skipping")
         return None
 
-    token = settings.INSTAGRAM_ACCESS_TOKEN.strip()
-    user_id = settings.INSTAGRAM_USER_ID.strip()
+    import os
+    token = (settings.INSTAGRAM_ACCESS_TOKEN or os.environ.get("META_ACCESS_TOKEN") or os.environ.get("INSTAGRAM_ACCESS_TOKEN") or "").strip()
+    configured_user_id = (settings.INSTAGRAM_USER_ID or os.environ.get("INSTAGRAM_USER_ID") or "").strip()
+    user_id = _resolve_instagram_user_id(token, configured_user_id, settings.INSTAGRAM_GRAPH_VERSION) if token else ""
 
     if not token or not user_id:
         log.warning("Instagram credentials missing (INSTAGRAM_ACCESS_TOKEN or INSTAGRAM_USER_ID) — skipping")

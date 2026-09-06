@@ -151,29 +151,35 @@ Generate the complete multi-platform SEO package as JSON matching the schema."""
 
         # 1. Try Gemini API
         if self.gemini_key:
-            try:
-                log.info("Calling Gemini for Multi-Platform Distribution SEO Package...")
-                from google import genai
-                from google.genai import types
+            from google import genai
+            from google.genai import types
 
-                client = genai.Client(api_key=self.gemini_key)
-                response = client.models.generate_content(
-                    model="gemini-2.5-flash",
-                    contents=user_prompt,
-                    config=types.GenerateContentConfig(
-                        system_instruction=_SEO_SYSTEM_PROMPT,
-                        response_mime_type="application/json",
-                        response_schema=PlatformDistributionPackage,
-                        temperature=0.6,
-                    ),
-                )
-                if response.text:
-                    data = json.loads(response.text)
-                    pkg = PlatformDistributionPackage.model_validate(data)
-                    pkg.youtube.title = normalize_youtube_title(pkg.youtube.title)
-                    return pkg
-            except Exception as e:
-                log.warning("Gemini SEO generation failed (%s); trying Groq fallback", e)
+            client = genai.Client(api_key=self.gemini_key)
+            for model_name in ("gemini-3.1-flash-lite", "gemini-2.5-flash"):
+                try:
+                    log.info("Calling Gemini (%s) for Multi-Platform Distribution SEO Package...", model_name)
+                    response = client.models.generate_content(
+                        model=model_name,
+                        contents=user_prompt,
+                        config=types.GenerateContentConfig(
+                            system_instruction=_SEO_SYSTEM_PROMPT,
+                            response_mime_type="application/json",
+                            response_schema=PlatformDistributionPackage,
+                            temperature=0.6,
+                        ),
+                    )
+                    if response.text:
+                        raw_json = response.text.strip()
+                        if "```" in raw_json:
+                            raw_json = re.sub(r"^```(?:json)?\s*", "", raw_json, flags=re.MULTILINE)
+                            raw_json = re.sub(r"\s*```\s*$", "", raw_json, flags=re.MULTILINE)
+                        data = json.loads(raw_json)
+                        pkg = PlatformDistributionPackage.model_validate(data)
+                        pkg.youtube.title = normalize_youtube_title(pkg.youtube.title)
+                        log.info("✓ Gemini (%s) generated Multi-Platform SEO Package successfully.", model_name)
+                        return pkg
+                except Exception as e:
+                    log.warning("Gemini (%s) SEO generation failed (%s); trying next model/fallback...", model_name, e)
 
         # 2. Try Groq API
         if self.groq_key:

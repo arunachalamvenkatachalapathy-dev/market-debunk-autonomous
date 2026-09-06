@@ -70,14 +70,14 @@ class Settings:
     TELEGRAM_CHAT_ID: str = _get("TELEGRAM_CHAT_ID", default="") or ""
 
     # ── Instagram & Facebook Graph API publishing ────────────────
-    ENABLE_INSTAGRAM: bool = _get("ENABLE_INSTAGRAM", default="false").lower() == "true"
-    INSTAGRAM_ACCESS_TOKEN: str = _get("INSTAGRAM_ACCESS_TOKEN", default="") or ""
+    ENABLE_INSTAGRAM: bool = (_get("ENABLE_INSTAGRAM", default="true") or "true").lower() == "true"
+    INSTAGRAM_ACCESS_TOKEN: str = _get("INSTAGRAM_ACCESS_TOKEN") or _get("META_ACCESS_TOKEN") or ""
     INSTAGRAM_USER_ID: str = _get("INSTAGRAM_USER_ID", default="") or ""
     INSTAGRAM_VIDEO_URL: str = _get("INSTAGRAM_VIDEO_URL", default="") or ""
     INSTAGRAM_GRAPH_VERSION: str = _get("INSTAGRAM_GRAPH_VERSION", default="v23.0") or "v23.0"
     ENABLE_FACEBOOK: bool = (_get("ENABLE_FACEBOOK", default="true") or "true").lower() == "true"
     FACEBOOK_PAGE_ID: str = _get("FACEBOOK_PAGE_ID", default="") or ""
-    FACEBOOK_ACCESS_TOKEN: str = _get("FACEBOOK_ACCESS_TOKEN", default="") or ""
+    FACEBOOK_ACCESS_TOKEN: str = _get("FACEBOOK_ACCESS_TOKEN") or _get("INSTAGRAM_ACCESS_TOKEN") or _get("META_ACCESS_TOKEN") or ""
 
     # ── Video Settings ─────────────────────────────────────────────
     VIDEO_WIDTH: int = int(_get("VIDEO_WIDTH", default="1080"))
