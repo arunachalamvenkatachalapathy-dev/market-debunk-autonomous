@@ -457,29 +457,37 @@ Output ONLY a valid JSON object with exactly these keys (all values in English):
 
 Output ONLY the JSON. No explanation, no preamble, no markdown fences."""
 
-    # Try Gemini (via Vertex AI)
-    try:
-        from google import genai
-        client = genai.Client(vertexai=True, project="exalted-shape-502013-q5", location="us-central1")
-        response = client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=prompt,
-            config={"response_mime_type": "application/json"}
-        )
-        raw_json = response.text.strip()
-        # Strip markdown if present
-        if "```" in raw_json:
-            raw_json = re.sub(r"^```(?:json)?\s*", "", raw_json, flags=re.MULTILINE)
-            raw_json = re.sub(r"\s*```\s*$", "", raw_json, flags=re.MULTILINE)
-        result = json.loads(raw_json)
-        log.info("Gemini story seed extracted | concept: %s | thesis: %s",
-                 result.get("story_seed", {}).get("concept_name", "?"),
-                 result.get("thesis", "?"))
-        return result
-    except Exception as exc:
-        log.warning("Gemini story seed extraction failed, falling back to Groq: %s", exc)
+    # Call AI API (Gemma primary, Gemini flash fallback) using API keys
+    from src.agents.script_agent import _get_api_clients
+    clients = _get_api_clients()
+    models = ["gemma-4-31b-it", "gemma-4-26b-a4b-it", "gemini-3.1-flash-lite", "gemini-3.6-flash"]
 
-    # Groq fallback — simpler thesis only
+    for model_name in models:
+        for client in clients:
+            try:
+                cfg = {"temperature": 0.70}
+                if "gemini" in model_name:
+                    cfg["response_mime_type"] = "application/json"
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=prompt,
+                    config=cfg,
+                )
+                raw_json = response.text.strip()
+                if "```" in raw_json:
+                    raw_json = re.sub(r"^```(?:json)?\s*", "", raw_json, flags=re.MULTILINE)
+                    raw_json = re.sub(r"\s*```\s*$", "", raw_json, flags=re.MULTILINE)
+                result = json.loads(raw_json)
+                log.info("AI story seed extracted via %s | concept: %s | thesis: %s",
+                         model_name,
+                         result.get("story_seed", {}).get("concept_name", "?"),
+                         result.get("thesis", "?"))
+                return result
+            except Exception as exc:
+                log.debug("Story seed extraction with %s failed: %s", model_name, exc)
+                continue
+
+    # Groq fallback
     if settings.GROQ_API_KEY:
         try:
             from groq import Groq
@@ -500,20 +508,17 @@ Output ONLY the JSON. No explanation, no preamble, no markdown fences."""
         except Exception as exc:
             log.error("Groq story seed extraction also failed: %s", exc)
 
-    return _fallback_story_seed(video_title)
-
-
-def _fallback_story_seed(video_title: str) -> dict:
-    """Minimal fallback when all LLM calls fail."""
+    # Dynamic fallback derived purely from the real video title (no static templates)
+    clean_title = " ".join(video_title.split()).strip()
     return {
-        "thesis": video_title or "Indian market analysis and investment insights",
+        "thesis": clean_title,
         "story_seed": {
-            "inciting_event": "Arjun checks his investment portfolio and finds his returns are far lower than expected",
-            "protagonist_flaw": "He trusted conventional advice without understanding the underlying mechanics",
-            "real_world_anchor": video_title or "Indian stock market recent movement",
-            "concept_name": "Market Mispricing",
-            "concept_one_liner": "When prices don't reflect real value, savvy investors profit while others lose",
-            "visual_evidence": "a blurred portfolio chart and marked notebook on a desk"
+            "inciting_event": f"Fresh market movements emerge regarding {clean_title[:50]}",
+            "protagonist_flaw": "Reacting to headlines without verifying structural market data",
+            "real_world_anchor": clean_title,
+            "concept_name": clean_title[:30],
+            "concept_one_liner": f"Understanding the facts behind {clean_title[:40]}",
+            "visual_evidence": "financial charts and verified market figures",
         }
     }
 
@@ -884,7 +889,7 @@ def discover_topic(day_override: Optional[int] = None) -> dict:
             "Falling back to title-only topic seed from %s: %s",
             title_only_candidate["channel"], title_only_candidate["video_title"]
         )
-        seed_data = _fallback_story_seed(title_only_candidate["video_title"])
+        seed_data = summarize_to_story_seed("", title_only_candidate["video_title"])
         return {
             **title_only_candidate,
             "source_id": f"youtube:{title_only_candidate['video_id']}",

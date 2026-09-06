@@ -290,128 +290,76 @@ def _extract_json(text: str) -> dict:
 #  Gemini via Vertex AI
 # ──────────────────────────────────────────────────────────────────────────────
 
-_GEMINI_MODELS = [
-    "gemini-2.5-flash",
-    "gemini-1.5-flash",
-    "gemini-2.0-flash",
-    "gemini-2.5-pro",
+# ──────────────────────────────────────────────────────────────────────────────
+#  Model Priority: Gemma is Primary Agent, followed by Gemini API models
+#  STATIC TEMPLATES HAVE BEEN PERMANENTLY REMOVED: RUNS VIA API ONLY
+# ──────────────────────────────────────────────────────────────────────────────
+
+_MODELS_PRIORITY = [
+    "gemma-4-31b-it",
+    "gemma-4-26b-a4b-it",
+    "gemini-3.1-flash-lite",
+    "gemini-3.6-flash",
+    "gemini-flash-latest",
 ]
 
-def _call_gemma(user_prompt: str) -> str:
-    """Call Gemma through Vertex AI with graceful fallback."""
+def _get_api_clients():
     from google import genai
-    from google.genai import types
-    client = genai.Client(vertexai=True, project="exalted-shape-502013-q5", location="us-central1")
-    model_name = settings.GEMMA_FALLBACK_MODEL
-    log.info("Calling Vertex Gemma deployment: %s", model_name)
-    response = client.models.generate_content(
-        model=model_name,
-        contents=user_prompt,
-        config=types.GenerateContentConfig(
-            system_instruction=_SYSTEM_PROMPT,
-            temperature=0.65,
-            max_output_tokens=4000,
-            response_mime_type="application/json",
-        ),
-    )
-    return response.text
-
-def _template_script(thesis: str) -> ScriptPayload:
-    """Guaranteed schema-valid emergency script when every LLM is unavailable."""
-    clean_thesis = " ".join(thesis.split()).strip()
-    words = [w for w in re.sub(r'[^a-zA-Z0-9\s]', '', clean_thesis).split() if len(w) > 2]
-    hook_phrase = " ".join(words[:4]).title() if words else "Market Reality"
-    short_thesis = clean_thesis[:35]
-
-    narrations = [
-        f"You think {short_thesis} is safe, but look closer.",
-        "You see retail investors make quick emotional moves on headlines.",
-        "When volatility hits your portfolio, fear overrides your balance sheet.",
-        "You must watch institutional positioning before you react.",
-        f"What you need to check about {hook_phrase} is structural data.",
-        "Always verify your cash flow data before you trust claims.",
-        "Ask yourself who stands to profit before you hit sell.",
-        "Big funds quietly accumulate assets while you run in fear.",
-        "Your biggest investment edge is disciplined valuation analysis.",
-        "You protect your hard-earned money by ignoring market hype.",
-        "Demand verifiable numbers before you execute your next trade.",
-        "Protect your capital and check the facts before you invest.",
-    ]
-    prompts = [
-        "Arjun looking directly into the camera with an intense, serious expression, split amber-teal lighting, dark textured background, extreme close-up, full-bleed vertical frame",
-        "A sleek smartphone resting on a dark wooden desk displaying an illuminated banking payment notification, amber rim light, macro cinematic shot",
-        "A busy urban shopping street at dusk with blurred financial ticker displays and crowds in the background, cinematic depth of field, vertical frame",
-        "Macro close-up shot of a modern credit card tapping a POS contactless terminal with an amber indicator light, clean composition",
-        "A printed bank statement resting on a dark desk with fee deduction rows highlighted in subtle red ink, warm amber task lighting",
-        "A digital ATM screen interface displaying an unexpected fee warning alert, split amber-teal illumination, close-up framing",
-        "A financial candlestick chart plummeting sharply downward on an illuminated glass desktop monitor, dark moody ambiance",
-        "Institutional trading station with multiple illuminated screens showing fluctuating financial bar graphs, sleek professional setup",
-        "Crisp Indian currency notes and metallic coins arranged beside an open analytical ledger on a polished workspace, warm amber glow",
-        "An abstract geometric financial risk gauge glowing softly in amber and teal across a dark screen, modern minimalist composition",
-        "A clean financial equation and balance sheet graphic glowing on a modern glass display, amber accents, cinematic framing",
-        "Arjun looking directly into the camera delivering a calm, authoritative closing takeaway, warm amber spotlight, crisp vertical frame",
-    ]
-    broll_keywords = [
-        "worried investor face",
-        "smartphone banking alert",
-        "busy shopping street",
-        "credit card payment pos",
-        "bank statement document",
-        "atm machine screen",
-        "stock market crash chart",
-        "trading desk monitors",
-        "counting money cash",
-        "financial risk graph",
-        "balance sheet equation",
-        "confident financial advisor",
-    ]
-    scenes = [
-        {
-            "scene_id": i,
-            "narration": narrations[i - 1],
-            "visual_prompt": prompts[i - 1],
-            "broll_keyword": broll_keywords[i - 1],
-            "duration_hint": 4.2
-        }
-        for i in range(1, 13)
-    ]
-    # Derive a unique, descriptive hook title from the thesis rather than a static duplicate
-    clean_thesis = re.sub(r'[^a-zA-Z0-9\s]', '', thesis or "Market Truth")
-    words = [w for w in clean_thesis.split() if len(w) > 2]
-    hook_phrase = " ".join(words[:4]).title() if words else "Market Secret"
-    dynamic_title = f"{hook_phrase}: The Hidden Truth"[:50]
-
-    return ScriptPayload(
-        title=dynamic_title,
-        description=f"Uncovering the real mechanics behind {hook_phrase}. Concise finance insights that protect your capital.",
-        hashtags=["#Finance", "#StockMarket", "#Shorts"],
-        scenes=scenes,
-    )
-
-@retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=2, min=3, max=20))
-def _call_gemini(user_prompt: str, model_name: str) -> str:
-    """Call Gemini via Google AI Studio API key or Vertex AI fallback and return raw response."""
-    from google import genai
-    from google.genai import types
     import os
-
-    api_key = getattr(settings, "GEMINI_SCRIPT_API_KEY", "") or getattr(settings, "GEMINI_API_KEY", "") or os.getenv("GEMINI_SCRIPT_API_KEY") or os.getenv("GEMINI_API_KEY")
-    if api_key:
-        client = genai.Client(api_key=api_key)
-    else:
-        client = genai.Client(vertexai=True, project="exalted-shape-502013-q5", location="us-central1")
-
-    response = client.models.generate_content(
-        model=model_name,
-        contents=user_prompt,
-        config=types.GenerateContentConfig(
-            system_instruction=_SYSTEM_PROMPT,
-            temperature=0.70,
-            max_output_tokens=4000,
-            response_mime_type="application/json",
-        )
+    keys_str = (
+        os.getenv("GEMINI_SCRIPT_API_KEY")
+        or os.getenv("GEMINI_API_KEY")
+        or os.getenv("LLM_API_KEYS")
+        or os.getenv("LLM_API_KEY")
+        or getattr(settings, "GEMINI_SCRIPT_API_KEY", "")
+        or getattr(settings, "GEMINI_API_KEY", "")
+        or ""
     )
-    return response.text
+    keys = [k.strip() for k in keys_str.split(",") if k.strip()]
+    clients = []
+    for k in keys:
+        try:
+            clients.append(genai.Client(api_key=k))
+        except Exception:
+            pass
+    if not clients:
+        try:
+            clients.append(genai.Client(vertexai=True, project="exalted-shape-502013-q5", location="us-central1"))
+        except Exception:
+            pass
+    return clients
+
+@retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=2, min=2, max=10))
+def _call_model(user_prompt: str, model_name: str) -> str:
+    """Call Gemma or Gemini API with key rotation and system instruction."""
+    from google.genai import types
+
+    clients = _get_api_clients()
+    if not clients:
+        raise RuntimeError("No Google AI API keys available to call model.")
+
+    config_args = {
+        "system_instruction": _SYSTEM_PROMPT,
+        "temperature": 0.70,
+        "max_output_tokens": 4000,
+    }
+    if "gemini" in model_name:
+        config_args["response_mime_type"] = "application/json"
+
+    last_exc = None
+    for client in clients:
+        try:
+            response = client.models.generate_content(
+                model=model_name,
+                contents=user_prompt,
+                config=types.GenerateContentConfig(**config_args),
+            )
+            if response and response.text:
+                return response.text
+        except Exception as e:
+            last_exc = e
+            continue
+    raise last_exc or RuntimeError(f"All clients failed for model {model_name}")
 
 
 def _repair_json(raw_response: str, error: Exception, model_name: str) -> str:
@@ -465,10 +413,10 @@ Before answering, internally check that:
 - scene 12 mentions Arjun as the closing host;
 - the total narration is 100-115 words (target ~50 seconds)."""
 
-    for model in _GEMINI_MODELS:
-        log.info("Trying model: %s", model)
+    for model in _MODELS_PRIORITY:
+        log.info("Trying model (Gemma/Gemini API): %s", model)
         try:
-            raw = _call_gemini(user_prompt, model)
+            raw = _call_model(user_prompt, model)
             log.debug("Raw response: %d chars", len(raw))
 
             data = None
@@ -509,32 +457,9 @@ Before answering, internally check that:
             log.warning("Model %s failed: %s — trying next", model, exc)
             continue
 
-    # Last LLM attempt: Gemma is deliberately kept after Vertex and still goes
-    # through the same JSON parser, Pydantic model, and downstream gates.
-    try:
-        log.info("Trying Gemma fallback model: %s", settings.GEMMA_FALLBACK_MODEL)
-        raw = _call_gemma(user_prompt)
-        try:
-            data = _extract_json(raw)
-        except (json.JSONDecodeError, ValueError) as parse_error:
-            log.warning("Gemma returned malformed JSON; requesting one repair pass")
-            data = _extract_json(_call_gemma(
-                f"Repair this response into complete valid JSON with exactly 12 scenes. "
-                f"Parser error: {parse_error}\n\n{raw}"
-            ))
-        script = ScriptPayload(**data)
-        total_words = sum(len(s.narration.split()) for s in script.scenes)
-        log.info("✓ Script ready | model: %s | title: '%s' | total_words: %d",
-                 settings.GEMMA_FALLBACK_MODEL, script.title, total_words)
-        return script
-    except Exception as exc:
-        log.error("Gemma fallback failed: %s", exc)
-
-    log.warning("All remote script models failed; using schema-valid emergency script")
-    return _template_script(thesis)
-
     raise RuntimeError(
-        f"All Gemini models failed to produce a valid 12-scene script for: '{thesis}'"
+        f"All AI API models ({_MODELS_PRIORITY}) failed to produce a valid 12-scene script for: '{thesis}'. "
+        "Static fallback templates have been permanently deleted per user configuration."
     )
 
 def script_to_dict(script: ScriptPayload) -> dict:
