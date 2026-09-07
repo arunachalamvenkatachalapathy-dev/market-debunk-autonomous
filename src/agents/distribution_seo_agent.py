@@ -255,3 +255,50 @@ Generate the complete multi-platform SEO package as JSON matching the schema."""
                 discussion_prompt="Discuss your trading experience in our community group!",
             ),
         )
+
+    def post_process(
+        self,
+        pkg: PlatformDistributionPackage,
+        thesis: str,
+        script_dict: Optional[dict] = None,
+    ) -> PlatformDistributionPackage:
+        """
+        Run 3 SEO Super Subagents sequentially to enhance the base Gemini package.
+
+        Each subagent independently researches live trending data via RapidAPI
+        and rewrites platform-specific metadata for max algorithmic distribution.
+
+        Order: YouTubeSEOAgent → InstagramSEOAgent → FacebookSEOAgent
+        All subagents are non-blocking — failures silently pass through.
+        """
+        from src.agents.seo_subagents import YouTubeSEOAgent, InstagramSEOAgent, FacebookSEOAgent
+
+        gemini_key = self.gemini_key or ""
+
+        log.info("=" * 60)
+        log.info("  SEO SUPER SUBAGENTS: Starting RapidAPI research pass...")
+        log.info("=" * 60)
+
+        # Subagent 1: YouTube
+        try:
+            yt_agent = YouTubeSEOAgent(gemini_key=gemini_key)
+            yt_agent.enhance(pkg, thesis)
+        except Exception as exc:
+            log.warning("YouTubeSEOAgent failed (non-blocking): %s", exc)
+
+        # Subagent 2: Instagram
+        try:
+            ig_agent = InstagramSEOAgent(gemini_key=gemini_key)
+            ig_agent.enhance(pkg, thesis)
+        except Exception as exc:
+            log.warning("InstagramSEOAgent failed (non-blocking): %s", exc)
+
+        # Subagent 3: Facebook
+        try:
+            fb_agent = FacebookSEOAgent(gemini_key=gemini_key)
+            fb_agent.enhance(pkg, thesis)
+        except Exception as exc:
+            log.warning("FacebookSEOAgent failed (non-blocking): %s", exc)
+
+        log.info("✅ SEO SUPER SUBAGENTS: All 3 platforms enhanced.")
+        return pkg

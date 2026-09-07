@@ -173,6 +173,9 @@ def run_pipeline():
                 topic_data=topic_data,
             )
             log.info("✓ Multi-platform SEO Distribution Package generated successfully.")
+            # Run 3 SEO Super Subagents: YouTube → Instagram → Facebook
+            dist_pkg = seo_agent.post_process(dist_pkg, thesis, script_dict)
+            log.info("✓ RapidAPI SEO enhancement pass complete.")
 
         # ── Phase 7: Publishing ───────────────────────────────────────────
         with PhaseTimer("Phase 7: Publishing"):
