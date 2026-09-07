@@ -77,7 +77,7 @@ def run_pipeline():
         log.warning("🛑 Cooldown active (%.1f h elapsed < 4.0h min). Exiting pipeline to protect feed reach.", hours_elapsed)
         sys.exit(0)
 
-    timing_guard.apply_jitter(min_minutes=5, max_minutes=25)
+    timing_guard.apply_jitter(min_seconds=5, max_seconds=20)
 
     try:
         # ── Phase 1: Topic Discovery ──────────────────────────────────────

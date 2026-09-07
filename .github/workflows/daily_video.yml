@@ -101,6 +101,8 @@ jobs:
           ENABLE_FACEBOOK: ${{ secrets.ENABLE_FACEBOOK || 'true' }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN || secrets.GH_TOKEN || github.token }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN || secrets.GH_TOKEN || github.token }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          RUN_WITHOUT_JITTER: ${{ github.event_name == 'workflow_dispatch' && 'true' || 'false' }}
         run: python -m src.agents.manager
 
       - name: Upload Video Artifact

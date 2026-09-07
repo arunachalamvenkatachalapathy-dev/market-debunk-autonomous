@@ -122,13 +122,25 @@ class TimingGuard:
             log.warning("Could not parse last timestamp '%s': %s — allowing run", last_ts_str, exc)
             return True, 999.0
 
-    def apply_jitter(self, min_minutes: int = 5, max_minutes: int = 25) -> int:
+    def apply_jitter(
+        self,
+        min_seconds: int = 5,
+        max_seconds: int = 30,
+        min_minutes: Optional[int] = None,
+        max_minutes: Optional[int] = None,
+    ) -> int:
         """
-        Inject organic randomized sleep delay before execution.
-        Bypassed if RUN_WITHOUT_JITTER=true or triggered manually in local dev.
+        Inject a minor randomized organic delay (5-30 seconds).
+        Bypassed if RUN_WITHOUT_JITTER=true, workflow_dispatch (manual run), or local dev.
+        Long waits (minutes) are strictly eliminated to prevent hung CI runs.
         """
         if os.environ.get("RUN_WITHOUT_JITTER", "").lower() in ("true", "1", "yes"):
             log.info("Jitter bypassed via RUN_WITHOUT_JITTER=true")
+            return 0
+
+        # Never wait on manual workflow runs
+        if os.environ.get("GITHUB_EVENT_NAME") == "workflow_dispatch":
+            log.info("Manual workflow_dispatch detected — skipping jitter delay completely.")
             return 0
 
         # Don't jitter in local dev unless forced
@@ -136,10 +148,15 @@ class TimingGuard:
             log.info("Local environment detected — skipping jitter delay.")
             return 0
 
-        jitter_sec = random.randint(min_minutes * 60, max_minutes * 60)
+        # If legacy min_minutes/max_minutes were supplied, clamp to safe seconds (< 30s)
+        if min_minutes is not None or max_minutes is not None:
+            log.info("Legacy minute-based jitter clamped to safe seconds (5-30s max).")
+
+        low = min(min_seconds, 15)
+        high = min(max_seconds, 30)
+        jitter_sec = random.randint(low, high)
         log.info(
-            "⏳ Anti-Bot Jitter: sleeping for %d minutes (%d seconds) to randomize post timestamp...",
-            jitter_sec // 60,
+            "⏳ Anti-Bot Jitter: sleeping for %d seconds to randomize post timestamp...",
             jitter_sec,
         )
         time.sleep(jitter_sec)
