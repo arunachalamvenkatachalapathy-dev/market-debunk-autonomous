@@ -121,10 +121,9 @@ def run_pipeline():
                 len(scene.get("narration", "").split())
                 for scene in script_dict["scenes"]
             ) / 2.3
-            log.info("Timing preflight: %.1fs estimated before voice synthesis", estimated_seconds)
-            # The voice agent has two-way automatic atempo clamping (30.5s - 52.0s),
+            # The voice agent has automatic atempo clamping (20.0s - 52.0s),
             # so allow a safe window and let voice_agent clamp rather than failing early.
-            if not 24 <= estimated_seconds <= 66:
+            if not 18 <= estimated_seconds <= 58:
                 log.warning("Estimated duration %.1fs outside ideal window; voice agent will apply atempo clamping", estimated_seconds)
             
             # Save script to output for debugging
@@ -211,6 +210,7 @@ def run_pipeline():
         # ── Phase 7: Publishing ───────────────────────────────────────────
         with PhaseTimer("Phase 7: Publishing"):
             yt_url = None
+            yt_id = None
             if settings.ENABLE_YT_UPLOAD:
                 yt_id = youtube_uploader.upload_video(
                     video_path=final_video,
@@ -222,6 +222,7 @@ def run_pipeline():
                     yt_url = f"https://www.youtube.com/shorts/{yt_id}"
 
             ig_url = None
+            ig_id = None
             if settings.ENABLE_INSTAGRAM:
                 ig_url = instagram_publisher.publish_reel(
                     video_path=final_video,
@@ -229,8 +230,11 @@ def run_pipeline():
                     description=f"{dist_pkg.instagram.body_copy}\n\n{dist_pkg.instagram.comment_trigger}\n\n{dist_pkg.instagram.share_save_cta}",
                     hashtags=dist_pkg.instagram.hashtags,
                 )
+                if ig_url:
+                    ig_id = ig_url.rstrip("/").split("/")[-1]
 
             fb_url = None
+            fb_id = None
             fb_page = getattr(settings, "FACEBOOK_PAGE_ID", "").strip() or getattr(settings, "FB_PAGE_ID", "").strip()
             if fb_page:
                 fb_url = facebook_publisher.publish_reel(
@@ -239,6 +243,8 @@ def run_pipeline():
                     description=f"{dist_pkg.facebook.narrative_body}\n\n{dist_pkg.facebook.discussion_question}",
                     hashtags=dist_pkg.facebook.topic_tags,
                 )
+                if fb_url:
+                    fb_id = fb_url.rstrip("/").split("/")[-1]
 
             fb_url = None
             fb_page = getattr(settings, "FACEBOOK_PAGE_ID", "").strip() or getattr(settings, "FB_PAGE_ID", "").strip()
@@ -267,10 +273,10 @@ def run_pipeline():
                     title=dist_pkg.youtube.title,
                     topic=thesis,
                     platform_urls={"youtube": yt_url, "instagram": ig_url, "facebook": fb_url},
-                    platform_ids={"youtube": yt_id, "instagram": ig_url, "facebook": fb_url},
+                    platform_ids={"youtube": yt_id, "instagram": ig_id, "facebook": fb_id},
                     hashtags=dist_pkg.instagram.hashtags,
                     hook=dist_pkg.instagram.first_line_hook,
-                    duration_seconds=float(stats.get("final_duration", 25.0)),
+                    duration_seconds=float(stats.get("total_duration", 25.0)),
                 )
             except Exception as rec_err:
                 log.warning("Failed to record publication to ledger: %s", rec_err)

@@ -197,8 +197,9 @@ class AnalyticsSensor:
         if not token:
             return {}
 
+        clean_media_id = str(media_id).strip("/").split("/")[-1].split("?")[0]
         version = getattr(settings, "INSTAGRAM_GRAPH_VERSION", "v21.0")
-        url = f"https://graph.facebook.com/{version}/{media_id}/insights"
+        url = f"https://graph.facebook.com/{version}/{clean_media_id}/insights"
         params = {
             "metric": "reach,saved,shares,total_interactions",
             "access_token": token,

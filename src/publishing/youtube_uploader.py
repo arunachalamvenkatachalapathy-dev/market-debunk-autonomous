@@ -92,7 +92,7 @@ def upload_video(
                 "title": title[:100],           # YouTube max 100 chars
                 "description": full_description[:5000],
                 "tags": tags,
-                "categoryId": "22",             # People & Blogs
+                "categoryId": "27",             # Education
                 "defaultLanguage": "en",
             },
             "status": {

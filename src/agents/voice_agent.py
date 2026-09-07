@@ -182,8 +182,8 @@ def synthesize_all_scenes(scenes: list[dict], audio_dir: Path, voice: str = DEFA
     total_duration = sum(r["duration"] for r in results)
     log.info("All %d scenes synthesized | total audio: %.1fs", len(results), total_duration)
 
-    target_duration = float(getattr(settings, "VIDEO_DURATION_TARGET", 50.0))
-    max_duration_cap = 52.0
+    target_duration = float(getattr(settings, "VIDEO_DURATION_TARGET", 25.0))
+    max_duration_cap = float(getattr(settings, "MAX_VIDEO_DURATION", 58.0)) - 6.0  # ~52.0s
 
     if total_duration > max_duration_cap:
         speedup = min(1.35, max(1.02, total_duration / target_duration))
@@ -224,11 +224,11 @@ def synthesize_all_scenes(scenes: list[dict], audio_dir: Path, voice: str = DEFA
                     encoding="utf-8"
                 )
 
-    min_duration_floor = 30.5
+    min_duration_floor = float(getattr(settings, "MIN_VIDEO_DURATION", 20.0))
     if total_duration < min_duration_floor:
-        slowdown = max(0.85, total_duration / 33.0)
+        slowdown = max(0.85, total_duration / 24.0)
         log.info(
-            "⏱️ Total voice duration (%.1fs) is below %.1fs floor. Applying automatic FFmpeg atempo slowdown of %.3fx to reach ~33.0s target...",
+            "⏱️ Total voice duration (%.1fs) is below %.1fs floor. Applying automatic FFmpeg atempo slowdown of %.3fx to reach ~24.0s target...",
             total_duration, min_duration_floor, slowdown
         )
         for r in results:

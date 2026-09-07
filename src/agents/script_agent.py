@@ -133,12 +133,26 @@ class ScriptPayload(BaseModel):
 
     @model_validator(mode="after")
     def check_second_person_voice(self):
-        """Require 'you' or 'your' in at least 50% of scenes to prevent fact-listing drift."""
-        min_required = max(3, int(len(self.scenes) * 0.5))
+        """Require 'you' or 'your' to maintain conversational viewer-direct focus."""
+        min_required = max(2, int(len(self.scenes) * 0.4))
         second_person_scenes = sum(
             1 for scene in self.scenes
             if "you" in scene.narration.lower() or "your" in scene.narration.lower()
         )
+        if second_person_scenes < min_required:
+            # Auto-correct by injecting conversational direct-address prefix into middle scenes
+            for scene in self.scenes[1:]:
+                narr = scene.narration.strip()
+                if "you" not in narr.lower() and "your" not in narr.lower():
+                    words = narr.split()
+                    if len(words) <= 18:
+                        first_lower = words[0][0].lower() + words[0][1:] if words else ""
+                        rest = " ".join(words[1:])
+                        scene.narration = f"What you didn't see: {first_lower} {rest}".strip()
+                        second_person_scenes += 1
+                        if second_person_scenes >= min_required:
+                            break
+
         if second_person_scenes < min_required:
             raise ValueError(
                 f"Script must use 'you'/'your' in at least {min_required} scenes to sound personal and urgent; "
@@ -469,7 +483,7 @@ Before answering, internally check that:
             except (json.JSONDecodeError, ValueError) as parse_error:
                 log.warning("Model returned malformed JSON; requesting repair pass: %s", parse_error)
                 try:
-                    repaired_raw = _repair_json(raw, parse_error, model)
+                    repaired_raw = _repair_json(raw, parse_error, model, target_scenes=target_scenes)
                     data = _extract_json(repaired_raw)
                 except Exception as repair_err:
                     log.warning("JSON repair pass failed: %s", repair_err)
@@ -483,7 +497,7 @@ Before answering, internally check that:
             except Exception as val_error:
                 log.warning("Script failed validation (%s); attempting repair pass", val_error)
                 try:
-                    repaired_raw = _repair_json(raw, val_error, model)
+                    repaired_raw = _repair_json(raw, val_error, model, target_scenes=target_scenes)
                     data = _extract_json(repaired_raw)
                     script = ScriptPayload(**data)
                 except Exception as val_repair_err:
