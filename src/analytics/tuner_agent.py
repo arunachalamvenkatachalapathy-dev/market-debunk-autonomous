@@ -131,7 +131,7 @@ class PerformanceTuningAgent:
             "analyzed_videos_count": len(records),
             "optimal_runtime_seconds": calibrated_duration,
             "optimal_word_count": calibrated_words,
-            "top_performing_topics": synthesized_insights.get("top_topics", ["hidden charges", "EMI trap", "mutual fund fees"]),
+            "top_performing_topics": synthesized_insights.get("top_topics", ["hidden charges", "EMI trap", "F&O lot size margin traps", "credit card tricks"]),
             "winning_hook_formulas": synthesized_insights.get("winning_hooks", [
                 "Open with the exact Rupee amount quietly lost: 'Your bank took ₹X without an alert'",
                 "Contradict popular wisdom: 'Why your zero-cost EMI is actually charging 18% GST'"
@@ -179,7 +179,7 @@ class PerformanceTuningAgent:
             "analyzed_videos_count": 0,
             "optimal_runtime_seconds": 24.0,
             "optimal_word_count": 62,
-            "top_performing_topics": ["hidden charges", "mutual fund fees", "EMI trap", "credit card tricks"],
+            "top_performing_topics": ["hidden charges", "F&O lot size margin traps", "IPO allotment hype", "EMI trap", "credit card tricks"],
             "winning_hook_formulas": [
                 "Open on concrete financial damage: 'Your bank just charged you ₹X and you didn't notice'",
                 "Pattern interrupt: 'Stop buying Nifty index funds until you see this silent deduction'"

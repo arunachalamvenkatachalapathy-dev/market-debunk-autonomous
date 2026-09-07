@@ -460,7 +460,7 @@ Output ONLY the JSON. No explanation, no preamble, no markdown fences."""
     # Call AI API (Gemma primary, Gemini flash fallback) using API keys
     from src.agents.script_agent import _get_api_clients
     clients = _get_api_clients()
-    models = ["gemma-4-31b-it", "gemma-4-26b-a4b-it", "gemini-3.1-flash-lite", "gemini-3.6-flash"]
+    models = ["gemini-3.7-flash", "gemini-3.6-flash", "gemini-3.1-flash-lite", "gemini-flash-lite-latest"]
 
     for model_name in models:
         for client in clients:
