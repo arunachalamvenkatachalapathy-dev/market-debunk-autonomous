@@ -2,15 +2,9 @@ name: Daily Autonomous Video Pipeline
 
 on:
   schedule:
-    # 4 videos per day across peak Indian engagement hours (IST = UTC + 5:30)
-    # 1. 08:00 AM IST (02:30 UTC) - Morning pre-market commute
-    - cron: '30 2 * * *'
-    # 2. 01:00 PM IST (07:30 UTC) - Lunch break & mid-day market update
-    - cron: '30 7 * * *'
-    # 3. 05:30 PM IST (12:00 UTC) - Post-market close wrap
-    - cron: '0 12 * * *'
-    # 4. 09:00 PM IST (15:30 UTC) - Prime evening leisure
-    - cron: '30 15 * * *'
+    # Single High-Impact Daily Video Slot: 05:30 PM IST ± 20m Jitter
+    # 11:40 UTC = 05:10 PM IST base. Python timing guard applies randomized jitter.
+    - cron: '40 11 * * *'
   workflow_dispatch: # Allow manual trigger from GitHub UI
 
 jobs:
@@ -123,14 +117,14 @@ jobs:
           path: output/**/master_visual_package/**
           retention-days: 7
 
-      - name: Commit Deduplication Data
+      - name: Commit Deduplication & Analytics Data
         if: success()
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add data/used_topics.json data/channel_ids.json data/used_broll.json
+          git add data/used_topics.json data/channel_ids.json data/used_broll.json data/publish_ledger.json data/analytics_ledger.json data/deprecated_patterns.json
           # Only commit if there are changes
-          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: update topic and broll dedup history [skip ci]" && git push)
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: update topic, analytics, and dedup history [skip ci]" && git push)
 
       - name: Trigger Tamil companion pipeline
         if: success()

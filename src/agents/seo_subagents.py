@@ -109,8 +109,37 @@ _TOPIC_KEYWORD_MAP = {
 }
 
 
+_THEMATIC_CLUSTERS = [
+    ["#MarketDebunk", "#StockMarketMyths", "#InvestingTruths", "#RetailInvestor", "#MarketTrap"],
+    ["#WealthCreationIndia", "#SIPInvesting", "#MutualFundsSahi", "#FinancialFreedomIndia", "#SmartInvesting"],
+    ["#NiftyAlert", "#NSEIndia", "#NiftyTrading", "#StockMarketIndia", "#SmartMoneyIndia"],
+    ["#MoneyMistakes", "#FinanceLiteracy", "#IndiaInvests", "#PassiveIncome", "#WealthBuilding"],
+]
+
+
+def _get_recent_hashtags_from_ledger() -> list[str]:
+    """Retrieve hashtags used in the most recent uploads from publish ledger."""
+    try:
+        from src.utils.config import settings
+        ledger_path = settings.DATA_DIR / "publish_ledger.json"
+        if ledger_path.is_file():
+            with open(ledger_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                if isinstance(data, list) and data:
+                    recent = []
+                    for entry in data[-3:]:
+                        recent.extend(entry.get("hashtags", []))
+                    return recent
+    except Exception:
+        pass
+    return []
+
+
 def _extract_topic_tags(thesis: str, platform: str, count: int = 6) -> list[str]:
-    """Extract relevant niche hashtags based on topic keywords in the thesis."""
+    """
+    Extract relevant niche hashtags with dynamic cluster rotation.
+    Avoids repeating the exact same hashtag fingerprint across back-to-back uploads.
+    """
     thesis_lower = thesis.lower()
     matched_tags: list[str] = []
 
@@ -118,24 +147,45 @@ def _extract_topic_tags(thesis: str, platform: str, count: int = 6) -> list[str]
         if keyword in thesis_lower:
             matched_tags.extend(tags)
 
-    # Deduplicate while preserving order
+    # Rotate cluster based on publish ledger history (pick cluster with lowest recent overlap)
+    recent_tags = set(t.lower() for t in _get_recent_hashtags_from_ledger())
+    chosen_cluster = min(
+        _THEMATIC_CLUSTERS,
+        key=lambda cluster: len(set(t.lower() for t in cluster) & recent_tags)
+    )
+
     seen = set()
     unique_tags = []
     for t in matched_tags:
-        if t not in seen:
-            seen.add(t)
+        if t.lower() not in seen:
+            seen.add(t.lower())
             unique_tags.append(t)
 
+    # Append rotating cluster tags that aren't already included
+    for t in chosen_cluster:
+        if t.lower() not in seen:
+            seen.add(t.lower())
+            unique_tags.append(t)
+
+    # Fallback to base niche if needed
     if platform == "instagram":
         base = _ENGLISH_NICHE_HASHTAGS["instagram"]["niche_high_engagement"]
     elif platform == "facebook":
         base = _ENGLISH_NICHE_HASHTAGS["facebook"]["topic_tags"]
     else:
-        base = []
+        base = _ENGLISH_NICHE_HASHTAGS["youtube"]["search_tags"]
 
-    # Merge topic-specific + base niche tags
-    all_tags = unique_tags + [t for t in base if t not in seen]
-    return all_tags[:count]
+    for t in base:
+        if t.lower() not in seen:
+            seen.add(t.lower())
+            unique_tags.append(t)
+
+    # Shuffle non-primary tags slightly to prevent fixed positional fingerprint
+    primary = unique_tags[:2]
+    secondary = unique_tags[2:]
+    random.shuffle(secondary)
+    result = primary + secondary
+    return result[:count]
 
 
 def _try_rapidapi_hashtags(keyword: str, platform: str) -> list[str]:

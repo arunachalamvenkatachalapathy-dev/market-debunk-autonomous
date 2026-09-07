@@ -74,15 +74,14 @@ class ScriptPayload(BaseModel):
 
     @field_validator("scenes")
     @classmethod
-    def check_12_scenes(cls, v):
-        if len(v) != 12:
-            raise ValueError(f"Script must have exactly 12 scenes, got {len(v)}")
+    def check_scenes(cls, v):
+        if not (6 <= len(v) <= 12):
+            raise ValueError(f"Script must have between 6 and 12 scenes, got {len(v)}")
         scene_ids = [scene.scene_id for scene in v]
-        if scene_ids != list(range(1, 13)):
-            raise ValueError(f"Scene IDs must be exactly 1 through 12 in order; got {scene_ids}.")
-        # Scene 1 hook: allows cold visual proof (chart, screen, alert) or Arjun host hook
-        # Scenes 2 to 11 must be contextual B-roll / objects / environment, NOT Priya
-        for scene in v[1:11]:
+        expected_ids = list(range(1, len(v) + 1))
+        if scene_ids != expected_ids:
+            raise ValueError(f"Scene IDs must be exactly 1 through {len(v)} in order; got {scene_ids}.")
+        for scene in v[1:-1]:
             if "priya" in scene.visual_prompt.lower():
                 raise ValueError(f"Scene {scene.scene_id} mentions Priya. Priya is removed; use contextual B-roll objects.")
         return v
@@ -90,33 +89,32 @@ class ScriptPayload(BaseModel):
     @model_validator(mode="after")
     def enforce_spoken_comment_cta(self):
         """
-        Guarantees that Scene 12 voiceover explicitly speaks the comment CTA aloud.
-        Ensures Google TTS voices 'Comment GUIDE below' and subtitles display it.
+        Guarantees that final scene voiceover explicitly speaks the comment CTA aloud.
+        Ensures Google TTS voices 'Comment GUIDE below' or save/share trigger and subtitles display it.
         """
-        scene_12 = self.scenes[-1]
-        narration = scene_12.narration.strip()
-        has_cta = any(phrase in narration.lower() for phrase in ["comment 'guide'", "comment guide", "comment below"])
+        last_scene = self.scenes[-1]
+        narration = last_scene.narration.strip()
+        has_cta = any(
+            phrase in narration.lower()
+            for phrase in ["comment 'guide'", "comment guide", "comment below", "save this", "share this", "share with"]
+        )
         if not has_cta:
-            cta_phrase = "Comment 'GUIDE' below and I'll send you the complete playbook."
+            cta_phrase = "Comment 'GUIDE' below for the breakdown."
             sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", narration) if s.strip()]
-            if len(sentences) > 1 and len(narration.split()) > 10:
-                scene_12.narration = f"{sentences[0]} {cta_phrase}"
+            if len(sentences) > 1 and len(narration.split()) > 8:
+                last_scene.narration = f"{sentences[0]} {cta_phrase}"
             else:
-                scene_12.narration = f"{narration.rstrip('.')} — {cta_phrase}"
-            log.info("✓ Auto-enforced spoken comment CTA in Scene 12 narration: '%s'", scene_12.narration)
+                last_scene.narration = f"{narration.rstrip('.')} — {cta_phrase}"
+            log.info("✓ Auto-enforced spoken CTA in final scene narration: '%s'", last_scene.narration)
         return self
 
     @model_validator(mode="after")
     def check_narration_pacing(self):
         total_words = sum(len(scene.narration.split()) for scene in self.scenes)
-        # Target ~50s Short: 80-140 words ideal. Voice agent auto-clamps duration to 30-52s with atempo.
+        # Fast-Hook Short (< 30s): 50-85 words ideal. 12-scene format: up to 140 words.
         if total_words > 155:
-            # Auto-trim excess words from long scenes rather than failing fatally
             diff = total_words - 140
-            for s in reversed(self.scenes):
-                # Don't trim the Scene 12 CTA
-                if s.scene_id == 12:
-                    continue
+            for s in reversed(self.scenes[:-1]):
                 words = s.narration.split()
                 if len(words) > 10 and diff > 0:
                     trim = min(len(words) - 9, diff)
@@ -124,9 +122,9 @@ class ScriptPayload(BaseModel):
                     diff -= trim
             total_words = sum(len(scene.narration.split()) for scene in self.scenes)
 
-        if not 65 <= total_words <= 165:
+        if not 45 <= total_words <= 165:
             raise ValueError(
-                f"Script must contain 65-165 narration words for a ~50s Short; got {total_words}."
+                f"Script must contain 45-165 narration words for high-retention Short; got {total_words}."
             )
         visual_prompts = [scene.visual_prompt.lower() for scene in self.scenes]
         if len(set(visual_prompts)) != len(visual_prompts):
@@ -135,14 +133,15 @@ class ScriptPayload(BaseModel):
 
     @model_validator(mode="after")
     def check_second_person_voice(self):
-        """Require 'you' or 'your' in at least 8 of 12 scenes to prevent fact-listing drift."""
+        """Require 'you' or 'your' in at least 50% of scenes to prevent fact-listing drift."""
+        min_required = max(3, int(len(self.scenes) * 0.5))
         second_person_scenes = sum(
             1 for scene in self.scenes
             if "you" in scene.narration.lower() or "your" in scene.narration.lower()
         )
-        if second_person_scenes < 8:
+        if second_person_scenes < min_required:
             raise ValueError(
-                f"Script must use 'you'/'your' in at least 8 scenes to sound personal and urgent; "
+                f"Script must use 'you'/'your' in at least {min_required} scenes to sound personal and urgent; "
                 f"only {second_person_scenes} scenes contain it. Rewrite to address the viewer directly."
             )
         return self
@@ -329,6 +328,26 @@ def _get_api_clients():
             pass
     return clients
 
+def _get_system_prompt_with_negative_guidance() -> str:
+    """Dynamically append deprecated patterns from the 48h analytics sensor to system prompt."""
+    prompt = _SYSTEM_PROMPT
+    try:
+        from src.analytics.analytics_sensor import AnalyticsSensor
+        deprecated = AnalyticsSensor().load_deprecated_patterns()
+        if deprecated:
+            patterns_str = "\n".join(f"  • Underperforming hook format: \"{p}\"" for p in deprecated[:8])
+            prompt += (
+                f"\n\nNEGATIVE PATTERN GUIDANCE (Live 48h Algorithmic Feedback):\n"
+                f"The following hook formulas failed audience retention (< 50% APV) in recent uploads.\n"
+                f"DO NOT use or mimic these phrasing patterns:\n"
+                f"{patterns_str}\n"
+            )
+            log.info("✓ Injected %d deprecated patterns into scriptwriter prompt", min(8, len(deprecated)))
+    except Exception as exc:
+        log.debug("Could not inject deprecated patterns: %s", exc)
+    return prompt
+
+
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=2, min=2, max=10))
 def _call_model(user_prompt: str, model_name: str) -> str:
     """Call Gemma or Gemini API with key rotation and system instruction."""
@@ -338,8 +357,10 @@ def _call_model(user_prompt: str, model_name: str) -> str:
     if not clients:
         raise RuntimeError("No Google AI API keys available to call model.")
 
+    system_instruction = _get_system_prompt_with_negative_guidance()
+
     config_args = {
-        "system_instruction": _SYSTEM_PROMPT,
+        "system_instruction": system_instruction,
         "temperature": 0.70,
         "max_output_tokens": 4000,
     }
@@ -362,7 +383,7 @@ def _call_model(user_prompt: str, model_name: str) -> str:
     raise last_exc or RuntimeError(f"All clients failed for model {model_name}")
 
 
-def _repair_json(raw_response: str, error: Exception, model_name: str) -> str:
+def _repair_json(raw_response: str, error: Exception, model_name: str, target_scenes: int = 6) -> str:
     """Repair an attempted Market Debunk script response when JSON parsing or validation fails."""
     repair_prompt = f"""Repair the following attempted Market Debunk script response into complete valid JSON.
 The previous attempt failed validation with error:
@@ -370,48 +391,53 @@ The previous attempt failed validation with error:
 
 CRITICAL RULES:
 1. Return ONLY pure valid JSON with no markdown code fences (no ```json).
-2. Exactly 12 scenes in the scenes array (scene_id 1 to 12).
-3. Ensure total narration word count across all 12 scenes is 100-115 words (~8-10 words per scene, 6-16 words per scene).
-4. Scene 1 visual_prompt MUST mention Arjun (face-cam hook). Scenes 2-11 MUST describe contextual B-roll objects/screens/documents (NO people, NO Priya). Scene 12 MUST show Arjun (closer). Include broll_keyword for all scenes.
-5. Address the viewer directly ("you"), with an urgent viral hook in scenes 1-2.
-6. CONTINUOUS STORYTELLING: Narrations must read as ONE seamless spoken story with narrative conjunctions ("and", "so", "until", "because", "that's when"), NOT a list of facts or isolated bullets. Use "you" or "your" in at least 8 scenes.
+2. Exactly {target_scenes} scenes in the scenes array (scene_id 1 to {target_scenes}).
+3. Ensure total narration word count across all scenes is 55-80 words (~9-12 words per scene).
+4. Scene 1 visual_prompt MUST open on cold visual evidence (plummeting candlestick chart, trading screen, bank alert). Scenes 2-{target_scenes-1} MUST describe contextual B-roll objects/screens/documents. Include broll_keyword for all scenes.
+5. Address the viewer directly ("you"), with an urgent viral hook in scene 1.
+6. CONTINUOUS STORYTELLING: Narrations must read as ONE seamless spoken story with narrative conjunctions ("and", "so", "until", "because", "that's when"), NOT a list of facts or isolated bullets.
 
 ATTEMPTED RESPONSE:
 {raw_response}
 """
-    return _call_gemini(repair_prompt, model_name)
+    return _call_model(repair_prompt, model_name)
 
-def generate_script(thesis: str, channel_name: str, story_seed: Optional[dict] = None) -> ScriptPayload:
+def generate_script(
+    thesis: str,
+    channel_name: str,
+    story_seed: Optional[dict] = None,
+    target_scenes: int = 6,
+) -> ScriptPayload:
     """
-    Generate a full 12-scene cinematic story script.
+    Generate a Fast-Hook cinematic story script under 30 seconds (target 6 scenes, 55-75 words).
     """
-    log.info("Generating 12-scene script | thesis: '%s'", thesis)
+    log.info("Generating Fast-Hook (%d scenes, < 30s) script | thesis: '%s'", target_scenes, thesis)
 
     seed_context = ""
     if story_seed:
         seed_context = f"""
 STORY SEED:
-Inciting Event (Scenes 1-2): {story_seed.get('inciting_event', '')}
-Protagonist's Flaw (Scenes 3-5): {story_seed.get('protagonist_flaw', '')}
-Real World Anchor (Scenes 8-9): {story_seed.get('real_world_anchor', '')}
-Finance Concept to Reveal (Scenes 10-11): {story_seed.get('concept_name', '')}
-Plain Definition (Scenes 10-11): {story_seed.get('concept_one_liner', '')}
+Inciting Event (Scene 1): {story_seed.get('inciting_event', '')}
+Protagonist's Flaw (Scenes 2-3): {story_seed.get('protagonist_flaw', '')}
+Real World Anchor (Scene 4): {story_seed.get('real_world_anchor', '')}
+Finance Concept to Reveal (Scene 5): {story_seed.get('concept_name', '')}
+Plain Definition: {story_seed.get('concept_one_liner', '')}
 Safe Visual Evidence Object: {story_seed.get('visual_evidence', '')}
 """
 
     user_prompt = f"""Core financial thesis: "{thesis}"
 {seed_context}
-Now generate the complete 12-scene cinematic short-story script as JSON.
-Remember: Exactly 12 scenes.
+Now generate the complete {target_scenes}-scene Fast-Hook cinematic short-story script (< 30s runtime, 55-75 words total) as JSON.
+Remember: Exactly {target_scenes} scenes.
 
 Before answering, internally check that:
-- the title has no #Shorts tag;
-- scenes 1-2 have an urgent, scroll-stopping viral hook that speaks directly to the viewer;
-- the narrations tell a single, continuous, suspenseful spoken story with natural connective flow ("and", "so", "until", "because", "that's when"), NEVER a list of facts or disconnected bullet points;
-- scene 1 mentions Arjun as the hook host;
-- scenes 2-11 describe contextual B-roll objects, screens, or documents with broll_keyword (NO people, NO Priya);
-- scene 12 mentions Arjun as the closing host;
-- the total narration is 100-115 words (target ~50 seconds)."""
+- the title has no #Shorts tag and is max 50 chars;
+- scene 1 has an urgent, scroll-stopping viral hook (0-3s) that speaks directly to the viewer;
+- the narrations tell a single, continuous, suspenseful spoken story with natural connective flow ("and", "so", "until", "because", "that's when"), NEVER a list of facts;
+- scene 1 visual_prompt opens cold on dramatic evidence (crashing red candlestick chart, trading screen, bank alert);
+- scenes 2-{target_scenes-1} describe contextual B-roll objects, screens, or documents with broll_keyword (NO people);
+- scene {target_scenes} delivers the sharp takeaway rule and spoken CTA;
+- the total narration across all {target_scenes} scenes is 55-75 words (target 22-26 seconds runtime)."""
 
     for model in _MODELS_PRIORITY:
         log.info("Trying model (Gemma/Gemini API): %s", model)

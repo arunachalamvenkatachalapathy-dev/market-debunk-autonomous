@@ -48,6 +48,25 @@ def run_pipeline():
     total_start = time.time()
     stats = {}
 
+    # ── Phase 0: Analytics Sensor & Timing Guard ──────────────────────
+    from src.analytics.analytics_sensor import AnalyticsSensor
+    from src.timing.timing_guard import TimingGuard
+
+    sensor = AnalyticsSensor()
+    try:
+        audit_res = sensor.audit_recent_posts()
+        log.info("✓ 48h Analytics sensor run: %s", audit_res)
+    except Exception as audit_err:
+        log.warning("Analytics audit skipped (%s)", audit_err)
+
+    timing_guard = TimingGuard()
+    can_proceed, hours_elapsed = timing_guard.check_cooldown(min_hours=4.0)
+    if not can_proceed:
+        log.warning("🛑 Cooldown active (%.1f h elapsed < 4.0h min). Exiting pipeline to protect feed reach.", hours_elapsed)
+        sys.exit(0)
+
+    timing_guard.apply_jitter(min_minutes=5, max_minutes=25)
+
     try:
         # ── Phase 1: Topic Discovery ──────────────────────────────────────
         with PhaseTimer("Phase 1: Topic Discovery"):
@@ -219,6 +238,20 @@ def run_pipeline():
                     video_path=final_video,
                     run_stats=stats,
                 )
+
+            # Record to publish_ledger.json for cooldown and 48h analytics
+            try:
+                timing_guard.record_publish(
+                    title=dist_pkg.youtube.title,
+                    topic=thesis,
+                    platform_urls={"youtube": yt_url, "instagram": ig_url, "facebook": fb_url},
+                    platform_ids={"youtube": yt_id, "instagram": ig_url, "facebook": fb_url},
+                    hashtags=dist_pkg.instagram.hashtags,
+                    hook=dist_pkg.instagram.first_line_hook,
+                    duration_seconds=float(stats.get("final_duration", 25.0)),
+                )
+            except Exception as rec_err:
+                log.warning("Failed to record publication to ledger: %s", rec_err)
 
         total_time = time.time() - total_start
         log.info("==================================================")
