@@ -246,15 +246,6 @@ def run_pipeline():
                 if fb_url:
                     fb_id = fb_url.rstrip("/").split("/")[-1]
 
-            fb_url = None
-            fb_page = getattr(settings, "FACEBOOK_PAGE_ID", "").strip() or getattr(settings, "FB_PAGE_ID", "").strip()
-            if fb_page:
-                fb_url = facebook_publisher.publish_reel(
-                    video_path=final_video,
-                    title=script_dict["title"],
-                    description=script_dict["description"],
-                    hashtags=script_dict["hashtags"],
-                )
 
             if settings.ENABLE_TELEGRAM:
                 telegram_notifier.send_completion_notification(
