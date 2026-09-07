@@ -1,4 +1,4 @@
-name: Daily Autonomous Video Pipeline
+name: Daily Autonomous Video Pipeline (Evening Edition - 5:30 PM IST)
 
 on:
   schedule:

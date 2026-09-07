@@ -435,6 +435,14 @@ Plain Definition: {story_seed.get('concept_one_liner', '')}
 Safe Visual Evidence Object: {story_seed.get('visual_evidence', '')}
 """
 
+    finetuning_context = ""
+    try:
+        from src.agents.feedback_intelligence_agent import FeedbackIntelligenceAgent
+        fia = FeedbackIntelligenceAgent()
+        finetuning_context = fia.get_video_finetuning_prompt_injection()
+    except Exception as fe:
+        log.warning("Feedback intelligence injection note: %s", fe)
+
     user_prompt = f"""Core financial thesis: "{thesis}"
 {seed_context}
 Now generate the complete {target_scenes}-scene Fast-Hook cinematic short-story script (< 30s runtime, 55-75 words total) as JSON.
