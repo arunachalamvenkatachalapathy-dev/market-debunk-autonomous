@@ -48,8 +48,9 @@ def run_pipeline():
     total_start = time.time()
     stats = {}
 
-    # ── Phase 0: Analytics Sensor & Timing Guard ──────────────────────
+    # ── Phase 0: Analytics Sensor, Performance Tuner & Timing Guard ──
     from src.analytics.analytics_sensor import AnalyticsSensor
+    from src.analytics.tuner_agent import PerformanceTuningAgent
     from src.timing.timing_guard import TimingGuard
 
     sensor = AnalyticsSensor()
@@ -58,6 +59,17 @@ def run_pipeline():
         log.info("✓ 48h Analytics sensor run: %s", audit_res)
     except Exception as audit_err:
         log.warning("Analytics audit skipped (%s)", audit_err)
+
+    tuner = PerformanceTuningAgent()
+    try:
+        playbook = tuner.generate_playbook()
+        log.info(
+            "✓ Performance Tuning Playbook ready: optimal runtime %.1fs, %d target words",
+            playbook.get("optimal_runtime_seconds", 24.0),
+            playbook.get("optimal_word_count", 62),
+        )
+    except Exception as tune_err:
+        log.warning("Performance tuning pass skipped (%s)", tune_err)
 
     timing_guard = TimingGuard()
     can_proceed, hours_elapsed = timing_guard.check_cooldown(min_hours=4.0)

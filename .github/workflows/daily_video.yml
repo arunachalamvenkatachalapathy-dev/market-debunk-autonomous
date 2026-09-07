@@ -2,9 +2,11 @@ name: Daily Autonomous Video Pipeline
 
 on:
   schedule:
-    # Single High-Impact Daily Video Slot: 05:30 PM IST ± 20m Jitter
-    # 11:40 UTC = 05:10 PM IST base. Python timing guard applies randomized jitter.
-    - cron: '40 11 * * *'
+    # 2 High-Impact Videos Daily across all platforms (spaced 9.5h apart)
+    # Slot 1: 09:30 AM IST ± 15m (03:45 UTC base + Python randomized jitter)
+    - cron: '45 3 * * *'
+    # Slot 2: 07:00 PM IST ± 20m (13:15 UTC base + Python randomized jitter)
+    - cron: '15 13 * * *'
   workflow_dispatch: # Allow manual trigger from GitHub UI
 
 jobs:
@@ -122,9 +124,9 @@ jobs:
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add data/used_topics.json data/channel_ids.json data/used_broll.json data/publish_ledger.json data/analytics_ledger.json data/deprecated_patterns.json
+          git add data/used_topics.json data/channel_ids.json data/used_broll.json data/publish_ledger.json data/analytics_ledger.json data/deprecated_patterns.json data/tuning_playbook.json
           # Only commit if there are changes
-          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: update topic, analytics, and dedup history [skip ci]" && git push)
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: update topic, analytics, tuning playbook, and dedup history [skip ci]" && git push)
 
       - name: Trigger Tamil companion pipeline
         if: success()

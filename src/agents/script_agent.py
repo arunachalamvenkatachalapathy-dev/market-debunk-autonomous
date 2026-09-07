@@ -345,6 +345,16 @@ def _get_system_prompt_with_negative_guidance() -> str:
             log.info("✓ Injected %d deprecated patterns into scriptwriter prompt", min(8, len(deprecated)))
     except Exception as exc:
         log.debug("Could not inject deprecated patterns: %s", exc)
+
+    try:
+        from src.analytics.tuner_agent import PerformanceTuningAgent
+        tuner_directives = PerformanceTuningAgent().get_script_directives_prompt()
+        if tuner_directives:
+            prompt += tuner_directives
+            log.info("✓ Injected algorithmic tuning directives into scriptwriter prompt")
+    except Exception as exc:
+        log.debug("Could not inject tuning directives: %s", exc)
+
     return prompt
 
 

@@ -1,0 +1,25 @@
+{
+  "last_updated": "2026-09-07T07:52:32.677039+00:00",
+  "analyzed_videos_count": 0,
+  "optimal_runtime_seconds": 24.0,
+  "optimal_word_count": 62,
+  "top_performing_topics": [
+    "hidden charges",
+    "mutual fund fees",
+    "EMI trap",
+    "credit card tricks"
+  ],
+  "winning_hook_formulas": [
+    "Open on concrete financial damage: 'Your bank just charged you ₹X and you didn't notice'",
+    "Pattern interrupt: 'Stop buying Nifty index funds until you see this silent deduction'"
+  ],
+  "script_directives": [
+    "Scene 1 must be under 8 words spoken in under 3 seconds.",
+    "Show real mathematical loss in Scene 3 (₹ lost or % spread).",
+    "End on explicit save & share trigger in the voiceover."
+  ],
+  "seo_directives": [
+    "Rotate between debunk, wealth, and alert hashtag clusters.",
+    "First line hook in Instagram caption must be under 80 characters."
+  ]
+}
