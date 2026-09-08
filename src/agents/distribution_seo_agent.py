@@ -108,16 +108,29 @@ class PlatformDistributionPackage(BaseModel):
         )[:3900]
 
 
+import random
+
+_SAFE_FALLBACK_TITLES = [
+    "Is Your Portfolio Hiding This? #Shorts",
+    "The Number Retail Investors Miss #Shorts",
+    "What Institutions Know That You Don't #Shorts",
+    "This Market Myth Is Costing You #Shorts",
+    "The Hidden Math Behind Your Losses #Shorts",
+    "Why Most Retail Investors Lose Money #Shorts",
+    "The Silent Bank Charge Nobody Noticed #Shorts",
+    "Stop Buying Before You Check This #Shorts",
+]
+
 _SEO_SYSTEM_PROMPT = """You are the Chief SEO & Social Distribution Strategist for 'Market Debunk'.
 Your sole task is to generate platform-specialized copy that maximizes algorithmic distribution across:
-1. YouTube Shorts (Search-intent alignment, high CTR titles, retention snippet)
-2. Instagram Reels (First-line hook before '...more' truncation at 120 chars, DM save & share triggers, exactly 4 niche hashtags)
+1. YouTube Shorts (High CTR curiosity-gap titles under 42 chars ending in #Shorts, search-intent alignment, retention snippet)
+2. Instagram Reels (First-line hook before '...more' truncation at 80 chars, DM save & share triggers, exactly 4 niche hashtags)
 3. Facebook Reels (Relatable conversational storytelling, everyday investor dilemma, comment debate question)
 4. Telegram VIP Channel (Clean editorial markdown, Myth vs Reality, Golden Rule, zero hashtag spam)
 
 RULES:
 - Never use generic placeholder text. Use actual financial context from the provided thesis and script.
-- YouTube title MUST end with #Shorts and be <= 50 characters.
+- YouTube title MUST be punchy, curiosity-driven with concrete stakes (e.g. Rupee amounts, %, or contrast), end with #Shorts, and be <= 45 characters.
 - Instagram caption must NOT have 20-30 spam hashtags. Use strictly 4 niche hashtags.
 - Output MUST be strictly valid JSON matching the requested schema.
 """
@@ -149,45 +162,61 @@ Full Narration: {narration_full}
 
 Generate the complete multi-platform SEO package as JSON matching the schema."""
 
-        # 1. Try Gemini API
-        if self.gemini_key:
-            from google import genai
+        # 1. Try Gemini API with multi-key rotation and active models
+        from src.agents.script_agent import _get_api_clients
+        gemini_clients = _get_api_clients()
+        last_gemini_err = None
+
+        if gemini_clients:
             from google.genai import types
 
-            client = genai.Client(api_key=self.gemini_key)
-            for model_name in ("gemini-3.1-flash-lite", "gemini-2.5-flash"):
-                try:
-                    log.info("Calling Gemini (%s) for Multi-Platform Distribution SEO Package...", model_name)
-                    response = client.models.generate_content(
-                        model=model_name,
-                        contents=user_prompt,
-                        config=types.GenerateContentConfig(
-                            system_instruction=_SEO_SYSTEM_PROMPT,
-                            response_mime_type="application/json",
-                            response_schema=PlatformDistributionPackage,
-                            temperature=0.6,
-                        ),
-                    )
-                    if response.text:
-                        raw_json = response.text.strip()
-                        if "```" in raw_json:
-                            raw_json = re.sub(r"^```(?:json)?\s*", "", raw_json, flags=re.MULTILINE)
-                            raw_json = re.sub(r"\s*```\s*$", "", raw_json, flags=re.MULTILINE)
-                        data = json.loads(raw_json)
-                        pkg = PlatformDistributionPackage.model_validate(data)
-                        pkg.youtube.title = normalize_youtube_title(pkg.youtube.title)
-                        log.info("✓ Gemini (%s) generated Multi-Platform SEO Package successfully.", model_name)
-                        return pkg
-                except Exception as e:
-                    log.warning("Gemini (%s) SEO generation failed (%s); trying next model/fallback...", model_name, e)
+            models_priority = [
+                "gemini-3.7-flash",
+                "gemini-3.6-flash",
+                "gemini-3.1-flash-lite",
+                "gemini-flash-lite-latest",
+            ]
+            for model_name in models_priority:
+                for client in gemini_clients:
+                    try:
+                        log.info("Calling Gemini (%s) for Multi-Platform Distribution SEO Package...", model_name)
+                        response = client.models.generate_content(
+                            model=model_name,
+                            contents=user_prompt,
+                            config=types.GenerateContentConfig(
+                                system_instruction=_SEO_SYSTEM_PROMPT,
+                                response_mime_type="application/json",
+                                response_schema=PlatformDistributionPackage,
+                                temperature=0.6,
+                            ),
+                        )
+                        if response.text:
+                            raw_json = response.text.strip()
+                            if "```" in raw_json:
+                                raw_json = re.sub(r"^```(?:json)?\s*", "", raw_json, flags=re.MULTILINE)
+                                raw_json = re.sub(r"\s*```\s*$", "", raw_json, flags=re.MULTILINE)
+                            data = json.loads(raw_json)
+                            pkg = PlatformDistributionPackage.model_validate(data)
+                            pkg.youtube.title = normalize_youtube_title(pkg.youtube.title)
+                            log.info("✓ Gemini (%s) generated Multi-Platform SEO Package successfully.", model_name)
+                            return pkg
+                    except Exception as e:
+                        last_gemini_err = e
+                        log.warning("Gemini (%s) SEO generation failed (%s); trying next model...", model_name, e)
+
+        if last_gemini_err:
+            log.warning("Gemini SEO generation failed (%s); trying Groq fallback", last_gemini_err)
+        elif not gemini_clients:
+            log.warning("No Gemini API clients available; trying Groq fallback")
 
         # 2. Try Groq API
-        if self.groq_key:
+        groq_key = self.groq_key or os.environ.get("GROQ_API_KEY", "").strip()
+        if groq_key:
             try:
                 log.info("Calling Groq for Multi-Platform Distribution SEO Package...")
                 from groq import Groq
 
-                groq_client = Groq(api_key=self.groq_key)
+                groq_client = Groq(api_key=groq_key)
                 schema_json = json.dumps(PlatformDistributionPackage.model_json_schema(), indent=2)
                 groq_prompt = f"{_SEO_SYSTEM_PROMPT}\n\nSchema:\n{schema_json}\n\nUser:\n{user_prompt}\n\nReturn JSON ONLY."
                 resp = groq_client.chat.completions.create(
@@ -201,19 +230,28 @@ Generate the complete multi-platform SEO package as JSON matching the schema."""
                     data = json.loads(content)
                     pkg = PlatformDistributionPackage.model_validate(data)
                     pkg.youtube.title = normalize_youtube_title(pkg.youtube.title)
+                    log.info("✓ Groq generated Multi-Platform SEO Package successfully.")
                     return pkg
             except Exception as e:
                 log.warning("Groq SEO generation failed (%s); using deterministic generator", e)
+        else:
+            log.info("Groq API key not set; skipping Groq tier.")
 
         # 3. Deterministic Emergency Fallback
-        log.info("Using deterministic fallback for SEO Distribution Package...")
+        log.warning("Falling back to unbreakable deterministic SEO Distribution Package...")
         return self._generate_fallback(thesis, script_dict)
 
     def _generate_fallback(self, thesis: str, script_dict: dict) -> PlatformDistributionPackage:
         clean_thesis = re.sub(r'[^a-zA-Z0-9\s]', '', thesis or "Market Truth")
         words = [w for w in clean_thesis.split() if len(w) > 2]
         hook_phrase = " ".join(words[:4]).title() if words else "Stock Market Truth"
-        yt_title = normalize_youtube_title(f"Is {hook_phrase} A Hidden Trap? #Shorts")
+
+        # Prioritize clean script title if already generated; else use guaranteed safe template
+        script_title = (script_dict.get("title") or "").replace("#Shorts", "").strip()
+        if script_title and len(script_title) >= 12 and not script_title.lower().startswith("is "):
+            yt_title = normalize_youtube_title(f"{script_title[:42]} #Shorts")
+        else:
+            yt_title = normalize_youtube_title(random.choice(_SAFE_FALLBACK_TITLES))
 
         return PlatformDistributionPackage(
             youtube=YouTubeDistribution(
