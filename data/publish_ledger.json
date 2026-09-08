@@ -54,5 +54,33 @@
       "facebook": null
     },
     "audited": false
+  },
+  {
+    "timestamp": "2026-09-08T08:23:39.967009+00:00",
+    "title": "Buy Top Stocks at 30% Off? #Shorts",
+    "topic": "Holding companies like Berkshire Hathaway can trade at a massive discount compared to the total value of their underlying stock holdings.",
+    "hook": "💰 Stop buying stocks at full price when you can buy them at a discount",
+    "hashtags": [
+      "#WealthCreationIndia",
+      "#SIPInvesting",
+      "#SmallCapStocks",
+      "#LongTermInvesting",
+      "#SwingTrading",
+      "#IndianStockMarket",
+      "#NiftyAlert",
+      "#NSEIndia"
+    ],
+    "duration_seconds": 20.688000000000002,
+    "urls": {
+      "youtube": "https://www.youtube.com/shorts/6d4LFqE7UxI",
+      "instagram": "https://www.instagram.com/reel/DdBP29bj1rc/",
+      "facebook": "https://www.facebook.com/reel/1400437392041728/"
+    },
+    "ids": {
+      "youtube": "6d4LFqE7UxI",
+      "instagram": "DdBP29bj1rc",
+      "facebook": "1400437392041728"
+    },
+    "audited": false
   }
 ]
