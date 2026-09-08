@@ -26,5 +26,33 @@
       "facebook": "28555633594127550"
     },
     "audited": false
+  },
+  {
+    "timestamp": "2026-09-08T02:18:55.335458+00:00",
+    "title": "Why You Can't Afford A Home #Shorts",
+    "topic": "Rapidly rising property prices are permanently pricing the average middle-class earner out of ever owning their own home.",
+    "hook": "🚨 Why your dream home is slipping away while your savings sit still",
+    "hashtags": [
+      "#MarketDebunk",
+      "#StockMarketMyths",
+      "#MarketTrap",
+      "#NiftyTrading",
+      "#IntradayTrading",
+      "#IndianStockMarket",
+      "#NiftyAlert",
+      "#NSEIndia"
+    ],
+    "duration_seconds": 24.072000000000003,
+    "urls": {
+      "youtube": "https://www.youtube.com/shorts/9ncNnSpChsc",
+      "instagram": null,
+      "facebook": null
+    },
+    "ids": {
+      "youtube": "9ncNnSpChsc",
+      "instagram": null,
+      "facebook": null
+    },
+    "audited": false
   }
 ]
