@@ -87,9 +87,9 @@ class TimingGuard:
         Check if the mandatory cooldown window has passed since the last upload.
         Returns (can_proceed, hours_since_last_upload).
         """
-        # Allow bypass via environment variable for emergency manual testing
-        if os.environ.get("IGNORE_COOLDOWN", "").lower() in ("true", "1", "yes"):
-            log.info("Cooldown check bypassed via IGNORE_COOLDOWN=true")
+        # Allow bypass via environment variable or manual workflow dispatch for testing
+        if os.environ.get("IGNORE_COOLDOWN", "").lower() in ("true", "1", "yes") or os.environ.get("GITHUB_EVENT_NAME") == "workflow_dispatch":
+            log.info("Cooldown check bypassed (manual run or IGNORE_COOLDOWN=true)")
             return True, 999.0
 
         ledger = self.load_ledger()

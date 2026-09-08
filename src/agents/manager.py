@@ -95,8 +95,22 @@ def run_pipeline():
         with PhaseTimer("Phase 1.5: Dedup Gate"):
             is_dup, score, match = evaluator.is_duplicate(thesis)
             if is_dup:
-                log.warning("🛑 Topic is too similar to a recent video. Halting pipeline.")
-                sys.exit(0)
+                log.warning("🛑 Topic is too similar to '%s' (score %.2f). Switching to fresh evergreen seed...", match, score)
+                from src.agents.topic_agent import _EVERGREEN_TOPICS, summarize_to_story_seed
+                found_fresh = False
+                for eg in _EVERGREEN_TOPICS:
+                    eg_dup, _, _ = evaluator.is_duplicate(eg)
+                    if not eg_dup:
+                        thesis = eg
+                        channel = "Market Debunk Research"
+                        seed_data = summarize_to_story_seed(f"FINANCIAL CONCEPT: {eg}", eg)
+                        story_seed = seed_data.get("story_seed", {})
+                        log.info("✓ Switched to fresh evergreen topic: '%s'", thesis)
+                        found_fresh = True
+                        break
+                if not found_fresh:
+                    log.warning("All evergreen topics duplicate recent history. Halting to prevent feed spam.")
+                    sys.exit(0)
             log.info("Topic passed uniqueness check.")
 
         # ── Phase 2: Script Generation ────────────────────────────────────

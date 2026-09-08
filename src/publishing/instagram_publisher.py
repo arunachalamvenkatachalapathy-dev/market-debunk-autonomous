@@ -55,7 +55,7 @@ def _get_public_video_url_via_release(video_path: Path) -> Optional[str]:
     import requests
 
     token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN") or ""
-    repo = "arunachalamvenkatachalapathy-dev/market-debunk-autonomous"
+    repo = os.environ.get("GITHUB_REPOSITORY") or "arunachalamvenkatachalapathy-dev/market-debunk-autonomous"
     tag = "latest-assets"
     target_filename = video_path.name
 
