@@ -82,5 +82,33 @@
       "facebook": "1400437392041728"
     },
     "audited": false
+  },
+  {
+    "timestamp": "2026-09-08T17:19:38.593126+00:00",
+    "title": "Trading US Stocks Will Trap You #Shorts",
+    "topic": "Retail traders are increasingly looking beyond local markets, paying for specialized offline training in US stocks, commodities, and global forex.",
+    "hook": "⚠️ Stop trading US stocks before you lose everything to currency leverage",
+    "hashtags": [
+      "#MoneyMistakes",
+      "#FinanceLiteracy",
+      "#MultibaggerStocks",
+      "#MidCapStocks",
+      "#SensexAlert",
+      "#IndianStockMarket",
+      "#NiftyAlert",
+      "#NSEIndia"
+    ],
+    "duration_seconds": 24.36,
+    "urls": {
+      "youtube": "https://www.youtube.com/shorts/0TP_wOjhawA",
+      "instagram": "https://www.instagram.com/reel/DdCNMeeDA1G/",
+      "facebook": "https://www.facebook.com/reel/1427576762601957/"
+    },
+    "ids": {
+      "youtube": "0TP_wOjhawA",
+      "instagram": "DdCNMeeDA1G",
+      "facebook": "1427576762601957"
+    },
+    "audited": false
   }
 ]
