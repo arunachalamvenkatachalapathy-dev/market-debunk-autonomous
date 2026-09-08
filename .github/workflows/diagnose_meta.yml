@@ -1,0 +1,43 @@
+﻿name: Diagnose Meta API
+
+on:
+  workflow_dispatch:
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test Meta Graph API
+        env:
+          IG_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN || secrets.META_ACCESS_TOKEN }}
+          FB_TOKEN: ${{ secrets.FACEBOOK_ACCESS_TOKEN || secrets.META_ACCESS_TOKEN }}
+          IG_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
+          FB_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
+        run: |
+          python - << 'EOF'
+          import os
+          import requests
+
+          ig_token = os.environ.get("IG_TOKEN", "").strip()
+          fb_token = os.environ.get("FB_TOKEN", "").strip()
+          ig_user_id = os.environ.get("IG_USER_ID", "").strip()
+          fb_page_id = os.environ.get("FB_PAGE_ID", "").strip()
+
+          print(f"Testing with restored Meta access...")
+          for name, tok in [("Instagram Token", ig_token), ("Facebook Token", fb_token)]:
+              if not tok:
+                  continue
+              print(f"\n--- Testing {name} ---")
+              r = requests.get(f"https://graph.facebook.com/v23.0/me?fields=id,name&access_token={tok}")
+              print(f"GET /me -> Status {r.status_code}: {r.text}")
+
+          if ig_user_id and ig_token:
+              print("\n--- Testing Instagram User ID ---")
+              r_ig = requests.get(f"https://graph.facebook.com/v23.0/{ig_user_id}?fields=id,username&access_token={ig_token}")
+              print(f"GET /{ig_user_id} -> Status {r_ig.status_code}: {r_ig.text}")
+
+          if fb_page_id and fb_token:
+              print("\n--- Testing Facebook Page ID ---")
+              r_fb = requests.get(f"https://graph.facebook.com/v23.0/{fb_page_id}?fields=id,name&access_token={fb_token}")
+              print(f"GET /{fb_page_id} -> Status {r_fb.status_code}: {r_fb.text}")
+          EOF
