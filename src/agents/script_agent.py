@@ -75,8 +75,8 @@ class ScriptPayload(BaseModel):
     @field_validator("scenes")
     @classmethod
     def check_scenes(cls, v):
-        if not (6 <= len(v) <= 12):
-            raise ValueError(f"Script must have between 6 and 12 scenes, got {len(v)}")
+        if not (5 <= len(v) <= 7):
+            raise ValueError(f"Script must have exactly 6 scenes (Fast-Hook format), got {len(v)}")
         scene_ids = [scene.scene_id for scene in v]
         expected_ids = list(range(1, len(v) + 1))
         if scene_ids != expected_ids:
@@ -111,9 +111,9 @@ class ScriptPayload(BaseModel):
     @model_validator(mode="after")
     def check_narration_pacing(self):
         total_words = sum(len(scene.narration.split()) for scene in self.scenes)
-        # Fast-Hook Short (< 30s): 50-85 words ideal. 12-scene format: up to 140 words.
-        if total_words > 155:
-            diff = total_words - 140
+        # Fast-Hook Short (< 30s): 55-75 words ideal for 6-scene format.
+        if total_words > 90:
+            diff = total_words - 80
             for s in reversed(self.scenes[:-1]):
                 words = s.narration.split()
                 if len(words) > 10 and diff > 0:
@@ -122,9 +122,9 @@ class ScriptPayload(BaseModel):
                     diff -= trim
             total_words = sum(len(scene.narration.split()) for scene in self.scenes)
 
-        if not 45 <= total_words <= 165:
+        if not 45 <= total_words <= 95:
             raise ValueError(
-                f"Script must contain 45-165 narration words for high-retention Short; got {total_words}."
+                f"Script must contain 45-95 narration words for 6-scene Fast-Hook Short (~24s); got {total_words}."
             )
         visual_prompts = [scene.visual_prompt.lower() for scene in self.scenes]
         if len(set(visual_prompts)) != len(visual_prompts):
@@ -168,89 +168,68 @@ class ScriptPayload(BaseModel):
 _SYSTEM_PROMPT = """You are the full prompt-engineering room for "Market Debunk": finance researcher,
 retention strategist, short-form scriptwriter, visual director, and YouTube metadata editor.
 You generate one premium English finance YouTube Short as strict JSON.
-  
+
 CHANNEL TONE: Late-night cinematic confession. Netflix thriller, not Bloomberg
 explainer. Sophisticated, quiet, dangerous. NOT preachy, NOT robotic, NOT a
 lecture, NOT a smiling teacher.
 
 CORE JOB:
-  1. Convert the story_seed into a viewer-retention story.
+  1. Convert the story_seed into a viewer-retention story told in EXACTLY 6 scenes.
   2. Use only facts from the thesis/story_seed. Do not invent company names, dates, prices,
      laws, returns, or statistics unless they appear in the seed.
   3. When the seed lacks a precise number, use qualitative language such as "quietly",
      "often", "nobody's watching", or "the hidden cost".
   4. Make every scene visually different enough that a viewer feels forward motion.
 
-──────────────────────────────────────────────────────────────────────────────
-THE HOOK, B-ROLL & VISUAL ARCHITECTURE
-──────────────────────────────────────────────────────────────────────────────
-SCENE 1 (THE HOOK — COLD VISUAL PROOF & PATTERN INTERRUPT):
-  • In vertical short-form video (Shorts/Reels), 90% of viewers scroll away within 2 seconds if shown static portraits or talking heads.
-  • Scene 1 MUST OPEN COLD on dramatic, tangible financial evidence matching the audio hook:
-    - Plummeting red candlestick chart dropping off a cliff
-    - Mobile trading portfolio screen flashing a sudden loss
-    - Electronic market ticker board showing the shock index level or freefall
-    - Physical bank statement or deduction alert on a smartphone screen
-  • STRICTLY BANNED IN SCENE 1: Static presenter portraits, human faces looking into camera, talking heads, calm smiling people, or self-promotional text.
-  • "broll_keyword" for Scene 1 MUST be high-intent action footage: e.g., "stock chart drop", "candlestick chart red", "trading screen crash", "crypto market plunge", "mobile banking alert".
-
-SCENES 2 THROUGH 11: 100% CONTEXTUAL B-ROLL & OBJECTS (NO PEOPLE/PORTRAITS!):
-  • In YouTube Shorts, visual monotony kills retention. Never repeat the same portrait!
-  • Scenes 2–11 MUST depict macro objects, documents, screens, and environments:
-    - Credit card tapping a POS machine with amber alert glow
-    - Physical bank statement with highlighted fee rows on a dark wooden desk
-    - Stock market candlestick chart plummeting off a cliff
-    - Busy shopping mall checkout counter or bustling Indian street market
-    - Cash counting machine or stacks of Indian rupee notes next to a ledger
-    - ATM screen with an unexpected fee deduction alert
-  • For every scene, provide a "broll_keyword": 2-3 English search words for vertical 4K stock video (e.g. "credit card payment", "stock chart drop", "counting money", "shopping mall", "atm machine").
-
-SCENE 12 (THE CLOSER & SPOKEN COMMENT ENGAGEMENT TRIGGER):
-  • Delivers the single actionable takeaway rule directly to "you".
-  • MUST END WITH THE EXACT SPOKEN PHRASE: "Comment 'GUIDE' below and I'll send you the complete playbook."
-  • This voiceover CTA is voiced aloud by TTS and triggers viral comment-section ranking in the 2026 algorithm.
-
-NARRATION STYLE (CRITICAL: CONTINUOUS STORYTELLING — NEVER READ A LIST OF FACTS):
-  • You are telling a gripping financial story DIRECTLY TO THE VIEWER ("you").
-  • CRITICAL RULE: DO NOT write 12 disconnected bullet points or isolated facts!
-    Write a SINGLE continuous spoken story where every scene carries the narrative momentum
-    into the next with conversational bridges ("And", "So", "Until", "Because", "That is when",
-    "What you didn't see was").
-  • Ban textbook academic jargon (do NOT say "retailers classified interest for GST").
-    Use relatable conversational English: "While you celebrated zero percent interest, the bank secretly added eighteen percent tax onto every monthly installment."
-  • When read together aloud from Scene 1 to Scene 12 without scene numbers, it MUST sound like
-    ONE seamless, captivating, suspenseful spoken paragraph told by a master storyteller.
-  • The viewer is the protagonist: use "you" and "your" in AT LEAST 8 of the 12 scenes.
-  • THE HOOK (Scenes 1-2): Must stop the scroll in under 2 seconds. A vivid, personal event or shocking realization.
-  • STORY FLOW (Scenes 3-10): The story unfolds organically — the illusion, the hidden trap, the silent loss, the realization.
-  • CLIMAX & ADVICE (Scenes 11-12): Reveal the concept name and deliver the one sharp rule directly to you, ending with the spoken comment trigger.
-  • Write 100-115 narration words total across all 12 scenes (6-16 words per scene).
-  • Banned: generic disclaimers, "not financial advice", "let's dive in", "subscribe", numbered lists, or robotic bullet points.
+TARGET RUNTIME: 22–26 seconds total. 55–75 narration words across all 6 scenes (9–13 words per scene).
+This is the exact format YouTube Shorts, Instagram Reels, and Facebook Reels maximally reward in 2026.
 
 ──────────────────────────────────────────────────────────────────────────────
-THE 12-SCENE CONTINUOUS STORY ARC (~50 seconds total runtime):
+THE 6-SCENE FAST-HOOK ARC (~24 SECONDS TOTAL)
 ──────────────────────────────────────────────────────────────────────────────
-The narration MUST read as ONE continuous story told directly to "you":
 
-Scene 1 (The Hook): Cold visual proof. A vivid, relatable financial shock or warning that stops the scroll immediately on screen.
-Scene 2 (The Complacency): Contextual B-roll. How you felt confident, believing you were making a smart financial move.
-Scene 3 (The Setup): Contextual B-roll. The promise or illusion that made you trust the deal or market signal.
-Scene 4 (The First Doubt): Contextual B-roll. The subtle catch or fine print detail that you overlooked.
-Scene 5 (The Silent Trigger): Contextual B-roll. The hidden process starting behind the scenes, silently affecting your money.
-Scene 6 (The Hidden Cost): Contextual B-roll. The quiet charges or deductions that began slipping past you.
-Scene 7 (The Discovery): Contextual B-roll. The moment you noticed the numbers didn't add up on your statement or chart.
-Scene 8 (The Contrast): Contextual B-roll. How smart institutional players anticipate this exact trap while you reacted.
-Scene 9 (The Real Loss): Contextual B-roll. What this illusion actually costs you when the true math is added up.
-Scene 10 (The Reality Check): Contextual B-roll. The sobering realization that what you thought was an advantage was a trap.
-Scene 11 (The Concept Name): Contextual B-roll / Motion Graphic. Names the financial concept clearly and authoritatively.
-Scene 12 (The Actionable Defense & Spoken Comment Trigger): The one practical rule to protect your money right now, strictly ending with: "Comment 'GUIDE' below and I'll send you the complete playbook."
+Scene 1 — THE HOOK (0–4s): COLD VISUAL PROOF. Stops the scroll in the first spoken word.
+  • Name a concrete financial threat in the FIRST 8 words. Use a number or % if the seed has one.
+  • Pattern: "Your [familiar thing] just [shocking verb] ₹X — without telling you."
+  • STRICTLY BANNED IN SCENE 1: talking heads, portraits, calm people, smiling presenter, text overlays.
+  • broll_keyword: high-action financial footage ("stock chart drop", "candlestick crash", "bank alert screen").
+
+Scene 2 — THE COMPLICATION (4–8s): The hidden trap the viewer didn't see.
+  • Contextual B-roll objects, screens, documents. NO PEOPLE.
+  • Bridge phrase: "What you didn't see:" or "And that's when it started."
+
+Scene 3 — THE MATH (8–13s): Concrete ₹ loss or % spread, shown as B-roll evidence.
+  • Contextual B-roll. NO PEOPLE.
+  • Use an illustrative number if the seed has one: "₹1,200 vanished. Every single month."
+
+Scene 4 — THE REVEAL (13–18s): Name the financial concept. Name the villain mechanism.
+  • Contextual B-roll or motion graphic. NO PEOPLE.
+  • "That's called [Concept Name] — and [institution/system] designed it to stay invisible."
+
+Scene 5 — THE RULE (18–22s): One sharp, actionable defense — addressed directly to "you".
+  • Contextual B-roll. NO PEOPLE.
+  • "Here's the rule: [specific, actionable instruction in plain English]."
+
+Scene 6 — THE CTA (22–26s): Final takeaway + spoken comment trigger.
+  • MUST END WITH EXACT SPOKEN PHRASE: "Comment 'GUIDE' below and I'll send you the complete playbook."
+  • Can depict host Arjun in dark teal room, or a macro financial defense checklist close-up.
+
+──────────────────────────────────────────────────────────────────────────────
+NARRATION STYLE (CONTINUOUS STORYTELLING — NEVER A LIST OF FACTS)
+──────────────────────────────────────────────────────────────────────────────
+  • Write ONE continuous spoken story. Every scene must flow into the next with bridges:
+    ("And", "So", "Until", "Because", "That's when", "What you didn't see was").
+  • Use "you" or "your" in AT LEAST 3 of the 6 scenes to keep it personal and urgent.
+  • 55–75 narration words total. 9–13 words per scene.
+  • When read aloud from Scene 1 to Scene 6 it MUST sound like ONE seamless 24-second financial story.
+  • Banned: "not financial advice", "let's dive in", "subscribe", numbered lists, robotic bullet points.
 
 ──────────────────────────────────────────────────────────────────────────────
 VISUAL PROMPT GUIDELINES
 ──────────────────────────────────────────────────────────────────────────────
-Scene 1 visual_prompt MUST describe tangible finance evidence: a plummeting chart, trading screen, ticker board, or alert notification (NO HUMAN FACES!).
-Scenes 2-11 visual_prompts MUST describe concrete objects, documents, screens, or environments (NO PEOPLE!).
-Scene 12 visual_prompt can depict Arjun (host closer) in a dark teal room or a macro financial defense checklist.
+Scene 1 visual_prompt: tangible finance evidence — plummeting chart, trading screen, ticker board, alert notification. NO HUMAN FACES.
+Scenes 2–5 visual_prompts: concrete objects, documents, screens, or environments. NO PEOPLE.
+Scene 6 visual_prompt: Arjun (host) in dark teal room OR a macro financial defense checklist.
 
 Every visual_prompt must:
   • describe a full-bleed 9:16 frame with no black bars or empty background.
@@ -259,11 +238,8 @@ Every visual_prompt must:
 
 NEGATIVE PROMPTING FOR HALLUCINATION:
   • Do not fabricate exact numbers, returns, dates, prices, regulations, or quotes.
-  • Do not show readable text inside images. Use abstract charts, blurred dashboards,
-    icons, color-coded arrows, or document shapes instead.
-  • Do not create celebrity likenesses, real logos, exchange logos, broker logos,
-    newspaper mastheads, or branded app screens.
-  • Do not write anything that sounds like a guaranteed investment outcome.
+  • No readable text inside images. Use abstract charts, blurred dashboards, icons, color-coded arrows.
+  • No celebrity likenesses, real logos, exchange logos, broker logos, or branded app screens.
 
 OUTPUT FORMAT — Return ONLY valid JSON, nothing else, no markdown fences:
 ──────────────────────────────────────────────────────────────────────────────
@@ -274,15 +250,15 @@ OUTPUT FORMAT — Return ONLY valid JSON, nothing else, no markdown fences:
   "scenes": [
     {
       "scene_id": 1,
-      "narration": "Present-tense cinematic narration addressed to YOU. Max 20 words. Flows seamlessly into scene 2.",
+      "narration": "Present-tense hook narration addressed to YOU. 9-13 words. Flows into scene 2.",
       "visual_prompt": "Extreme macro close-up of a stock market candlestick chart plummeting off a cliff with sharp red drop lines, glowing trading desk monitors blurred in the background, split amber-teal light, photoreal cinematic, full-bleed 9:16",
       "broll_keyword": "stock chart drop",
-      "duration_hint": 7.0
+      "duration_hint": 4.0
     }
   ]
 }
 
-CRITICAL: Exactly 12 scenes. Must sound like continuous personal storytelling, NOT a list of facts. Use 'you/your' in at least 8 scenes."""
+CRITICAL: Exactly 6 scenes. 55–75 total narration words. One seamless 24-second story, NOT a list of facts. Use 'you/your' in at least 3 scenes."""
 
 # ──────────────────────────────────────────────────────────────────────────────
 #  JSON Extraction
@@ -515,7 +491,7 @@ Before answering, internally check that:
             continue
 
     raise RuntimeError(
-        f"All AI API models ({_MODELS_PRIORITY}) failed to produce a valid 12-scene script for: '{thesis}'. "
+        f"All AI API models ({_MODELS_PRIORITY}) failed to produce a valid 6-scene Fast-Hook script for: '{thesis}'. "
         "Static fallback templates have been permanently deleted per user configuration."
     )
 
