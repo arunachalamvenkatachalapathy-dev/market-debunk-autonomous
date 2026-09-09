@@ -111,20 +111,12 @@ class ScriptPayload(BaseModel):
     @model_validator(mode="after")
     def check_narration_pacing(self):
         total_words = sum(len(scene.narration.split()) for scene in self.scenes)
-        # Fast-Hook Short (< 30s): 55-75 words ideal for 6-scene format.
-        if total_words > 90:
-            diff = total_words - 80
-            for s in reversed(self.scenes[:-1]):
-                words = s.narration.split()
-                if len(words) > 10 and diff > 0:
-                    trim = min(len(words) - 9, diff)
-                    s.narration = " ".join(words[:-trim]).rstrip(" ,;:") + "."
-                    diff -= trim
-            total_words = sum(len(scene.narration.split()) for scene in self.scenes)
-
+        # Fast-Hook Short (< 30s): 50-80 words ideal for 6-scene format (~22-26s).
+        # We do NOT slice off words from sentences; sentences must remain grammatically complete.
         if not 45 <= total_words <= 95:
             raise ValueError(
-                f"Script must contain 45-95 narration words for 6-scene Fast-Hook Short (~24s); got {total_words}."
+                f"Script must contain 45-95 narration words for 6-scene Fast-Hook Short (~24s); got {total_words}. "
+                "Ensure each scene has 9-14 words of complete, punchy spoken dialogue."
             )
         visual_prompts = [scene.visual_prompt.lower() for scene in self.scenes]
         if len(set(visual_prompts)) != len(visual_prompts):
@@ -133,30 +125,16 @@ class ScriptPayload(BaseModel):
 
     @model_validator(mode="after")
     def check_second_person_voice(self):
-        """Require 'you' or 'your' to maintain conversational viewer-direct focus."""
-        min_required = max(2, int(len(self.scenes) * 0.4))
+        """Require 'you' or 'your' in at least 2 scenes to maintain conversational viewer-direct focus."""
+        min_required = max(2, int(len(self.scenes) * 0.35))
         second_person_scenes = sum(
             1 for scene in self.scenes
             if "you" in scene.narration.lower() or "your" in scene.narration.lower()
         )
         if second_person_scenes < min_required:
-            # Auto-correct by injecting conversational direct-address prefix into middle scenes
-            for scene in self.scenes[1:]:
-                narr = scene.narration.strip()
-                if "you" not in narr.lower() and "your" not in narr.lower():
-                    words = narr.split()
-                    if len(words) <= 18:
-                        first_lower = words[0][0].lower() + words[0][1:] if words else ""
-                        rest = " ".join(words[1:])
-                        scene.narration = f"What you didn't see: {first_lower} {rest}".strip()
-                        second_person_scenes += 1
-                        if second_person_scenes >= min_required:
-                            break
-
-        if second_person_scenes < min_required:
             raise ValueError(
                 f"Script must use 'you'/'your' in at least {min_required} scenes to sound personal and urgent; "
-                f"only {second_person_scenes} scenes contain it. Rewrite to address the viewer directly."
+                f"only {second_person_scenes} scenes contain it. Address the viewer directly without mechanical prefixes."
             )
         return self
 
@@ -219,9 +197,11 @@ Scene 6 — THE CTA (22–26s): Final takeaway + high-converting share & comment
 NARRATION STYLE (CONTINUOUS STORYTELLING — NEVER A LIST OF FACTS)
 ──────────────────────────────────────────────────────────────────────────────
   • Write ONE continuous spoken story. Every scene must flow into the next with bridges:
-    ("And", "So", "Until", "Because", "That's when", "What you didn't see was").
+    ("And", "So", "Until", "Because", "That's when").
   • Use "you" or "your" in AT LEAST 3 of the 6 scenes to keep it personal and urgent.
   • 55–75 narration words total. 9–13 words per scene.
+  • Each scene MUST be exactly ONE complete, standalone, punchy spoken sentence. Never cut off mid-thought.
+  • Natural spoken cadence: write the way a sharp, articulate financial whistleblower speaks, with natural breath rhythm.
   • When read aloud from Scene 1 to Scene 6 it MUST sound like ONE seamless 24-second financial story.
   • Banned: "not financial advice", "let's dive in", "subscribe", numbered lists, robotic bullet points.
 

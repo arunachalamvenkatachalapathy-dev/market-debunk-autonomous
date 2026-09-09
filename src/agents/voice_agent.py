@@ -15,7 +15,11 @@ import re
 import subprocess
 from pathlib import Path
 
-from google.cloud import texttospeech
+try:
+    from google.cloud import texttospeech
+except ImportError:
+    texttospeech = None
+
 from src.utils.config import settings
 from src.utils.logger import get_logger
 
@@ -38,8 +42,9 @@ def get_audio_duration(mp3_path: Path) -> float:
 
 def trim_audio_silence(input_path: Path, output_path: Path):
     """
-    Trims leading silence and trailing silence cleanly, adding a tight 80ms
-    breath pad so inter-scene transitions are immediate without clipping consonant tails.
+    Trims leading silence and trailing silence cleanly, adding a natural 300ms (0.3s)
+    breath pad so inter-scene transitions have comfortable breathing room without
+    sounding rushed, robotic, or clipped at word endings.
     """
     try:
         af = (
@@ -47,7 +52,7 @@ def trim_audio_silence(input_path: Path, output_path: Path):
             "areverse,"
             "silenceremove=start_periods=1:start_duration=0.05:start_threshold=-45dB,"
             "areverse,"
-            "apad=pad_dur=0.08"
+            "apad=pad_dur=0.30"
         )
         subprocess.run(
             [
@@ -65,24 +70,82 @@ def trim_audio_silence(input_path: Path, output_path: Path):
         shutil.copy(input_path, output_path)
 
 
+def normalize_english_for_tts(text: str) -> str:
+    """
+    Normalizes numbers, financial currency symbols, percentages, and acronyms
+    so Google Neural TTS speaks with clear, natural cadence and zero phonetic glitches.
+    """
+    t = text.strip()
+    t = re.sub(r"<[^>]+>", "", t)
+
+    # 1. Currency with units (e.g. ₹1.2 Cr -> 1.2 crore rupees)
+    t = re.sub(r"(?:₹|Rs\.?)\s*(\d+(?:,\d+)*(?:\.\d+)?)\s*(?:Cr|Crores?|crores?)\b", r"\1 crore rupees", t)
+    t = re.sub(r"(?:₹|Rs\.?)\s*(\d+(?:,\d+)*(?:\.\d+)?)\s*(?:L|Lakhs?|lakhs?)\b", r"\1 lakh rupees", t)
+    t = re.sub(r"(?:₹|Rs\.?)\s*(\d+(?:,\d+)*(?:\.\d+)?)\s*[Kk]\b", r"\1 thousand rupees", t)
+
+    # 2. Currency amount alone (e.g. ₹50,000 -> 50,000 rupees)
+    t = re.sub(r"(?:₹|Rs\.?)\s*(\d+(?:,\d+)*(?:\.\d+)?)", r"\1 rupees", t)
+    t = t.replace("₹", " rupees ")
+
+    # 3. Percentages: 6.8% -> 6.8 percent
+    t = re.sub(r"(\d+(?:\.\d+)?)\s*%", r"\1 percent", t)
+
+    # 4. Financial acronyms & spaced pronunciations
+    t = re.sub(r"\bF&O\b|\bf&o\b", "F and O", t)
+    t = re.sub(r"\bP/E\b|\bp/e\b", "P E", t)
+    t = re.sub(r"\bFD\b", "F D", t)
+    t = re.sub(r"\bFDs\b", "F Ds", t)
+    t = re.sub(r"\bIPO\b", "I P O", t)
+    t = re.sub(r"\bIPOs\b", "I P Os", t)
+    t = re.sub(r"\bSIP\b", "S I P", t)
+    t = re.sub(r"\bSIPs\b", "S I Ps", t)
+    t = re.sub(r"\bEMI\b", "E M I", t)
+    t = re.sub(r"\bEMIs\b", "E M Is", t)
+    t = re.sub(r"\bGST\b", "G S T", t)
+    t = re.sub(r"\bATM\b", "A T M", t)
+    t = re.sub(r"\bAMC\b", "A M C", t)
+    t = re.sub(r"\bRBI\b", "R B I", t)
+    t = re.sub(r"\bSEBI\b", "SEBI", t)
+    t = re.sub(r"\bNIFTY\b", "Nifty", t)
+    t = re.sub(r"\bSENSEX\b", "Sensex", t)
+    t = re.sub(r"\bvs\.?\b", "versus", t, flags=re.IGNORECASE)
+
+    t = re.sub(r"\s+", " ", t).strip()
+    return t
+
+
 def _build_ssml(narration: str, scene_id: int = 1) -> str:
     """
-    Natural conversational SSML.
-    No artificial break tags: punctuation already drives natural prosody in Neural TTS.
-    Artificial break tags were causing awkward 1-second pauses mid-sentence.
+    Build natural conversational SSML with controlled clause-level breath breaks:
+    - 180ms breath pause at commas, em-dashes, and colons.
+    - 280ms breath pause between sentences within the scene.
+    - Normalizes currencies, percentages, and financial acronyms before synthesis.
     """
-    text = html.escape(" ".join(narration.split()))
+    norm_text = normalize_english_for_tts(narration)
+    escaped = html.escape(norm_text)
+
+    # Replace em-dashes and en-dashes with clause breath break
+    escaped = re.sub(r"\s*[—–]\s*", ', <break time="180ms"/> ', escaped)
+    # Micro-break after commas (protecting commas inside numbers like 50,000)
+    escaped = re.sub(r",(?!\d)\s*", ', <break time="180ms"/> ', escaped)
+    # Colons and semicolons
+    escaped = re.sub(r"[:;]\s*", ': <break time="180ms"/> ', escaped)
+    # Sentence boundary breath break if multiple sentences exist within scene
+    escaped = re.sub(r"([.!?])\s+(?=[A-Z0-9])", r'\1 <break time="280ms"/> ', escaped)
+    # Clean up duplicate break tags
+    escaped = re.sub(r'(<break time="\d+ms"/>\s*)+', r'\1', escaped)
+
     rate_pct = int(settings.VOICE_SPEAKING_RATE * 100)
     rate = f"{rate_pct}%"
-    pitch = f"{settings.VOICE_PITCH:+.1f}st"
 
-    return (
-        "<speak>"
-        f'<prosody rate="{rate}" pitch="{pitch}">'
-        f"{text}"
-        "</prosody>"
-        "</speak>"
-    )
+    # Chirp voices reject pitch parameter in prosody
+    if "chirp" in settings.VOICE_NAME.lower():
+        prosody_open = f'<prosody rate="{rate}">'
+    else:
+        pitch = f"{settings.VOICE_PITCH:+.1f}st"
+        prosody_open = f'<prosody rate="{rate}" pitch="{pitch}">'
+
+    return f"<speak>{prosody_open}{escaped}</prosody></speak>"
 
 
 def synthesize_scene(

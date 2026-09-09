@@ -95,7 +95,7 @@ class Settings:
     # ── Voice Settings ─────────────────────────────────────────────
     # Natural human prosody: pitch 0.0 avoids vocoder distortion, 1.05x speaking rate ensures crisp Shorts momentum
     VOICE_NAME: str = _get("VOICE_NAME", default="en-IN-Chirp3-HD-Fenrir") or "en-IN-Chirp3-HD-Fenrir"
-    VOICE_SPEAKING_RATE: float = float(_get("VOICE_SPEAKING_RATE", default="1.05"))
+    VOICE_SPEAKING_RATE: float = float(_get("VOICE_SPEAKING_RATE", default="1.02"))
     VOICE_PITCH: float = float(_get("VOICE_PITCH", default="0.0"))
 
     # ── Deduplication ─────────────────────────────────────────────
