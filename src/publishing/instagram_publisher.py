@@ -165,13 +165,9 @@ def publish_reel(
         log.error("Video file does not exist or is empty: %s — skipping Instagram upload", video_path)
         return None
 
-    # Construct high-converting caption with search-intent keywords, carousel cross-promotion, & comment trigger
+    # Construct high-converting caption with comment trigger & engagement CTA
     clean_tags = " ".join(t if t.startswith("#") else f"#{t}" for t in hashtags)
-    cta = (
-        "📊 SWIPE OUR PROFILE @market_debunk: We just posted the complete 8-slide breakdown & trade audit on our profile grid!\n\n"
-        "💬 Comment 'GUIDE' below — we'll send our Investor Defense Playbook directly to your DMs.\n"
-        "📌 Save this Reel before your next trade."
-    )
+    cta = "💬 Comment 'GUIDE' below to get the full risk playbook sent directly to your DMs!\n📌 Save this Reel before your next trade."
     caption = f"{title}\n\n{description}\n\n{cta}\n\n{clean_tags}".strip()[:2200]
 
     base_url = f"https://graph.facebook.com/{settings.INSTAGRAM_GRAPH_VERSION}"
@@ -191,9 +187,6 @@ def publish_reel(
                     "media_type": "REELS",
                     "upload_type": "resumable",
                     "caption": caption,
-                    "share_to_feed": "true",
-                    "thumb_offset": "1500",
-                    "audio_name": "Original Audio • Market Debunk",
                     "access_token": token,
                 }
                 init_res = requests.post(f"{base_url}/{user_id}/media", data=create_payload, timeout=30)
@@ -217,9 +210,6 @@ def publish_reel(
                 "media_type": "REELS",
                 "video_url": video_url,
                 "caption": caption,
-                "share_to_feed": "true",
-                "thumb_offset": "1500",
-                "audio_name": "Original Audio • Market Debunk",
                 "access_token": token,
             }
             init_res = requests.post(f"{base_url}/{user_id}/media", data=create_payload, timeout=30)
