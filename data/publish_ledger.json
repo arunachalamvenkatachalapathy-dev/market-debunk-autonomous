@@ -110,5 +110,33 @@
       "facebook": "1427576762601957"
     },
     "audited": false
+  },
+  {
+    "timestamp": "2026-09-09T07:32:50.539544+00:00",
+    "title": "The 6.8% Bank FD Trap #Shorts",
+    "topic": "Your bank is offering you a 'generous' 6.8% FD return while inflation is busy eating your purchasing power for breakfast.",
+    "hook": "⚠️ Your bank’s 6.8% FD is secretly making you poorer every single day",
+    "hashtags": [
+      "#WealthCreationIndia",
+      "#SIPInvesting",
+      "#IndiaInvests",
+      "#SensexAlert",
+      "#F&O",
+      "#IndianStockMarket",
+      "#NiftyAlert",
+      "#NSEIndia"
+    ],
+    "duration_seconds": 21.432,
+    "urls": {
+      "youtube": "https://www.youtube.com/shorts/tgGQEfGAR0M",
+      "instagram": "https://www.instagram.com/reel/DdDu1jjj0_a/",
+      "facebook": "https://www.facebook.com/reel/1422795216710934/"
+    },
+    "ids": {
+      "youtube": "tgGQEfGAR0M",
+      "instagram": "DdDu1jjj0_a",
+      "facebook": "1422795216710934"
+    },
+    "audited": false
   }
 ]
