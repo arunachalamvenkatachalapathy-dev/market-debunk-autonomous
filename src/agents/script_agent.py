@@ -99,7 +99,7 @@ class ScriptPayload(BaseModel):
             for phrase in ["comment 'guide'", "comment guide", "comment below", "save this", "share this", "share with"]
         )
         if not has_cta:
-            cta_phrase = "Comment 'GUIDE' below for the breakdown."
+            cta_phrase = "Share with a friend and comment 'GUIDE' below."
             sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", narration) if s.strip()]
             if len(sentences) > 1 and len(narration.split()) > 8:
                 last_scene.narration = f"{sentences[0]} {cta_phrase}"
@@ -169,9 +169,10 @@ _SYSTEM_PROMPT = """You are the full prompt-engineering room for "Market Debunk"
 retention strategist, short-form scriptwriter, visual director, and YouTube metadata editor.
 You generate one premium English finance YouTube Short as strict JSON.
 
-CHANNEL TONE: Late-night cinematic confession. Netflix thriller, not Bloomberg
-explainer. Sophisticated, quiet, dangerous. NOT preachy, NOT robotic, NOT a
-lecture, NOT a smiling teacher.
+CHANNEL TONE: Sharp, satirical financial mythbuster meets late-night cinematic thriller.
+Exposes predatory financial schemes, hidden banking traps, and stock market hype with dark wit,
+street-smart cynicism, and surgical facts. NOT preachy, NOT robotic, NOT an academic lecture,
+NOT a smiling teacher.
 
 CORE JOB:
   1. Convert the story_seed into a viewer-retention story told in EXACTLY 6 scenes.
@@ -210,8 +211,8 @@ Scene 5 — THE RULE (18–22s): One sharp, actionable defense — addressed dir
   • Contextual B-roll. NO PEOPLE.
   • "Here's the rule: [specific, actionable instruction in plain English]."
 
-Scene 6 — THE CTA (22–26s): Final takeaway + spoken comment trigger.
-  • MUST END WITH EXACT SPOKEN PHRASE: "Comment 'GUIDE' below and I'll send you the complete playbook."
+Scene 6 — THE CTA (22–26s): Final takeaway + high-converting share & comment trigger.
+  • Spoken trigger: "Share this with a friend and comment 'GUIDE' below for the breakdown."
   • Can depict host Arjun in dark teal room, or a macro financial defense checklist close-up.
 
 ──────────────────────────────────────────────────────────────────────────────

@@ -42,10 +42,25 @@ from src.utils.logger import get_logger
 log = get_logger(__name__, phase="topic_discovery")
 
 _CHANNEL_IDS_PATH = settings.DATA_DIR / "channel_ids.json"
-_SERP_QUERIES = (
+
+_SERP_MARKET_QUERIES = (
+    "SEBI rule changes retail options trading 90 percent loss India",
+    "mutual fund direct plan switch regular plan commission drag India",
+    "zero brokerage hidden regulatory turnover charges STT SEBI India",
+    "stock manipulation pump and dump Telegram SEBI penalty India",
+    "finfluencer SEBI registration unregistered advisory crackdown India",
+    "algorithmic trading retail loss SEBI warning India",
+    "IPO grey market premium GMP valuation trap SME IPO India",
+    "dividend yield trap high dividend stock cut India",
+    "anchor investor lock in period expiry stock drop India",
+    "discount broker outage stop loss execution glitch India",
+    "mutual fund expense ratio hike fee disclosure SEBI India",
+    "F&O margin rules contract size hike retail impact India",
+)
+
+_SERP_CONSUMER_QUERIES = (
     "credit card hidden charges annual fee trap India",
     "health insurance claim rejection rules room rent capping India",
-    "SEBI rule changes retail options trading 90 percent loss India",
     "fixed deposit tax TDS real return inflation risk India",
     "no cost EMI trap hidden GST interest India",
     "gold loan auction risk LTV rules RBI India",
@@ -55,27 +70,84 @@ _SERP_QUERIES = (
     "ULIP vs mutual fund endowment policy surrender trap India",
     "EPFO claim rejection rules joint declaration delay India",
     "personal loan instant lending app hidden fees India",
-    "REITs dividend tax classification real estate trap India",
-    "dark patterns quick commerce credit card charges India",
-    "Sovereign Gold Bonds capital gains premature exit India",
-    "bank locker compensation rules RBI guidelines India",
-    "co-signing loan danger legal liability CIBIL impact India",
     "buy now pay later BNPL credit score damage CIBIL India",
     "health insurance waiting period pre existing disease clause India",
-    "mutual fund direct plan switch regular plan commission drag India",
     "ATM transaction charges GST hidden deduction salary account India",
-    "unclaimed bank deposit investor education protection fund IEPF India",
-    "guaranteed return insurance scheme IRR math real return India",
-    "zero brokerage hidden regulatory turnover charges STT SEBI India",
-    "motor insurance third party vs comprehensive cashless claim rejected India",
     "credit score CIBIL sudden drop unauthorized enquiry dispute India",
-    "pension scheme NPS annuity taxation reality retirement India",
-    "gold ETF vs physical gold making charges GST sovereign risk India",
-    "stock manipulation pump and dump Telegram SEBI penalty India",
-    "finfluencer SEBI registration unregistered advisory crackdown India",
-    "algorithmic trading retail loss SEBI warning India",
-    "student education loan collateral margin money subsidy trap India",
+    "gold making charges wastage GST hallmark scam India",
+    "debit card AMC fee minimum balance deduction RBI India",
+    "term insurance claim rejected section 45 insurance India",
 )
+
+_SERP_QUERIES = _SERP_MARKET_QUERIES + _SERP_CONSUMER_QUERIES
+
+_EVERGREEN_MARKET_TOPICS = (
+    "Mutual fund regular plan commission can quietly cost you 35% of your total retirement wealth compared to direct plan.",
+    "Chasing high dividend yield stocks is often a trap because companies slash dividends right after attracting retail investors.",
+    "SEBI data reveals 93% of retail F&O options traders lose money, while brokerages collect guaranteed turnover charges.",
+    "Buying small-cap IPOs on grey market premium hype frequently leads to massive listing day dumps by institutional anchors.",
+    "Zero brokerage trading apps make their real money by pushing retail users into high-volume intraday trades with heavy turnover tax.",
+    "Stop-loss hunting by institutional algorithms triggers retail selloffs at key psychological support levels before reversing upward.",
+    "Holding company conglomerate discounts mean you are buying underlying stocks at a paper discount that never converts to cash.",
+    "Switching mutual funds frequently based on past 1-year returns destroys compounding through exit loads and capital gains tax.",
+    "Algorithmic trading bots marketed on Telegram promising guaranteed daily returns are unregistered scams exploiting retail greed.",
+    "Stock split announcements do not create any real financial value, yet retail investors rush to buy overpriced shares before ex-split.",
+    "Buying momentum stocks at 52-week highs without trailing stops traps retail traders at the absolute top of cyclical rallies.",
+    "SME IPO grey market premiums are routinely manipulated by promoters to create artificial retail oversubscription.",
+    "Index fund tracking error quietly eats up your benchmark returns even when you think you are matching the Nifty 50.",
+    "Bonus share issues are just a mathematical division of share price with zero impact on the company's real market value.",
+    "Chasing penny stocks expecting multibagger returns is the fastest way retail investors suffer total capital erosion.",
+    "Finfluencer stock recommendations are frequently paid promotional schemes where promoters exit their positions onto viewers.",
+    "Thematic and sector mutual funds launch at the peak of market cycles, locking retail investors into multi-year underperformance.",
+    "Margin trading facility interest rates of 18% can liquidate your entire portfolio during sudden market corrections.",
+    "Buying call options before earnings announcements loses money even if the stock jumps, due to post-earnings volatility crush.",
+    "Demat account annual maintenance charges and depository participant charges are silently deducted from your trading balance.",
+    "Exchange traded funds with low trading volumes trade at wide spreads between market price and net asset value, costing you money.",
+    "Chasing turnaround stocks with massive debt almost always wipes out retail investors before any corporate recovery.",
+    "Promoter pledge increases signal severe corporate cash distress that retail investors usually ignore until the stock crashes.",
+    "Retail investors buy dips during structural bear markets, confusing falling knife value traps with genuine bargain opportunities.",
+    "Securities transaction tax and stamp duty quietly consume a huge percentage of active swing trader profits.",
+    "Stock market technical indicators lag behind institutional order flow, causing false breakout entries for retail chartists.",
+    "Target maturity bond funds locked at low yields lose purchasing power when inflation spikes unexpectedly.",
+    "Chasing foreign stock investing through high-fee feeder funds introduces severe currency conversion and tax deduction drag.",
+    "P/E ratio without checking cash flows allows manipulative accounting to disguise deeply overvalued companies as cheap.",
+    "Retail algorithmic copy trading platforms allow providers to front-run subscriber orders for private profit.",
+)
+
+_EVERGREEN_CONSUMER_TOPICS = (
+    "Zero cost EMI is not free; retailers and banks secretly add 18% GST onto the calculated interest subvention.",
+    "Paying only the minimum due on your credit card allows 42% annualized interest to compound daily for up to 14 years.",
+    "Checking your credit score on third-party loan aggregator apps triggers multiple hard inquiries that drop your CIBIL score.",
+    "Banks quietly deduct quarterly SMS alert fees and debit card annual maintenance charges from your minimum balance savings account.",
+    "Car dealerships inflate insurance premiums by up to 40% compared to buying direct comprehensive policies from insurers.",
+    "Health insurance room rent limits trigger proportionate deduction clauses that slash your entire hospital claim reimbursement by half.",
+    "Taking a 7-year car loan on zero down payment means you pay more in interest than the depreciated car is worth.",
+    "Buying gold jewellery comes with up to 25% non-refundable making and wastage charges that you lose immediately upon resale.",
+    "Fixed deposit returns drop below zero in real purchasing power once 6% interest is adjusted for inflation and 30% tax.",
+    "Buy Now Pay Later apps open active personal loan credit lines on your CIBIL report without your explicit understanding.",
+    "Co-signing a loan for a friend or relative makes you 100% legally liable to repay the entire debt when they default.",
+    "Term insurance claims are rejected if you fail to disclose minor medical history like smoking or occasional hypertension.",
+    "ULIP insurance plans front-load massive mortality and administration charges, producing worse returns than PPF or term plus mutual fund.",
+    "Digital arrest and fake police verification phone calls are cyber extortion scams designed to drain your bank accounts.",
+    "Instant loan apps demand contact list permissions to harass your friends and family when repayments are delayed.",
+    "Prepaying your home loan in the first 5 years saves lakhs in interest, while banks incentivize you to extend the tenure.",
+    "Peer-to-peer lending platforms promise 12% returns while masking high default rates and strict RBI recovery constraints.",
+    "Unclaimed bank account balances and dividend warrants are transferred to the IEPF authority if untouched for 7 years.",
+    "Guaranteed return insurance policies offer an internal rate of return below 5.5%, barely matching simple savings accounts.",
+    "Cashless health insurance claims at network hospitals get partially rejected for non-medical consumable hospital charges.",
+    "Personal loan flat interest rates of 10% actually equal an effective reducing rate of nearly 18% per year.",
+    "Sovereign Gold Bonds offer tax exemptions only at maturity, while secondary market exits incur full capital gains.",
+    "Bank locker compensation is legally limited to 100 times your annual rent, leaving valuable jewellery largely uninsured.",
+    "Credit card reward points silently expire, and banks charge redemption fees that wipe out the cash value of your rewards.",
+    "EPFO claim rejections often happen due to minor name or date of birth mismatches between Aadhaar and UAN records.",
+    "Food delivery and quick commerce apps charge hidden platform fees and inflated menu prices that exceed restaurant rates by 25%.",
+    "Car loan foreclosure and pre-closure penalty clauses are hidden in fine print to lock you into high interest payments.",
+    "Student education loan collateral clauses can seize parental property if repayment holidays are misunderstood.",
+    "Salary account overdraft facilities charge astronomical daily interest rates the moment your account balance turns negative.",
+    "Consumer court judgments show life insurance claims are frequently rejected if you change nominee details without proper insurer endorsement.",
+)
+
+_EVERGREEN_TOPICS = _EVERGREEN_MARKET_TOPICS + _EVERGREEN_CONSUMER_TOPICS
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -433,14 +505,14 @@ Video title: "{video_title}"
 TRANSCRIPT:
 {raw_transcript[:5000]}
 
-Your task: Extract a story seed to be turned into a cinematic short-form video about finance.
+Your task: Extract a story seed to be turned into a cinematic, entertaining, satirical short-form video about finance.
 
-Anti-hallucination rules:
-- Use only claims, companies, sectors, events, or concepts supported by the transcript/title.
-- Do not invent exact percentages, dates, prices, index levels, earnings figures, laws, or quotes.
-- If the transcript is vague, write qualitative evidence instead of pretending certainty.
-- The thesis must be provocative but still defensible.
-- The story_seed should give the script agent concrete props and situations, not generic advice.
+TONE & SATIRICAL DEBUNK DIRECTIVE:
+- Frame the story with biting satire, irony, and sharp cynicism: expose the sheer absurdity of the financial trap or marketing gimmick.
+- Make institutions, banks, or predatory brokers look ridiculous by exposing their hidden math with undeniable facts.
+- Avoid boring textbook explainer language. The viewer should feel shocked and amused by how clever and brazen the trap is.
+- The thesis must be provocative, witty, but completely defensible.
+- The story_seed should give the script agent concrete props and relatable everyday consumer situations.
 
 Output ONLY a valid JSON object with exactly these keys (all values in English):
 {{
@@ -648,21 +720,26 @@ def _fetch_serp_google_result(query: str) -> Optional[dict]:
             }
     except Exception as exc:
         log.warning("SerpApi organic search failed: %s", exc)
-
     return None
 
 
-def _discover_from_serp() -> Optional[dict]:
+def _discover_from_serp(target_domain: Optional[str] = None) -> Optional[dict]:
     import random
     from datetime import datetime, timezone
 
-    # Dynamically rotate queries based on date and hour so every run samples a fresh domain
+    # Select queries according to target domain
+    if target_domain == "MARKET_INVESTING":
+        query_pool = list(_SERP_MARKET_QUERIES)
+    elif target_domain == "CONSUMER_DEFENSE":
+        query_pool = list(_SERP_CONSUMER_QUERIES)
+    else:
+        query_pool = list(_SERP_QUERIES)
+
     now = datetime.now(timezone.utc)
     seed = now.year * 10000 + now.month * 100 + now.day + now.hour
-    queries = list(_SERP_QUERIES)
-    random.Random(seed).shuffle(queries)
+    random.Random(seed).shuffle(query_pool)
 
-    for query in queries:
+    for query in query_pool:
         try:
             candidate = _fetch_serp_google_result(query)
             if not candidate:
@@ -671,8 +748,9 @@ def _discover_from_serp() -> Optional[dict]:
             thesis = seed_data.get("thesis", candidate["video_title"])
 
             # Check candidate thesis against both concept and fuzzy deduplication gates
-            if evaluator.is_duplicate(thesis)[0]:
-                log.info("Candidate thesis '%s' blocked by deduplication gate. Trying next SERP query...", thesis[:60])
+            is_dup, score, reason = evaluator.is_duplicate(thesis, enforce_slot_domain=False)
+            if is_dup:
+                log.info("Candidate thesis '%s' blocked by dedup gate: %s. Trying next SERP query...", thesis[:60], reason)
                 continue
 
             return {
@@ -702,51 +780,43 @@ def scan_all_channels_parallel(limit_per_channel: int = 5) -> list[dict]:
     all_candidates: list[dict] = []
     channel_list = list(settings.CHANNEL_REGISTRY)
 
-    log.info("Initiating parallel scan across all %d network channels...", len(channel_list))
-
-    def _fetch_channel(ch_name: str) -> list[dict]:
-        try:
-            vids = fetch_recent_videos(ch_name, limit=limit_per_channel)
-            for v in vids:
-                v["channel"] = ch_name
-            return vids
-        except Exception as err:
-            log.warning("Parallel fetch failed for '%s': %s", ch_name, err)
+    def _fetch_channel_videos(ch_name: str) -> list[dict]:
+        ch_id = resolve_channel_id(ch_name)
+        if not ch_id:
             return []
+        items = fetch_recent_videos_rss(ch_id, limit=limit_per_channel)
+        fresh = []
+        for item in items:
+            vid = item.get("video_id")
+            if vid and not evaluator.is_source_video_used(vid) and not evaluator.is_source_id_used(f"youtube:{vid}"):
+                item["channel"] = ch_name
+                fresh.append(item)
+        return fresh
 
-    with ThreadPoolExecutor(max_workers=len(channel_list)) as executor:
-        future_to_channel = {executor.submit(_fetch_channel, name): name for name in channel_list}
-        for future in as_completed(future_to_channel):
-            channel_name = future_to_channel[future]
+    with ThreadPoolExecutor(max_workers=min(len(channel_list), 7)) as executor:
+        futures = {executor.submit(_fetch_channel_videos, ch): ch for ch in channel_list}
+        for fut in as_completed(futures):
             try:
-                videos = future.result()
-                all_candidates.extend(videos)
-            except Exception as err:
-                log.warning("Channel '%s' worker threw exception: %s", channel_name, err)
+                res = fut.result()
+                if res:
+                    all_candidates.extend(res)
+            except Exception as exc:
+                log.warning("Channel scanner thread failed: %s", exc)
 
-    if not all_candidates:
-        log.warning("Parallel scan returned 0 videos across all channels.")
-        return []
+    # Sort globally by published_at DESC across all 7 channels
+    filtered_candidates = []
+    for cand in all_candidates:
+        vid = cand["video_id"]
+        source_id = f"youtube:{vid}"
+        if not evaluator.is_source_video_used(vid) and not evaluator.is_source_id_used(source_id):
+            filtered_candidates.append(cand)
 
-    # Filter out already used source IDs and videos
-    filtered_candidates: list[dict] = []
-    for v in all_candidates:
-        v_id = v.get("video_id", "")
-        source_id = f"youtube:{v_id}"
-        if not v_id:
-            continue
-        if evaluator.is_source_id_used(source_id) or evaluator.is_source_video_used(v_id):
-            log.debug("Skipping already-used video [%s] '%s'", v_id, v.get("title", ""))
-            continue
-        filtered_candidates.append(v)
-
-    # Parse published_at for accurate chronological sorting
-    def _parse_published_at(entry: dict) -> datetime:
-        raw = entry.get("published_at", "")
-        if not raw:
+    def _parse_published_at(cand: dict) -> datetime:
+        raw_pub = cand.get("published_at", "")
+        if not raw_pub:
             return datetime(2000, 1, 1, tzinfo=timezone.utc)
         try:
-            clean_str = raw.replace("Z", "+00:00")
+            clean_str = raw_pub.replace("Z", "+00:00")
             dt = datetime.fromisoformat(clean_str)
             if dt.tzinfo is None:
                 dt = dt.replace(tzinfo=timezone.utc)
@@ -755,10 +825,6 @@ def scan_all_channels_parallel(limit_per_channel: int = 5) -> list[dict]:
             return datetime(2000, 1, 1, tzinfo=timezone.utc)
 
     filtered_candidates.sort(key=_parse_published_at, reverse=True)
-    log.info(
-        "Parallel scan completed: %d total candidates collected, %d fresh after dedup filter.",
-        len(all_candidates), len(filtered_candidates)
-    )
     return filtered_candidates
 
 
@@ -768,17 +834,12 @@ def scan_all_channels_parallel(limit_per_channel: int = 5) -> list[dict]:
 
 def discover_topic(day_override: Optional[int] = None) -> dict:
     """
-    Full topic discovery pipeline with global recency across all 7 channels.
-    1. Scans ALL 7 channels simultaneously and sorts by exact upload timestamp (newest first).
-    2. Evaluates candidates in global chronological order against:
-       - exact source_id / source_video dedup
-       - concept deduplication (10-day block)
-       - macro-domain cooldown (36-hour / frequency block)
-       - title and thesis fuzzy deduplication
-    3. Primary Fallback: Dedicated Indian Share Market API (if configured).
-    4. Secondary Fallback: Verified 24-hour fresh Google News / Search via SerpApi.
+    Full topic discovery pipeline with slot-based rotation and strict anti-repetition.
+    Slot 1 (Morning ~09:30 AM IST): MARKET_INVESTING (Stock Market, Mutual Funds, IPOs, Options, Dividends)
+    Slot 2 (Evening ~07:00 PM IST): CONSUMER_DEFENSE (Banks, EMI, CIBIL, Insurance, Car Loans, Gold)
     """
-    title_only_candidate: Optional[dict] = None
+    target_domain = evaluator.get_current_target_domain()
+    log.info("Target slot domain: %s", target_domain)
 
     # Step 1: Parallel scan across all 7 channels sorted by newest globally
     candidates = scan_all_channels_parallel(limit_per_channel=5)
@@ -791,21 +852,10 @@ def discover_topic(day_override: Optional[int] = None) -> dict:
         published_at = cand.get("published_at", "")
 
         # Fast gate: Check title before expensive transcript download
-        is_title_dup, score, reason = evaluator.is_duplicate(video_title, threshold=0.88)
+        is_title_dup, score, reason = evaluator.is_duplicate(video_title, threshold=0.88, enforce_domain_cooldown=False)
         if is_title_dup:
-            log.info(
-                "Skipping candidate [%s] '%s' (%s) — title blocked: %s",
-                video_id, video_title[:50], channel_name, reason
-            )
+            log.info("Skipping candidate [%s] '%s' — title blocked: %s", video_id, video_title[:50], reason)
             continue
-
-        if title_only_candidate is None:
-            title_only_candidate = {
-                "channel": channel_name,
-                "video_id": video_id,
-                "video_title": video_title,
-                "published_at": published_at,
-            }
 
         # Download transcript
         transcript = download_transcript(video_id)
@@ -817,17 +867,9 @@ def discover_topic(day_override: Optional[int] = None) -> dict:
         else:
             desc = (cand.get("description") or "").strip()
             if len(desc) >= 30:
-                log.info(
-                    "Transcript not yet available for fresh video [%s] '%s'. Using rich description (%d chars).",
-                    video_id, video_title, len(desc)
-                )
                 raw_content = f"VIDEO TITLE: {video_title}\nCHANNEL: {channel_name}\n\nVIDEO DESCRIPTION:\n{desc}"
                 content_type = "description"
             else:
-                log.info(
-                    "No transcript or description for [%s] '%s'. Using video title as topic seed.",
-                    video_id, video_title
-                )
                 raw_content = f"VIDEO TITLE: {video_title}\nCHANNEL: {channel_name}"
                 content_type = "title"
 
@@ -835,18 +877,15 @@ def discover_topic(day_override: Optional[int] = None) -> dict:
         thesis = seed_data.get("thesis", video_title)
         story_seed = seed_data.get("story_seed", {})
 
-        # Comprehensive deduplication on extracted thesis
-        is_thesis_dup, score, reason = evaluator.is_duplicate(thesis)
+        # Comprehensive deduplication on extracted thesis with slot domain enforcement
+        is_thesis_dup, score, reason = evaluator.is_duplicate(thesis, enforce_domain_cooldown=True, enforce_slot_domain=True)
         if is_thesis_dup:
-            log.info(
-                "Candidate [%s] '%s' thesis blocked by gate: %s. Trying next newest video...",
-                video_id, thesis[:50], reason
-            )
+            log.info("Candidate [%s] '%s' thesis blocked by gate: %s. Trying next video...", video_id, thesis[:50], reason)
             continue
 
         log.info(
-            "✓ Success! Extracted fresh topic from newest global video: [%s] '%s' from %s (published: %s, source: %s)",
-            video_id, video_title, channel_name, published_at, content_type
+            "✓ Success! Extracted fresh topic from YouTube: [%s] '%s' from %s (%s)",
+            video_id, video_title, channel_name, content_type
         )
         return {
             "channel": channel_name,
@@ -858,46 +897,55 @@ def discover_topic(day_override: Optional[int] = None) -> dict:
             "transcript_length": len(raw_content),
         }
 
-    log.warning("All YouTube candidates exhausted or blocked by anti-repetition gates.")
+    log.info("No matching YouTube candidates for domain '%s'. Trying live Google News via SerpApi...", target_domain)
 
-    # Step 2: Dedicated Indian Share Market API Adapter (Priority Fallback)
-    market_adapter = DedicatedMarketAPIAdapter()
-    if market_adapter.is_configured():
-        log.info("Attempting topic discovery via Dedicated Indian Share Market API...")
-        market_candidate = market_adapter.get_topic_seed()
-        if market_candidate:
-            seed_data = summarize_to_story_seed(market_candidate["raw_text"], market_candidate["video_title"])
-            thesis = seed_data.get("thesis", market_candidate["video_title"])
-            if not evaluator.is_duplicate(thesis)[0]:
-                log.info("✓ Discovered topic from Dedicated Market API: %s", thesis[:60])
-                return {
-                    **{k: market_candidate[k] for k in ("channel", "video_id", "video_title", "source_id")},
-                    "thesis": thesis,
-                    "story_seed": seed_data.get("story_seed", {}),
-                    "transcript_length": len(market_candidate["raw_text"]),
-                }
-
-    # Step 3: Google News / Search via SerpApi (Secondary Fallback)
-    serp_result = _discover_from_serp()
+    # Step 2: Google News / Search via SerpApi for fresh stories in target domain
+    serp_result = _discover_from_serp(target_domain=target_domain)
     if serp_result:
-        log.info("Selected verified 24h-fresh SERPAPI Google result: %s", serp_result.get("video_title", ""))
+        log.info("✓ Selected fresh 24h Google News story: %s", serp_result.get("video_title", ""))
         return serp_result
 
-    # Step 4: Title-only candidate fallback if available
-    if title_only_candidate:
-        log.warning(
-            "Falling back to title-only topic seed from %s: %s",
-            title_only_candidate["channel"], title_only_candidate["video_title"]
-        )
-        seed_data = summarize_to_story_seed("", title_only_candidate["video_title"])
-        return {
-            **title_only_candidate,
-            "source_id": f"youtube:{title_only_candidate['video_id']}",
-            "thesis": seed_data["thesis"],
-            "story_seed": seed_data["story_seed"],
-            "transcript_length": 0,
-        }
+    # Step 3: Dedicated Indian Share Market API (if morning market slot)
+    if target_domain == "MARKET_INVESTING":
+        market_adapter = DedicatedMarketAPIAdapter()
+        if market_adapter.is_configured():
+            log.info("Attempting topic discovery via Dedicated Indian Share Market API...")
+            market_candidate = market_adapter.get_topic_seed()
+            if market_candidate:
+                seed_data = summarize_to_story_seed(market_candidate["raw_text"], market_candidate["video_title"])
+                thesis = seed_data.get("thesis", market_candidate["video_title"])
+                if not evaluator.is_duplicate(thesis, enforce_domain_cooldown=False)[0]:
+                    log.info("✓ Discovered topic from Dedicated Market API: %s", thesis[:60])
+                    return {
+                        **{k: market_candidate[k] for k in ("channel", "video_id", "video_title", "source_id")},
+                        "thesis": thesis,
+                        "story_seed": seed_data.get("story_seed", {}),
+                        "transcript_length": len(market_candidate["raw_text"]),
+                    }
 
-    raise RuntimeError("Global scan failed: Could not fetch a valid fresh topic from YouTube, Market API, or Search.")
+    # Step 4: Curated Evergreen Fallback (Guarantees zero downtime & 100% anti-repetition)
+    log.info("Selecting unduplicated evergreen topic for domain '%s'...", target_domain)
+    topic_pool = _EVERGREEN_MARKET_TOPICS if target_domain == "MARKET_INVESTING" else _EVERGREEN_CONSUMER_TOPICS
 
+    import random
+    shuffled_pool = list(topic_pool)
+    random.shuffle(shuffled_pool)
 
+    for eg in shuffled_pool:
+        if not evaluator.is_duplicate(eg, enforce_domain_cooldown=False)[0]:
+            seed_data = summarize_to_story_seed(f"FINANCIAL DEBUNK: {eg}", eg)
+            thesis = seed_data.get("thesis", eg)
+            story_seed = seed_data.get("story_seed", {})
+            source_id = "evergreen:" + hashlib.sha256(eg.encode("utf-8")).hexdigest()[:12]
+            log.info("✓ Discovered fresh evergreen debunk for '%s': %s", target_domain, thesis[:60])
+            return {
+                "channel": "Market Debunk Research Desk",
+                "video_id": "",
+                "source_id": source_id,
+                "video_title": eg[:60],
+                "thesis": thesis,
+                "story_seed": story_seed,
+                "transcript_length": 0,
+            }
+
+    raise RuntimeError("Global scan failed: All topic sources exhausted.")

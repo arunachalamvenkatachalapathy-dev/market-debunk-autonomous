@@ -176,7 +176,7 @@ def run_pipeline():
             import random
             
             ass_path = run_dir / "subtitles.ass"
-            subtitles.generate_ass_file(voice_results, ass_path)
+            subtitles.generate_ass_file(voice_results, ass_path, hook_title=script_dict.get("title", ""))
             
             # Select random BGM track from the premium folder
             bgm_dir = Path("assets/bgm")

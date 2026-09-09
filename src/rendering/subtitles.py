@@ -21,6 +21,7 @@ Why .ass over .srt?
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 from src.utils.config import settings
@@ -71,6 +72,7 @@ def _ass_header(
         "[V4+ Styles]\n"
         "Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\n"
         f"Style: Default,{font},{font_size},{primary_color},&H00FFFFFF,{outline_color},{back_color},{bold},0,0,0,100,100,2,0,{border_style},{outline_px},{shadow_px},{alignment},{margin_h},{margin_h},{margin_v},1\n"
+        f"Style: HookBanner,{font},68,&H0000FFFF,&H00FFFFFF,{outline_color},{back_color},-1,0,0,0,100,100,2,0,{border_style},6,3,8,{margin_h},{margin_h},220,1\n"
         "\n"
         "[Events]\n"
         "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n"
@@ -161,6 +163,7 @@ def _build_dialogue_lines(
 def generate_ass_file(
     voice_results: list[dict],
     output_path: Path,
+    hook_title: str = "",
 ) -> Path:
     """
     Generate the full .ass subtitle file from all scene voice results.
@@ -169,6 +172,7 @@ def generate_ass_file(
         voice_results: output of voice_agent.synthesize_all_scenes()
                        Each item has: scene_id, duration, word_timings
         output_path: where to write the .ass file
+        hook_title: optional punchy hook title to render as top-center banner in Scene 1 (0-2.8s)
 
     Returns:
         The output_path (for chaining)
@@ -176,6 +180,17 @@ def generate_ass_file(
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     lines: list[str] = [_ass_header()]
+
+    # Render prominent Scene 1 top-center visual hook banner (0.0s to 2.8s)
+    if hook_title:
+        clean = re.sub(r"#\w+", "", hook_title).strip()
+        clean = re.sub(r"[^\w\s$%₹-]", "", clean).strip()
+        words = clean.split()
+        if len(words) > 5:
+            clean = " ".join(words[:5])
+        if clean:
+            banner_text = f"\\N⚠️ {clean.upper()} ⚠️"
+            lines.append(f"Dialogue: 1,0:00:00.00,0:00:02.80,HookBanner,,0,0,0,,{banner_text}")
 
     cumulative_offset = 0.0
     for result in voice_results:

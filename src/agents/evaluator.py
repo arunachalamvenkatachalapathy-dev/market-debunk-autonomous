@@ -120,71 +120,82 @@ def _normalize_for_similarity(topic: str) -> str:
 # ──────────────────────────────────────────────────────────────────────────────
 
 _FINANCIAL_CONCEPTS: dict[str, tuple[str, ...]] = {
+    # ── Market & Stock Investing Debunks ──────────────────────────────────────
     "expense_ratio": ("expense ratio", "regular plan", "direct plan", "mutual fund fee", "commission cut", "expense ratios", "fund fee"),
-    "no_cost_emi": ("no cost emi", "no-cost emi", "zero cost emi", "subvention", "hidden interest emi"),
-    "options_trading": ("f&o", "options trading", "expiry day", "call option", "put option", "sebi options"),
-    "health_insurance": ("claim rejection", "waiting period", "room rent capping", "copay", "health insurance claim"),
-    "credit_card": ("credit card charge", "minimum due", "revolving credit", "apr charge", "credit card fee", "credit card trap"),
-    "fixed_deposit": ("fixed deposit tax", "fd inflation", "tds on fd", "real return fd"),
-    "gold_loan": ("gold loan auction", "ltv ratio", "gold auction risk"),
-    "cyber_banking_fraud": ("banking fraud", "fake otp", "sim swap", "digital arrest", "aeps fraud"),
-    "p2p_lending": ("p2p lending", "peer to peer default", "rbi p2p rules"),
-    "reits": ("reit dividend tax", "reit yield trap", "invit tax"),
-    "ulip": ("ulip trap", "endowment policy", "insurance investment mix", "surrender value"),
-    "epfo": ("epfo rejection", "pf withdrawal rules", "epf interest delay"),
-    "personal_loan": ("personal loan trap", "flat interest rate vs reducing", "instant loan app"),
-    "car_loan": ("balloon payment car loan", "7 year car loan", "car depreciation loan"),
-    "atm_fees": ("atm transaction", "free atm", "atm fee", "atm charges"),
-    "loan_guarantor": ("co-signing", "co-guarantor", "co-signer", "loan guarantor", "guarantor liability", "co signer", "co-borrower"),
-    "cibil_credit_score": ("cibil", "credit score", "cibil drop", "cibil impact", "cibil score", "credit score drop"),
-    "bnpl": ("bnpl", "buy now pay later", "pay later trap", "lazy pay", "simpl"),
-    "real_estate_home_loan": ("home loan", "buying a house", "buying a home", "home buying", "builder trap", "property registration"),
-    "retirement_pension": ("pension tax", "nps annuity", "retiree tax", "pension scheme tax", "retirement tax"),
-    "nifty_market_crash_beartrap": (
-        "nifty crash", "market crash", "bear trap", "bull trap", "downtrend", "nifty downtrend",
-        "timing the market", "nifty 24000", "nifty 25000", "nifty 24,000", "nifty 25,000",
-        "market correction", "timing trap", "crash prediction", "bse at nifty", "fql scam",
-        "market blood bath", "severe equity market fall"
-    ),
-    "ipo_valuation_trap": ("ipo trap", "overvalued ipo", "ipo listing gain", "ipo grey market", "sme ipo", "gmp trap"),
+    "options_trading": ("f&o", "options trading", "expiry day", "call option", "put option", "sebi options", "lot size margin"),
+    "fixed_deposit": ("fixed deposit tax", "fd inflation", "tds on fd", "real return fd", "negative real return", "fd vs inflation"),
+    "ipo_valuation_trap": ("ipo trap", "overvalued ipo", "ipo listing gain", "ipo grey market", "sme ipo", "gmp trap", "anchor investor lock"),
     "dividend_yield_trap": ("dividend yield trap", "high dividend trap", "dividend payout ratio", "dividend myth", "chasing high dividend"),
     "algorithmic_trading_scam": ("algo trading scam", "algorithmic trading scam", "guaranteed algo", "trading bot scam"),
+    "stock_broker_charges": ("brokerage charges", "stt charges", "stamp duty share", "dp charges", "demat account maintenance", "hidden trading charges", "turnover charges"),
+    "zero_brokerage_trap": ("zero brokerage", "regulatory charges", "exchange turnover fee", "sebi fee on trade", "discount broker trap"),
+    "finfluencer_pump_dump": ("finfluencer", "telegram stock tips", "pump and dump", "unregistered advisor", "sebi finfluencer", "guaranteed profit telegram"),
+    "nifty_market_crash_beartrap": (
+        "nifty crash", "market crash", "bear trap", "bull trap", "downtrend", "nifty downtrend",
+        "timing the market", "nifty 24000", "nifty 25000", "market correction", "timing trap", "crash prediction"
+    ),
+    "reits": ("reit dividend tax", "reit yield trap", "invit tax"),
+    "ulip": ("ulip trap", "endowment policy", "insurance investment mix", "surrender value"),
+    "p2p_lending": ("p2p lending", "peer to peer default", "rbi p2p rules"),
+
+    # ── Consumer Finance & Everyday Money Traps ──────────────────────────────
+    "no_cost_emi": ("no cost emi", "no-cost emi", "zero cost emi", "subvention", "hidden interest emi", "processing fee emi"),
+    "credit_card": ("credit card charge", "minimum due", "revolving credit", "apr charge", "credit card fee", "credit card trap"),
+    "credit_card_annual_fee": ("credit card annual fee", "spend waiver trap", "reward point expiry", "reward redemption fee"),
+    "cibil_credit_score": ("cibil", "credit score", "cibil drop", "cibil impact", "cibil score", "credit score drop", "loan inquiry penalty"),
+    "bnpl": ("bnpl", "buy now pay later", "pay later trap", "lazy pay", "simpl"),
+    "personal_loan": ("personal loan trap", "flat interest rate vs reducing", "instant loan app", "loan processing fee"),
+    "car_loan": ("balloon payment car loan", "7 year car loan", "car depreciation loan", "zero down payment car", "car loan interest"),
+    "gold_making_charges": ("gold making charge", "gold wastage", "hallmark gold scam", "physical gold making charge", "gold coin vs jewellery"),
+    "gold_loan": ("gold loan auction", "ltv ratio", "gold auction risk"),
+    "debit_card_charges": ("debit card amc", "sms alert charge", "minimum balance fine", "average monthly balance", "savings account penalty"),
+    "atm_fees": ("atm transaction", "free atm", "atm fee", "atm charges"),
+    "loan_guarantor": ("co-signing", "co-guarantor", "co-signer", "loan guarantor", "guarantor liability", "co signer", "co-borrower"),
+    "health_insurance": ("claim rejection", "waiting period", "room rent capping", "copay", "health insurance claim", "pre existing disease"),
+    "term_insurance_exclusion": ("term insurance rejection", "smoking disclosure", "section 45 insurance", "term plan claim", "insurance fraud rejection"),
+    "real_estate_home_loan": ("home loan", "buying a house", "buying a home", "home buying", "builder trap", "property registration"),
+    "cyber_banking_fraud": ("banking fraud", "fake otp", "sim swap", "digital arrest", "aeps fraud"),
+    "epfo": ("epfo rejection", "pf withdrawal rules", "epf interest delay"),
+    "retirement_pension": ("pension tax", "nps annuity", "retiree tax", "pension scheme tax", "retirement tax"),
 }
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-#  Macro Domain Taxonomy (Hard Rotation & Cooldown)
+#  Macro Domain Taxonomy (Slot-Based Daily Rotation: Market vs Consumer)
 # ──────────────────────────────────────────────────────────────────────────────
 
 MACRO_DOMAINS: dict[str, tuple[str, ...]] = {
-    "INDEX_MACRO": (
-        "nifty_market_crash_beartrap",
+    "MARKET_INVESTING": (
+        "expense_ratio",
         "options_trading",
+        "fixed_deposit",
+        "ipo_valuation_trap",
+        "dividend_yield_trap",
         "algorithmic_trading_scam",
+        "stock_broker_charges",
+        "zero_brokerage_trap",
+        "finfluencer_pump_dump",
+        "nifty_market_crash_beartrap",
+        "reits",
+        "ulip",
+        "p2p_lending",
     ),
-    "PERSONAL_CREDIT": (
-        "loan_guarantor",
+    "CONSUMER_DEFENSE": (
+        "no_cost_emi",
+        "credit_card",
+        "credit_card_annual_fee",
         "cibil_credit_score",
         "bnpl",
         "personal_loan",
-        "credit_card",
-        "no_cost_emi",
         "car_loan",
+        "gold_making_charges",
         "gold_loan",
+        "debit_card_charges",
         "atm_fees",
-    ),
-    "INVESTMENT_FUNDS": (
-        "expense_ratio",
-        "fixed_deposit",
-        "reits",
-        "ulip",
-        "real_estate_home_loan",
-        "ipo_valuation_trap",
-        "dividend_yield_trap",
-        "p2p_lending",
-    ),
-    "CONSUMER_PROTECTION": (
+        "loan_guarantor",
         "health_insurance",
+        "term_insurance_exclusion",
+        "real_estate_home_loan",
         "cyber_banking_fraud",
         "epfo",
         "retirement_pension",
@@ -192,27 +203,29 @@ MACRO_DOMAINS: dict[str, tuple[str, ...]] = {
 }
 
 _DOMAIN_HEURISTIC_KEYWORDS: dict[str, tuple[str, ...]] = {
-    "INDEX_MACRO": (
-        "nifty", "sensex", "crash", "downtrend", "bear trap", "bull trap",
-        "f&o", "options", "call option", "put option", "expiry day", "trading loss",
-        "bond yield", "market correction", "stock market dip", "sell on rise"
+    "MARKET_INVESTING": (
+        "stock", "share", "nifty", "sensex", "crash", "downtrend", "bull trap", "bear trap",
+        "f&o", "options", "mutual fund", "expense ratio", "direct plan", "regular plan", "sip",
+        "ipo", "dividend", "broker", "stt", "demat", "portfolio", "algo", "trading", "investing"
     ),
-    "PERSONAL_CREDIT": (
-        "loan", "cibil", "credit score", "credit card", "emi", "no-cost emi",
-        "bnpl", "buy now pay later", "debt", "borrow", "guarantor", "co-signer",
-        "atm charge", "atm fee"
-    ),
-    "INVESTMENT_FUNDS": (
-        "mutual fund", "expense ratio", "direct plan", "regular plan", "sip",
-        "fixed deposit", "fd tax", "reit", "real estate", "home loan", "buying a house",
-        "dream home", "ipo", "dividend yield", "gold loan", "p2p lending", "ulip"
-    ),
-    "CONSUMER_PROTECTION": (
-        "health insurance", "claim rejection", "banking fraud", "digital arrest",
-        "fake otp", "sim swap", "epfo", "pf withdrawal", "pension tax", "nps annuity",
-        "finfluencer scam", "telegram scam"
+    "CONSUMER_DEFENSE": (
+        "loan", "cibil", "credit score", "credit card", "emi", "no-cost emi", "no cost emi",
+        "bnpl", "buy now pay later", "debt", "borrow", "guarantor", "co-signer", "atm charge",
+        "debit card", "minimum balance", "bank charge", "car loan", "gold loan", "gold making",
+        "health insurance", "claim rejection", "term insurance", "banking fraud", "digital arrest",
+        "home loan", "buying a house", "property", "epfo", "nps"
     ),
 }
+
+
+def get_current_target_domain() -> str:
+    """
+    Slot 1 (Morning ~09:30 AM IST / 00:00 - 08:00 UTC): MARKET_INVESTING
+    Slot 2 (Evening ~07:00 PM IST / 08:00 - 23:59 UTC): CONSUMER_DEFENSE
+    Ensures 50/50 balance: at least 1 video about stock market every day.
+    """
+    now_utc = datetime.now(timezone.utc)
+    return "MARKET_INVESTING" if now_utc.hour < 8 else "CONSUMER_DEFENSE"
 
 
 def get_topic_domain(text: str) -> Optional[str]:
@@ -314,7 +327,7 @@ def extract_concepts(text: str) -> set[str]:
 
 def is_concept_duplicate(topic: str, max_lookback_days: int = 14) -> tuple[bool, str]:
     """
-    Checks if any core financial concept in `topic` was covered within the last max_lookback_days.
+    Checks if any core financial concept in `topic` was covered within the last max_lookback_days (14 days = 28 slots).
     Returns (is_duplicate: bool, matched_concept: str).
     """
     candidate_concepts = extract_concepts(topic)
@@ -357,28 +370,37 @@ def is_duplicate(
     topic: str,
     threshold: Optional[float] = None,
     enforce_domain_cooldown: bool = True,
+    enforce_slot_domain: bool = False,
 ) -> tuple[bool, float, str]:
     """
     Check whether `topic` is too similar to a recently used topic, covers
-    the same core financial concept within 10 days, or falls into a macro domain
-    currently under cooldown (3 days).
+    the same core financial concept within 14 days (28 slots), or falls into a macro domain
+    currently under cooldown.
 
     Returns:
         (is_dup: bool, similarity_score: float, matched_topic: str)
     """
-    # 1. Concept-level deduplication (catches differently-phrased repeats like Axis expense ratio vs general expense ratio)
-    concept_dup, concept_name = is_concept_duplicate(topic, max_lookback_days=10)
-    if concept_dup:
-        return True, 0.99, f"Concept '{concept_name}' already covered within 10 days"
+    # 0. Slot-Based Domain Alignment (Ensures 1 Market video and 1 Consumer video daily)
+    if enforce_slot_domain:
+        target_domain = get_current_target_domain()
+        topic_domain = get_topic_domain(topic)
+        if topic_domain and topic_domain != target_domain:
+            log.info("SLOT DOMAIN MISMATCH: Topic domain is '%s' but current slot targets '%s'", topic_domain, target_domain)
+            return True, 0.96, f"Topic domain '{topic_domain}' does not match slot target '{target_domain}'"
 
-    # 2. Macro Domain Cooldown (prevents clustering e.g. multiple Nifty crash/timing videos)
+    # 1. Concept-level deduplication (strict 14-day / 28-slot anti-repetition window)
+    concept_dup, concept_name = is_concept_duplicate(topic, max_lookback_days=14)
+    if concept_dup:
+        return True, 0.99, f"Concept '{concept_name}' already covered within 14 days"
+
+    # 2. Macro Domain Cooldown (prevents back-to-back same domain)
     if enforce_domain_cooldown:
-        domain_on_cd, domain_name = is_domain_on_cooldown(topic, cooldown_hours=36)
+        domain_on_cd, domain_name = is_domain_on_cooldown(topic, cooldown_hours=18)
         if domain_on_cd:
             return True, 0.95, f"Macro Domain '{domain_name}' is on cooldown"
 
-    # 3. Fuzzy text similarity
-    thresh = threshold if threshold is not None else settings.DEDUP_THRESHOLD
+    # 3. Fuzzy text similarity (tightened threshold)
+    thresh = threshold if threshold is not None else 0.72
     buffer = _load_buffer()
     buffer = _evict_old_entries(buffer)
 
