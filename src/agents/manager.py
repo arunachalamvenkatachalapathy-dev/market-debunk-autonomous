@@ -72,9 +72,9 @@ def run_pipeline():
         log.warning("Performance tuning pass skipped (%s)", tune_err)
 
     timing_guard = TimingGuard()
-    can_proceed, hours_elapsed = timing_guard.check_cooldown(min_hours=4.0)
+    can_proceed, hours_elapsed = timing_guard.check_cooldown(min_hours=8.0)
     if not can_proceed:
-        log.warning("🛑 Cooldown active (%.1f h elapsed < 4.0h min). Exiting pipeline to protect feed reach.", hours_elapsed)
+        log.warning("🛑 Cooldown active (%.1f h elapsed < 8.0h min). Exiting pipeline to protect feed reach.", hours_elapsed)
         sys.exit(0)
 
     timing_guard.apply_jitter(min_seconds=5, max_seconds=20)

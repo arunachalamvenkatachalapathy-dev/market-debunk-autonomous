@@ -82,7 +82,7 @@ class TimingGuard:
         except Exception as exc:
             log.error("Failed to update publish ledger: %s", exc)
 
-    def check_cooldown(self, min_hours: float = 4.0) -> tuple[bool, float]:
+    def check_cooldown(self, min_hours: float = 8.0) -> tuple[bool, float]:
         """
         Check if the mandatory cooldown window has passed since the last upload.
         Returns (can_proceed, hours_since_last_upload).

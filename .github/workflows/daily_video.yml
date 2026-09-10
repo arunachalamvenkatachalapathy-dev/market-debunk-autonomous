@@ -3,10 +3,11 @@ name: Daily Autonomous Video Pipeline (2 Videos Daily - 09:30 AM & 07:00 PM IST)
 on:
   schedule:
     # 2 High-Impact Videos Daily across all platforms (spaced 9.5h apart)
-    # Slot 1: 09:30 AM IST ± 15m (03:45 UTC base + Python randomized jitter)
-    - cron: '45 3 * * *'
-    # Slot 2: 07:00 PM IST ± 20m (13:15 UTC base + Python randomized jitter)
-    - cron: '15 13 * * *'
+    # Uses off-peak minutes (:52, :22) to avoid congested GitHub Actions queue delays
+    # Slot 1: ~09:30 AM IST (03:52 UTC base)
+    - cron: '52 3 * * *'
+    # Slot 2: ~07:00 PM IST (13:22 UTC base)
+    - cron: '22 13 * * *'
   workflow_dispatch: # Allow manual trigger from GitHub UI
 
 jobs:
