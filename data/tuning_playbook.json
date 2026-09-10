@@ -1,26 +1,24 @@
 {
-  "last_updated": "2026-09-09T08:24:03.764383+00:00",
-  "analyzed_videos_count": 0,
-  "optimal_runtime_seconds": 24.0,
-  "optimal_word_count": 62,
+  "last_updated": "2026-09-10T02:26:43.516522+00:00",
+  "analyzed_videos_count": 3,
+  "optimal_runtime_seconds": 22.0,
+  "optimal_word_count": 56,
   "top_performing_topics": [
-    "hidden charges",
-    "F&O lot size margin traps",
-    "IPO allotment hype",
-    "EMI trap",
-    "credit card tricks"
+    "Technical market analysis and actionable support/resistance levels",
+    "Risk mitigation strategies for retail investors",
+    "Time-sensitive market warnings"
   ],
   "winning_hook_formulas": [
-    "Open on concrete financial damage: 'Your bank just charged you ₹X and you didn't notice'",
-    "Pattern interrupt: 'Stop buying Nifty index funds until you see this silent deduction'"
+    "The 'Stop/Warning' Formula: [Negative Action] + [Specific Data Point/Level] + [Consequence]",
+    "The 'Hidden Trap' Formula: [Common Investor Behavior] + [The Hidden Risk] + [Immediate Solution]"
   ],
   "script_directives": [
-    "Scene 1 must be under 8 words spoken in under 3 seconds.",
-    "Show real mathematical loss in Scene 3 (₹ lost or % spread).",
-    "End on explicit save & share trigger in the voiceover."
+    "Start with a high-stakes visual or data point within the first 1.5 seconds to prevent immediate scroll-off.",
+    "Maintain a fast-paced cadence with zero dead air; use jump cuts every 2-3 seconds to keep visual engagement high.",
+    "Provide a concrete, non-generic takeaway (e.g., a specific price level or a specific tool) rather than vague financial advice."
   ],
   "seo_directives": [
-    "Rotate between debunk, wealth, and alert hashtag clusters.",
-    "First line hook in Instagram caption must be under 80 characters."
+    "Use high-intent keywords in the first 5 words of the caption to trigger algorithmic categorization.",
+    "Limit hashtags to 3-4 highly relevant tags (e.g., #StockMarketIndia, #Nifty50, #InvestingTips) to avoid confusing the recommendation engine."
   ]
 }

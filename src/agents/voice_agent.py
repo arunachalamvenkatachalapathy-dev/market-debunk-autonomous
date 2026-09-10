@@ -110,6 +110,9 @@ def normalize_english_for_tts(text: str) -> str:
     t = re.sub(r"\bSENSEX\b", "Sensex", t)
     t = re.sub(r"\bvs\.?\b", "versus", t, flags=re.IGNORECASE)
 
+    # 5. Convert colons and semicolons to natural spoken pause markers (commas)
+    t = re.sub(r"[:;]\s*", ", ", t)
+
     t = re.sub(r"\s+", " ", t).strip()
     return t
 
@@ -117,19 +120,19 @@ def normalize_english_for_tts(text: str) -> str:
 def _build_ssml(narration: str, scene_id: int = 1) -> str:
     """
     Build natural conversational SSML with controlled clause-level breath breaks:
-    - 180ms breath pause at commas, em-dashes, and colons.
+    - 180ms breath pause at commas and em-dashes.
     - 280ms breath pause between sentences within the scene.
     - Normalizes currencies, percentages, and financial acronyms before synthesis.
     """
     norm_text = normalize_english_for_tts(narration)
-    escaped = html.escape(norm_text)
+    # Use quote=False so ' and " remain literal characters in XML text content,
+    # preventing XML entity mangling (e.g., &#x27; or &quot;).
+    escaped = html.escape(norm_text, quote=False)
 
     # Replace em-dashes and en-dashes with clause breath break
     escaped = re.sub(r"\s*[—–]\s*", ', <break time="180ms"/> ', escaped)
     # Micro-break after commas (protecting commas inside numbers like 50,000)
     escaped = re.sub(r",(?!\d)\s*", ', <break time="180ms"/> ', escaped)
-    # Colons and semicolons
-    escaped = re.sub(r"[:;]\s*", ': <break time="180ms"/> ', escaped)
     # Sentence boundary breath break if multiple sentences exist within scene
     escaped = re.sub(r"([.!?])\s+(?=[A-Z0-9])", r'\1 <break time="280ms"/> ', escaped)
     # Clean up duplicate break tags
@@ -137,15 +140,20 @@ def _build_ssml(narration: str, scene_id: int = 1) -> str:
 
     rate_pct = int(settings.VOICE_SPEAKING_RATE * 100)
     rate = f"{rate_pct}%"
-
     # Chirp voices reject pitch parameter in prosody
     if "chirp" in settings.VOICE_NAME.lower():
         prosody_open = f'<prosody rate="{rate}">'
     else:
         pitch = f"{settings.VOICE_PITCH:+.1f}st"
         prosody_open = f'<prosody rate="{rate}" pitch="{pitch}">'
+    ssml = f"<speak>{prosody_open}{escaped}</prosody></speak>"
 
-    return f"<speak>{prosody_open}{escaped}</prosody></speak>"
+    # Enforce max SSML length (Google limit ~5000 chars). If exceeded, fall back to plain escaped text.
+    max_len = getattr(settings, "MAX_SSML_LENGTH", 4800)
+    if len(ssml) > max_len:
+        log.warning("SSML length %d exceeds max %d, falling back to plain text for scene %d", len(ssml), max_len, scene_id)
+        return f"<speak>{escaped}</speak>"
+    return ssml
 
 
 def synthesize_scene(
@@ -163,7 +171,6 @@ def synthesize_scene(
     timings_path = audio_dir / f"scene_{scene_id}_timings.json"
 
     client = texttospeech.TextToSpeechClient()
-    synthesis_input = texttospeech.SynthesisInput(ssml=_build_ssml(narration, scene_id))
     
     # Extract language code from voice name (e.g. "en-IN-Wavenet-B" -> "en-IN")
     lang_code = "-".join(voice_name.split("-")[:2])
@@ -176,13 +183,24 @@ def synthesize_scene(
         audio_encoding=texttospeech.AudioEncoding.MP3,
     )
     
-    request = texttospeech.SynthesizeSpeechRequest(
-        input=synthesis_input,
-        voice=voice,
-        audio_config=audio_config
-    )
-    
-    response = client.synthesize_speech(request=request)
+    # Attempt SSML synthesis first; fall back cleanly to normalized plain text if SSML fails
+    try:
+        synthesis_input = texttospeech.SynthesisInput(ssml=_build_ssml(narration, scene_id))
+        request = texttospeech.SynthesizeSpeechRequest(
+            input=synthesis_input,
+            voice=voice,
+            audio_config=audio_config
+        )
+        response = client.synthesize_speech(request=request)
+    except Exception as ssml_err:
+        log.warning("Scene %d SSML synthesis failed (%s), falling back to plain text", scene_id, ssml_err)
+        clean_text = normalize_english_for_tts(narration)
+        request = texttospeech.SynthesizeSpeechRequest(
+            input=texttospeech.SynthesisInput(text=clean_text),
+            voice=voice,
+            audio_config=audio_config
+        )
+        response = client.synthesize_speech(request=request)
     raw_mp3_path.write_bytes(response.audio_content)
     
     # Trim silence to ensure fluid pacing across scene cuts
