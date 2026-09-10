@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-10T13:35:45.702471+00:00",
+  "last_updated": "2026-09-10T17:02:51.998066+00:00",
   "analyzed_videos_count": 4,
   "optimal_runtime_seconds": 22.4,
   "optimal_word_count": 57,
   "top_performing_topics": [
-    "Market timing and technical support levels for retail investors",
-    "Macro-economic barriers to middle-class wealth building",
-    "Asset protection against market volatility and inflation"
+    "Market timing and technical support levels for Nifty/Index trading",
+    "Middle-class wealth erosion and the affordability crisis of essential assets",
+    "Actionable warnings against common retail investor traps"
   ],
   "winning_hook_formulas": [
-    "The 'Urgent Warning' formula: [Emoji] + [Action/Behavior] + [Immediate Negative Consequence] (e.g., Stop doing X before you lose Y)",
-    "The 'Broken Dream' formula: [Emoji] + [Common Financial Goal] + [Hidden Reality/Barrier] (e.g., Why your goal of X is failing because of Y)"
+    "The 'Urgent Warning' formula: [Negative Emoji] Stop doing [Common Action] before you check [Specific Data/Level].",
+    "The 'Hard Truth' formula: [Alarm Emoji] Why your [Goal/Dream] is slipping away while [Current Financial Habit] stays the same."
   ],
   "script_directives": [
-    "Front-load the pain point: Deliver the primary conflict within the first 3 seconds to prevent immediate scroll-off.",
-    "Eliminate fluff: Use high-density information where every sentence provides a specific, actionable financial insight.",
-    "Visual anchoring: Use on-screen text overlays for key numbers or support levels to keep the viewer's eyes engaged with the screen."
+    "Keep total duration strictly under 25 seconds to ensure high completion rates.",
+    "Front-load the specific, actionable data point (e.g., a price level or percentage) within the first 3 seconds.",
+    "Use a fast-paced, direct tone that frames the content as a 'must-know' survival tip rather than general advice."
   ],
   "seo_directives": [
-    "Use high-intent keywords in the title that address specific financial fears (e.g., 'Stop', 'Trap', 'Critical').",
-    "Include a mix of broad finance hashtags (#StockMarketIndia, #PersonalFinance) and specific niche tags related to the video's technical content."
+    "Use high-intent keywords in the title that address specific market pain points rather than broad financial concepts.",
+    "Include a mix of broad finance tags (#StockMarketIndia, #Investing) and specific niche tags related to the video topic (#Nifty50, #PersonalFinanceIndia)."
   ]
 }
