@@ -109,7 +109,7 @@
       "instagram": "DdCNMeeDA1G",
       "facebook": "1427576762601957"
     },
-    "audited": false
+    "audited": true
   },
   {
     "timestamp": "2026-09-09T07:32:50.539544+00:00",
@@ -136,6 +136,34 @@
       "youtube": "tgGQEfGAR0M",
       "instagram": "DdDu1jjj0_a",
       "facebook": "1422795216710934"
+    },
+    "audited": false
+  },
+  {
+    "timestamp": "2026-09-10T13:38:40.122459+00:00",
+    "title": "Your 7% FD Is A Guaranteed Loss #Shorts",
+    "topic": "Your bank's 'guaranteed' 7% fixed deposit is actually a guaranteed loss once TDS and inflation finish silently plundering your savings.",
+    "hook": "⚠️ Your 7% FD is actually a guaranteed loss—here is why",
+    "hashtags": [
+      "#MarketDebunk",
+      "#StockMarketMyths",
+      "#SensexAlert",
+      "#LongTermInvesting",
+      "#F&O",
+      "#IndianStockMarket",
+      "#NiftyAlert",
+      "#NSEIndia"
+    ],
+    "duration_seconds": 23.784,
+    "urls": {
+      "youtube": "https://www.youtube.com/shorts/DNBRbou92V8",
+      "instagram": "https://www.instagram.com/reel/DdG9gMqjOhk/",
+      "facebook": "https://www.facebook.com/reel/1390513703265027/"
+    },
+    "ids": {
+      "youtube": "DNBRbou92V8",
+      "instagram": "DdG9gMqjOhk",
+      "facebook": "1390513703265027"
     },
     "audited": false
   }

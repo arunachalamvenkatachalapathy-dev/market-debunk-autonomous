@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-10T02:26:43.516522+00:00",
-  "analyzed_videos_count": 3,
-  "optimal_runtime_seconds": 22.0,
-  "optimal_word_count": 56,
+  "last_updated": "2026-09-10T13:35:45.702471+00:00",
+  "analyzed_videos_count": 4,
+  "optimal_runtime_seconds": 22.4,
+  "optimal_word_count": 57,
   "top_performing_topics": [
-    "Technical market analysis and actionable support/resistance levels",
-    "Risk mitigation strategies for retail investors",
-    "Time-sensitive market warnings"
+    "Market timing and technical support levels for retail investors",
+    "Macro-economic barriers to middle-class wealth building",
+    "Asset protection against market volatility and inflation"
   ],
   "winning_hook_formulas": [
-    "The 'Stop/Warning' Formula: [Negative Action] + [Specific Data Point/Level] + [Consequence]",
-    "The 'Hidden Trap' Formula: [Common Investor Behavior] + [The Hidden Risk] + [Immediate Solution]"
+    "The 'Urgent Warning' formula: [Emoji] + [Action/Behavior] + [Immediate Negative Consequence] (e.g., Stop doing X before you lose Y)",
+    "The 'Broken Dream' formula: [Emoji] + [Common Financial Goal] + [Hidden Reality/Barrier] (e.g., Why your goal of X is failing because of Y)"
   ],
   "script_directives": [
-    "Start with a high-stakes visual or data point within the first 1.5 seconds to prevent immediate scroll-off.",
-    "Maintain a fast-paced cadence with zero dead air; use jump cuts every 2-3 seconds to keep visual engagement high.",
-    "Provide a concrete, non-generic takeaway (e.g., a specific price level or a specific tool) rather than vague financial advice."
+    "Front-load the pain point: Deliver the primary conflict within the first 3 seconds to prevent immediate scroll-off.",
+    "Eliminate fluff: Use high-density information where every sentence provides a specific, actionable financial insight.",
+    "Visual anchoring: Use on-screen text overlays for key numbers or support levels to keep the viewer's eyes engaged with the screen."
   ],
   "seo_directives": [
-    "Use high-intent keywords in the first 5 words of the caption to trigger algorithmic categorization.",
-    "Limit hashtags to 3-4 highly relevant tags (e.g., #StockMarketIndia, #Nifty50, #InvestingTips) to avoid confusing the recommendation engine."
+    "Use high-intent keywords in the title that address specific financial fears (e.g., 'Stop', 'Trap', 'Critical').",
+    "Include a mix of broad finance hashtags (#StockMarketIndia, #PersonalFinance) and specific niche tags related to the video's technical content."
   ]
 }
