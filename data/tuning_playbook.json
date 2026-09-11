@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-11T06:22:34.159936+00:00",
+  "last_updated": "2026-09-11T16:49:36.845375+00:00",
   "analyzed_videos_count": 5,
   "optimal_runtime_seconds": 22.4,
   "optimal_word_count": 57,
@@ -8,16 +8,16 @@
     "Macroeconomic wealth-gap issues affecting middle-class aspirations"
   ],
   "winning_hook_formulas": [
-    "Warning-based negative framing: 'Stop [Action] before you [Negative Consequence]'",
-    "Aspiration-based loss aversion: 'Why your [Asset/Goal] is slipping away while [Current Behavior]'"
+    "The 'Warning/Stop' formula: [Negative Action] + [Specific Financial Metric/Level] + [Consequence]",
+    "The 'Identity/Aspiration' formula: [Pain Point regarding Asset] + [Emotional Consequence] + [Urgency]"
   ],
   "script_directives": [
-    "Maintain a sub-25 second duration to ensure high completion rates and repeat views.",
-    "Focus on actionable, specific data points (e.g., specific index levels) rather than abstract concepts.",
-    "Use high-urgency, cautionary language in the first 3 seconds to prevent immediate scroll-off."
+    "Start with a high-stakes visual or auditory alert within the first 1.5 seconds to interrupt scrolling.",
+    "Eliminate fluff; every sentence must introduce a new, actionable data point or a provocative financial truth.",
+    "Use rapid-fire editing with text overlays that highlight specific numbers or support levels to maintain visual engagement."
   ],
   "seo_directives": [
-    "Include high-intent keywords in the title such as 'Nifty', 'Stocks', or 'Savings' to trigger algorithm categorization.",
-    "Use a mix of broad finance hashtags and specific niche tags to bridge the gap between general interest and technical audiences."
+    "Use high-intent keywords in the title that address specific financial fears (e.g., 'Nifty', 'Home', 'Trap', 'Critical').",
+    "Include a mix of broad niche hashtags (#Finance, #Investing) and specific, high-volume Indian market tags (#Nifty50, #StockMarketIndia)."
   ]
 }
