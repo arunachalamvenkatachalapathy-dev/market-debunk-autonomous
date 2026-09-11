@@ -1,24 +1,23 @@
 {
-  "last_updated": "2026-09-10T17:02:51.998066+00:00",
-  "analyzed_videos_count": 4,
+  "last_updated": "2026-09-11T06:22:34.159936+00:00",
+  "analyzed_videos_count": 5,
   "optimal_runtime_seconds": 22.4,
   "optimal_word_count": 57,
   "top_performing_topics": [
-    "Market timing and technical support levels for Nifty/Index trading",
-    "Middle-class wealth erosion and the affordability crisis of essential assets",
-    "Actionable warnings against common retail investor traps"
+    "Market timing and technical support levels for retail investors",
+    "Macroeconomic wealth-gap issues affecting middle-class aspirations"
   ],
   "winning_hook_formulas": [
-    "The 'Urgent Warning' formula: [Negative Emoji] Stop doing [Common Action] before you check [Specific Data/Level].",
-    "The 'Hard Truth' formula: [Alarm Emoji] Why your [Goal/Dream] is slipping away while [Current Financial Habit] stays the same."
+    "Warning-based negative framing: 'Stop [Action] before you [Negative Consequence]'",
+    "Aspiration-based loss aversion: 'Why your [Asset/Goal] is slipping away while [Current Behavior]'"
   ],
   "script_directives": [
-    "Keep total duration strictly under 25 seconds to ensure high completion rates.",
-    "Front-load the specific, actionable data point (e.g., a price level or percentage) within the first 3 seconds.",
-    "Use a fast-paced, direct tone that frames the content as a 'must-know' survival tip rather than general advice."
+    "Maintain a sub-25 second duration to ensure high completion rates and repeat views.",
+    "Focus on actionable, specific data points (e.g., specific index levels) rather than abstract concepts.",
+    "Use high-urgency, cautionary language in the first 3 seconds to prevent immediate scroll-off."
   ],
   "seo_directives": [
-    "Use high-intent keywords in the title that address specific market pain points rather than broad financial concepts.",
-    "Include a mix of broad finance tags (#StockMarketIndia, #Investing) and specific niche tags related to the video topic (#Nifty50, #PersonalFinanceIndia)."
+    "Include high-intent keywords in the title such as 'Nifty', 'Stocks', or 'Savings' to trigger algorithm categorization.",
+    "Use a mix of broad finance hashtags and specific niche tags to bridge the gap between general interest and technical audiences."
   ]
 }

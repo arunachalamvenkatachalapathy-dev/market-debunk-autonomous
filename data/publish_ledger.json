@@ -137,7 +137,7 @@
       "instagram": "DdDu1jjj0_a",
       "facebook": "1422795216710934"
     },
-    "audited": false
+    "audited": true
   },
   {
     "timestamp": "2026-09-10T13:38:40.122459+00:00",
@@ -164,6 +164,34 @@
       "youtube": "DNBRbou92V8",
       "instagram": "DdG9gMqjOhk",
       "facebook": "1390513703265027"
+    },
+    "audited": false
+  },
+  {
+    "timestamp": "2026-09-11T06:25:53.434952+00:00",
+    "title": "Why 90% of Traders Lose Money #Shorts",
+    "topic": "Nine out of ten retail traders are essentially funding the yachts of institutional giants while convinced they are the next Wolf of Wall Street.",
+    "hook": "⚠️ You’re funding a billionaire’s yacht while betting on your next trade",
+    "hashtags": [
+      "#MarketDebunk",
+      "#StockMarketMyths",
+      "#SensexAlert",
+      "#FinanceLiteracy",
+      "#SwingTrading",
+      "#IndianStockMarket",
+      "#NiftyAlert",
+      "#NSEIndia"
+    ],
+    "duration_seconds": 28.511999999999997,
+    "urls": {
+      "youtube": "https://www.youtube.com/shorts/R-a1oCKoaAA",
+      "instagram": "https://www.instagram.com/reel/DdIww9WkT_U/",
+      "facebook": "https://www.facebook.com/reel/1615878403260153/"
+    },
+    "ids": {
+      "youtube": "R-a1oCKoaAA",
+      "instagram": "DdIww9WkT_U",
+      "facebook": "1615878403260153"
     },
     "audited": false
   }
