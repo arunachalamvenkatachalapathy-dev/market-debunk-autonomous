@@ -257,20 +257,20 @@ def build_sfx_track(
     Build a continuous 48kHz stereo WAV track containing subtle whooshes on scene cuts.
     Returns path to sfx WAV file or None if SFX assets are missing.
     """
-    whoosh_src = settings.ASSETS_DIR / "audio" / "sfx" / "sfx_whoosh.webm"
+    whoosh_src = settings.ASSETS_DIR / "audio" / "whoosh.mp3"
     if not whoosh_src.is_file():
-        whoosh_src = settings.ASSETS_DIR / "audio" / "whoosh.mp3"
+        whoosh_src = settings.ASSETS_DIR / "audio" / "sfx" / "sfx_whoosh.webm"
     if not whoosh_src.is_file():
-        log.warning("SFX whoosh asset not found — skipping SFX track generation")
+        log.warning("SFX whoosh asset not found at %s — skipping SFX track generation", whoosh_src)
         return None
 
     temp_whoosh = output_path.parent / "temp_whoosh.wav"
     try:
-        # Decode whoosh to 48kHz stereo 16-bit PCM, volume attenuated (-18dB)
+        # Decode whoosh to 48kHz stereo 16-bit PCM, volume boosted to 0.65 (-3.7dB) for punchy transition
         _ffmpeg(
             "-i", str(whoosh_src),
             "-t", "0.5",
-            "-af", "volume=0.20",
+            "-af", "volume=0.65",
             "-ar", "48000",
             "-ac", "2",
             "-c:a", "pcm_s16le",
@@ -287,13 +287,14 @@ def build_sfx_track(
         total_bytes = int(total_duration * bytes_per_sec) + bytes_per_sec
         sfx_buffer = bytearray(total_bytes)
 
-        # Place whoosh at each scene transition (scenes 2, 3, 4, ... 12)
+        # Place whoosh at each scene transition (scenes 2, 3, 4, 5, 6), leading cut by 80ms
         sorted_voices = sorted(voice_results, key=lambda r: r["scene_id"])
         current_time = 0.0
         for i, voice in enumerate(sorted_voices):
             dur = voice["duration"]
             if i > 0:  # Start of scene 2 onwards (the cut)
-                byte_offset = int(current_time * bytes_per_sec)
+                lead_time = max(0.0, current_time - 0.08)
+                byte_offset = int(lead_time * bytes_per_sec)
                 # Word-aligned 4-byte sample offset
                 byte_offset = (byte_offset // 4) * 4
                 # Mix whoosh bytes into buffer
@@ -499,10 +500,10 @@ def mix_bgm(
         if settings.BGM_MIX_REQUIRED:
             raise FileNotFoundError(message)
         log.warning("%s — applying voice-only loudness normalisation", message)
-        # Just normalise loudness
+        # Just normalise loudness with high-presence vocal boost
         _ffmpeg(
             "-i", str(video_path),
-            "-af", "loudnorm=I=-14:TP=-1:LRA=11",
+            "-af", "highpass=f=80,equalizer=f=3500:t=q:w=1.5:g=3.5,compand=attacks=0.02:decays=0.1:points=-45/-45|-20/-10|0/-1:soft-knee=6,volume=1.4,loudnorm=I=-12:TP=-0.5:LRA=7",
             "-c:v", "copy",
             "-c:a", "aac",
             "-b:a", "192k",
@@ -511,28 +512,29 @@ def mix_bgm(
         )
         return output_path
 
-    # Mix: voice (0dB) + audible BGM. The primary path ducks BGM under speech;
-    # a simpler fallback is used by the caller if a platform FFmpeg build balks.
+    # Mix: voice (boosted + EQ) + audible BGM with aggressive ducking under speech.
     vol_factor = 10 ** (bgm_volume_db / 20)
     if use_ducking:
         audio_filter = (
-            "[0:a]aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asplit=2[voice_mix][voice_key];"
+            "[0:a]highpass=f=80,equalizer=f=3500:t=q:w=1.5:g=3.5,compand=attacks=0.02:decays=0.1:points=-45/-45|-20/-10|0/-1:soft-knee=6,volume=1.4,"
+            "aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asplit=2[voice_mix][voice_key];"
             f"[1:a]aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,volume={vol_factor:.4f}[bgm];"
-            "[bgm][voice_key]sidechaincompress=threshold=0.08:ratio=3:attack=50:release=450[ducked];"
+            "[bgm][voice_key]sidechaincompress=threshold=0.06:ratio=4:attack=30:release=350[ducked];"
             "[voice_mix][ducked]amix=inputs=2:duration=first:dropout_transition=0,"
             "aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,"
-            "loudnorm=I=-14:TP=-1:LRA=11[out]"
+            "loudnorm=I=-12:TP=-0.5:LRA=7[out]"
         )
-        description = "BGM ducking mix + loudness normalisation"
+        description = "BGM ducking mix + loudness normalisation (-12 LUFS)"
     else:
         audio_filter = (
-            "[0:a]aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo[voice];"
+            "[0:a]highpass=f=80,equalizer=f=3500:t=q:w=1.5:g=3.5,compand=attacks=0.02:decays=0.1:points=-45/-45|-20/-10|0/-1:soft-knee=6,volume=1.4,"
+            "aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo[voice];"
             f"[1:a]aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,volume={vol_factor:.4f}[bgm];"
             "[voice][bgm]amix=inputs=2:duration=first:dropout_transition=0,"
             "aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,"
-            "loudnorm=I=-14:TP=-1:LRA=11[out]"
+            "loudnorm=I=-12:TP=-0.5:LRA=7[out]"
         )
-        description = "BGM simple mix + loudness normalisation"
+        description = "BGM simple mix + loudness normalisation (-12 LUFS)"
 
     _ffmpeg(
         "-i", str(video_path),
