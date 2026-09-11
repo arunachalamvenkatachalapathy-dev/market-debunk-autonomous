@@ -69,7 +69,7 @@ class ScenePayload(BaseModel):
         return cleaned
 
 class ScriptPayload(BaseModel):
-    title: str = Field(description="Max 60 chars. The YouTube Short title.")
+    title: str = Field(description="Search-first keyword-frontloaded title strictly in format: [High-Reach Keyword]: [Punch/Number]. Max 55 chars.")
     description: str = Field(description="150-300 chars. SEO description.")
     hashtags: list[str] = Field(description="List of 3-5 hashtags.")
     scenes: list[ScenePayload]
@@ -77,7 +77,17 @@ class ScriptPayload(BaseModel):
     @field_validator("title")
     @classmethod
     def normalize_title(cls, value: str) -> str:
-        return normalize_youtube_title(value)
+        from src.utils.youtube_titles import (
+            format_high_reach_title,
+            normalize_youtube_title,
+            resolve_high_reach_keyword,
+        )
+        clean = value.replace("#Shorts", "").strip(" :|-")
+        banned_openers = ("why ", "what ", "how ", "is your ", "the silent ", "the hidden ", "stop buying ", "many investors ", "todays youth ")
+        if any(clean.lower().startswith(b) for b in banned_openers) or ":" not in clean:
+            keyword = resolve_high_reach_keyword(clean)
+            return format_high_reach_title(keyword, clean, max_length=55)
+        return normalize_youtube_title(value, max_length=55)
 
     @field_validator("scenes")
     @classmethod
@@ -231,7 +241,7 @@ NEGATIVE PROMPTING FOR HALLUCINATION:
 OUTPUT FORMAT — Return ONLY valid JSON, nothing else, no markdown fences:
 ──────────────────────────────────────────────────────────────────────────────
 {
-  "title": "Punchy English title max 60 chars — grabs attention immediately; do NOT include #Shorts",
+  "title": "Search-first title strictly in format: [High-Reach Search Keyword]: [Shocking Truth / Metric]. Examples: 'Options Trading Loss: SEBI 90% Reality', 'Zero Cost EMI Trap: 18% Hidden GST Exposed', 'Mutual Fund SIP: Regular vs Direct ₹15L Loss'. Max 50 chars. NO vague story titles or 'Why/What/Is Your' clickbait; do NOT include #Shorts",
   "description": "SEO description 150-300 chars — explains the finance concept revealed at the end",
   "hashtags": ["StockMarket", "InvestingIndia", "FinanceShorts", "MarketDebunk", "MoneyTips"],
   "scenes": [

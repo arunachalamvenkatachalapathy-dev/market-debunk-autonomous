@@ -275,8 +275,9 @@ def _rewrite_hook_with_gemini(
             "Create a curiosity gap about the financial topic. No full stops at end."
         ),
         "youtube": (
-            "Write a single YouTube Shorts title in format: [Power word] [Specific claim] #Shorts. "
-            "MAX 50 characters total including #Shorts. High search-intent."
+            "Write a single high-reach YouTube Shorts title in format: [High-Reach Search Keyword]: [Punch/Number/Fact] #Shorts. "
+            "Front-load the high-volume search keyword in the first 25 chars. Total length 42-55 chars including #Shorts. "
+            "NO vague story titles, questions, or abstract clickbait."
         ),
         "facebook": (
             "Write a single sentence Facebook Reels story opener. "
@@ -391,32 +392,32 @@ class YouTubeSEOAgent:
         return " ".join(words[:3]) if words else "nifty stock market"
 
     def _rewrite_title(self, current_title: str, thesis: str) -> str:
-        """Rewrite title to be more search-intent aligned and CTR-optimized."""
-        # Remove #Shorts suffix for processing
+        """Rewrite title to be search-keyword frontloaded and CTR-optimized."""
+        from src.utils.youtube_titles import (
+            format_high_reach_title,
+            normalize_youtube_title,
+            resolve_high_reach_keyword,
+        )
+
         base = current_title.replace("#Shorts", "").strip()
-
-        # Check if title has weak/generic openers and fix them
-        weak_openers = ["the truth", "what you", "here's why", "did you know", "warning about"]
+        weak_openers = ["the truth", "what you", "here's why", "did you know", "warning about", "why", "what", "is your", "the silent", "the hidden", "stop buying"]
         has_weak_opener = any(base.lower().startswith(w) for w in weak_openers)
+        keyword = resolve_high_reach_keyword(f"{thesis} {base}")
 
-        if has_weak_opener or len(base) > 42:
-            # Try Gemini rewrite first
+        if has_weak_opener or ":" not in base or len(base) > 46:
             rewritten = _rewrite_hook_with_gemini(
                 base, _ENGLISH_NICHE_HASHTAGS["youtube"]["search_tags"][:6], thesis, "youtube", self.gemini_key
             )
             if rewritten and rewritten != base:
-                # Ensure it ends with #Shorts and is within limit
                 rewritten = rewritten.replace("#Shorts", "").strip()
-                if len(rewritten) > 42:
-                    rewritten = rewritten[:42].rsplit(" ", 1)[0]
-                return f"{rewritten} #Shorts"
+                if ":" in rewritten:
+                    kw, _, ang = rewritten.partition(":")
+                    return format_high_reach_title(kw, ang, max_length=55)
+                return format_high_reach_title(keyword, rewritten, max_length=55)
 
-        # Ensure it ends with #Shorts
-        if not current_title.endswith("#Shorts"):
-            base = base[:44] if len(base) > 44 else base
-            return f"{base} #Shorts"
+            return format_high_reach_title(keyword, base, max_length=55)
 
-        return current_title
+        return normalize_youtube_title(current_title, max_length=55)
 
     def _enhance_pinned_comment(self, current: str, thesis: str) -> str:
         """Make the pinned comment more likely to trigger real comments."""

@@ -19,13 +19,18 @@ from pydantic import BaseModel, Field
 
 from src.utils.config import settings
 from src.utils.logger import get_logger
-from src.utils.youtube_titles import normalize_youtube_title
+from src.utils.youtube_titles import (
+    clean_word_truncate,
+    format_high_reach_title,
+    normalize_youtube_title,
+    resolve_high_reach_keyword,
+)
 
 log = get_logger(__name__, phase="seo_distribution")
 
 
 class YouTubeDistribution(BaseModel):
-    title: str = Field(description="Search-first, high CTR YouTube Short title. Max 50 chars. Ends with #Shorts.")
+    title: str = Field(description="Search-first, high-reach keyword-frontloaded YouTube Short title. Max 55 chars. Ends with #Shorts.")
     snippet: str = Field(description="First 150 characters of description. Natural SEO search query paragraph.")
     takeaways: list[str] = Field(description="Exactly 3 concise bullet points debunking the myth/warning.")
     hashtags: list[str] = Field(description="Exactly 3-5 high volume search hashtags.")
@@ -63,40 +68,38 @@ class PlatformDistributionPackage(BaseModel):
     telegram: TelegramDistribution
 
     def get_youtube_description(self) -> str:
-        bullets = "\n".join(f"• {t}" for t in self.youtube.takeaways)
-        tags_str = " ".join(t if t.startswith("#") else f"#{t}" for t in self.youtube.hashtags)
-        footer = (
-            "💬 Comment 'GUIDE' below for the complete breakdown & checklist!\n\n"
-            "Subscribe for daily market myth-busting.\n\n"
-            "Ask your market doubts on Telegram:\n"
-            "English: https://t.me/MarketDebunk\n"
-            "Tamil: https://t.me/marketdebunk_tamil"
+        """Compose rich YouTube description with SEO snippet and chapters."""
+        takeaways_formatted = "\n".join(f"• {t}" for t in self.youtube.takeaways)
+        tags_line = " ".join(self.youtube.hashtags)
+        return (
+            f"{self.youtube.snippet}\n\n"
+            f"KEY TAKEAWAYS:\n"
+            f"{takeaways_formatted}\n\n"
+            f"📌 DISCLAIMER: Educational analysis only. We expose structural market realities.\n\n"
+            f"{tags_line}"
         )
-        return f"{self.youtube.snippet}\n\nKey Takeaways:\n{bullets}\n\n{footer}\n\n{tags_str}"[:4900]
 
     def get_instagram_caption(self) -> str:
-        tags_str = " ".join(t if t.startswith("#") else f"#{t}" for t in self.instagram.hashtags)
-        parts = [
-            self.instagram.first_line_hook,
-            self.instagram.body_copy,
-            self.instagram.comment_trigger,
-            self.instagram.share_save_cta,
-            tags_str,
-        ]
-        return "\n\n".join(p.strip() for p in parts if p.strip())[:2200]
+        tags_line = " ".join(self.instagram.hashtags)
+        return (
+            f"{self.instagram.first_line_hook}\n\n"
+            f"{self.instagram.body_copy}\n\n"
+            f"{self.instagram.share_save_cta}\n\n"
+            f"{self.instagram.comment_trigger}\n\n"
+            f"{tags_line}"
+        )
 
     def get_facebook_caption(self) -> str:
-        tags_str = " ".join(t if t.startswith("#") else f"#{t}" for t in self.facebook.topic_tags)
-        parts = [
-            self.facebook.story_hook,
-            self.facebook.narrative_body,
-            self.facebook.discussion_question,
-            tags_str,
-        ]
-        return "\n\n".join(p.strip() for p in parts if p.strip())[:2200]
+        tags_line = " ".join(self.facebook.topic_tags)
+        return (
+            f"{self.facebook.story_hook}\n\n"
+            f"{self.facebook.narrative_body}\n\n"
+            f"👉 {self.facebook.discussion_question}\n\n"
+            f"{tags_line}"
+        )
 
     def get_telegram_post(self, video_link: Optional[str] = None) -> str:
-        link_line = f"\n\n▶️ *Watch 45-second visual breakdown:*\n{video_link}" if video_link else ""
+        link_line = f"\n\n🎬 Watch Video: {video_link}" if video_link else ""
         return (
             f"🚨 *MARKET DEBUNK ALERT*\n"
             f"*{self.telegram.alert_headline}*\n\n"
@@ -111,26 +114,35 @@ class PlatformDistributionPackage(BaseModel):
 import random
 
 _SAFE_FALLBACK_TITLES = [
-    "Is Your Portfolio Hiding This? #Shorts",
-    "The Number Retail Investors Miss #Shorts",
-    "What Institutions Know That You Don't #Shorts",
-    "This Market Myth Is Costing You #Shorts",
-    "The Hidden Math Behind Your Losses #Shorts",
-    "Why Most Retail Investors Lose Money #Shorts",
-    "The Silent Bank Charge Nobody Noticed #Shorts",
-    "Stop Buying Before You Check This #Shorts",
+    "Options Trading Loss: SEBI 90% Reality #Shorts",
+    "Zero Cost EMI Trap: 18% Hidden GST Exposed #Shorts",
+    "Mutual Fund SIP: Regular vs Direct ₹15L Loss #Shorts",
+    "Credit Card Trap: Minimum Due Destroys CIBIL #Shorts",
+    "Stock Market Beginners: 3 Fatal Mistakes #Shorts",
+    "Fixed Deposit vs Mutual Fund: Real 7% Return #Shorts",
+    "SME IPO Allotment: The 90% Listing Trap #Shorts",
+    "Intraday Trading: The Hidden Brokerage Trap #Shorts",
 ]
 
 _SEO_SYSTEM_PROMPT = """You are the Chief SEO & Social Distribution Strategist for 'Market Debunk'.
 Your sole task is to generate platform-specialized copy that maximizes algorithmic distribution across:
-1. YouTube Shorts (High CTR curiosity-gap titles under 42 chars ending in #Shorts, search-intent alignment, retention snippet)
+1. YouTube Shorts (High-reach search keyword-frontloaded title under 55 chars ending in #Shorts, search-intent alignment, retention snippet)
 2. Instagram Reels (First-line hook before '...more' truncation at 80 chars, DM save & share triggers, exactly 4 niche hashtags)
 3. Facebook Reels (Relatable conversational storytelling, everyday investor dilemma, comment debate question)
 4. Telegram VIP Channel (Clean editorial markdown, Myth vs Reality, Golden Rule, zero hashtag spam)
 
 RULES:
 - Never use generic placeholder text. Use actual financial context from the provided thesis and script.
-- YouTube title MUST be punchy, curiosity-driven with concrete stakes (e.g. Rupee amounts, %, or contrast), end with #Shorts, and be <= 45 characters.
+- YouTube title MUST front-load the HIGH-VOLUME SEARCH KEYWORD in the first 25 characters, followed by a colon and the specific high-stakes punch/number/truth, ending in #Shorts.
+  * FORMAT: [High-Reach Search Keyword]: [Punch/Number/Fact] #Shorts
+  * ALLOWED EXAMPLES:
+    - "Options Trading Loss: SEBI 90% Reality #Shorts"
+    - "Zero Cost EMI Trap: 18% Hidden GST Exposed #Shorts"
+    - "Mutual Fund SIP: Regular vs Direct ₹15L Loss #Shorts"
+    - "Credit Card Trap: Minimum Due Destroys CIBIL #Shorts"
+    - "Fixed Deposit vs Mutual Fund: Real 7% Return #Shorts"
+  * STRICTLY BANNED: Vague storytelling, rhetorical questions, and abstract clickbait (e.g. BANNED: "Why You Lost Money", "What Nobody Tells You", "The Brutal Truth", "The Silent Killer", "Is Your Portfolio Hiding This?").
+  * Total length MUST be strictly between 42 and 55 characters including #Shorts. Never cut words in half.
 - Instagram caption must NOT have 20-30 spam hashtags. Use strictly 4 niche hashtags.
 - Output MUST be strictly valid JSON matching the requested schema.
 """
@@ -246,12 +258,13 @@ Generate the complete multi-platform SEO package as JSON matching the schema."""
         words = [w for w in clean_thesis.split() if len(w) > 2]
         hook_phrase = " ".join(words[:4]).title() if words else "Stock Market Truth"
 
-        # Prioritize clean script title if already generated; else use guaranteed safe template
+        # Prioritize clean keyword-frontloaded title; else use curated safe template
         script_title = (script_dict.get("title") or "").replace("#Shorts", "").strip()
-        if script_title and len(script_title) >= 12 and not script_title.lower().startswith("is "):
-            yt_title = normalize_youtube_title(f"{script_title[:42]} #Shorts")
+        keyword = resolve_high_reach_keyword(f"{thesis} {script_title}")
+        if script_title and len(script_title) >= 10:
+            yt_title = format_high_reach_title(keyword, script_title, max_length=55)
         else:
-            yt_title = normalize_youtube_title(random.choice(_SAFE_FALLBACK_TITLES))
+            yt_title = normalize_youtube_title(random.choice(_SAFE_FALLBACK_TITLES), max_length=55)
 
         return PlatformDistributionPackage(
             youtube=YouTubeDistribution(

@@ -121,13 +121,14 @@ def run_pipeline():
             is_dup, score, match = evaluator.is_duplicate(script_dict["title"], threshold=0.78)
             if is_dup:
                 log.warning("Generated title duplicates '%s' (similarity %.2f). Auto-correcting title angle...", match, score)
+                from src.utils.youtube_titles import format_high_reach_title, resolve_high_reach_keyword
                 concept = story_seed.get("concept", "") if isinstance(story_seed, dict) else ""
-                clean_title = script_dict["title"].replace("#Shorts", "").strip()
-                if concept and concept.lower() not in clean_title.lower():
-                    script_dict["title"] = f"{clean_title[:36]}: {concept} #Shorts"[:60]
-                else:
-                    import time as _t
-                    script_dict["title"] = f"{clean_title[:32]}: The Brutal Truth #Shorts"[:60]
+                clean_title = script_dict["title"].replace("#Shorts", "").strip(" :|-")
+                keyword = resolve_high_reach_keyword(f"{thesis} {clean_title} {concept}")
+                # Remove keyword from clean_title if it starts with it
+                if clean_title.lower().startswith(keyword.lower()):
+                    clean_title = clean_title[len(keyword):].strip(" :|-")
+                script_dict["title"] = format_high_reach_title(keyword, f"Exposing {clean_title}", max_length=55)
                 log.info("✓ Auto-corrected title to: '%s'", script_dict["title"])
 
             # Preflight timing before any TTS or visual generation.
