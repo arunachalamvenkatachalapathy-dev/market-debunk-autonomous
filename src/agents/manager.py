@@ -72,9 +72,9 @@ def run_pipeline():
         log.warning("Performance tuning pass skipped (%s)", tune_err)
 
     timing_guard = TimingGuard()
-    can_proceed, hours_elapsed = timing_guard.check_cooldown(min_hours=8.0)
+    can_proceed, hours_elapsed = timing_guard.check_cooldown(min_hours=3.0)
     if not can_proceed:
-        log.warning("🛑 Cooldown active (%.1f h elapsed < 8.0h min). Exiting pipeline to protect feed reach.", hours_elapsed)
+        log.warning("🛑 Cooldown active (%.1f h elapsed < 3.0h min). Exiting pipeline to protect feed reach.", hours_elapsed)
         sys.exit(0)
 
     timing_guard.apply_jitter(min_seconds=5, max_seconds=20)
@@ -135,9 +135,9 @@ def run_pipeline():
                 len(scene.get("narration", "").split())
                 for scene in script_dict["scenes"]
             ) / 2.3
-            # The voice agent has automatic atempo clamping (20.0s - 52.0s),
+            # The voice agent has automatic atempo clamping (15.0s - 42.0s),
             # so allow a safe window and let voice_agent clamp rather than failing early.
-            if not 18 <= estimated_seconds <= 58:
+            if not 14 <= estimated_seconds <= 46:
                 log.warning("Estimated duration %.1fs outside ideal window; voice agent will apply atempo clamping", estimated_seconds)
             
             # Save script to output for debugging
