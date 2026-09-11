@@ -183,13 +183,19 @@ def generate_ass_file(
 
     # Render prominent Scene 1 top-center visual hook banner (0.0s to 2.8s)
     if hook_title:
-        clean = re.sub(r"#\w+", "", hook_title).strip()
-        clean = re.sub(r"[^\w\s$%₹-]", "", clean).strip()
-        words = clean.split()
-        if len(words) > 5:
-            clean = " ".join(words[:5])
-        if clean:
+        clean = re.sub(r"(?i)#\w+", "", hook_title).strip()
+        clean = re.sub(r"[^\w\s$%₹:!-]", "", clean).strip()
+        if ":" in clean:
+            kw, _, ang = clean.partition(":")
+            ang_words = ang.strip().split()
+            ang_clean = " ".join(ang_words[:4])
+            banner_text = f"\\N⚠️ {kw.strip().upper()} ⚠️\\N{ang_clean.upper()}"
+        else:
+            words = clean.split()
+            if len(words) > 5:
+                clean = " ".join(words[:5])
             banner_text = f"\\N⚠️ {clean.upper()} ⚠️"
+        if clean:
             lines.append(f"Dialogue: 1,0:00:00.00,0:00:02.80,HookBanner,,0,0,0,,{banner_text}")
 
     cumulative_offset = 0.0
