@@ -250,5 +250,33 @@
       "facebook": "2918244415202993"
     },
     "audited": false
+  },
+  {
+    "timestamp": "2026-09-12T16:26:01.168587+00:00",
+    "title": "Options Trading Loss: SEBI 93% Reality #Shorts",
+    "topic": "SEBI data reveals 93% of retail F&O options traders lose money, while brokerages collect guaranteed turnover charges.",
+    "hook": "🚨 93% of F&O traders are losing money—but your broker is winning big",
+    "hashtags": [
+      "#FnO",
+      "#OptionsTrading",
+      "#DerivativesIndia",
+      "#NiftyAlert",
+      "#SensexAlert",
+      "#IndianStockMarket",
+      "#NSEIndia",
+      "#MoneyTips"
+    ],
+    "duration_seconds": 24.624000000000002,
+    "urls": {
+      "youtube": "https://www.youtube.com/shorts/-c31uS5H9l0",
+      "instagram": "https://www.instagram.com/reel/DdMaO8FEgIJ/",
+      "facebook": "https://www.facebook.com/reel/1045482721658102/"
+    },
+    "ids": {
+      "youtube": "-c31uS5H9l0",
+      "instagram": "DdMaO8FEgIJ",
+      "facebook": "1045482721658102"
+    },
+    "audited": false
   }
 ]

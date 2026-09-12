@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-12T08:42:13.631898+00:00",
+  "last_updated": "2026-09-12T16:22:01.139458+00:00",
   "analyzed_videos_count": 6,
   "optimal_runtime_seconds": 22.0,
   "optimal_word_count": 56,
   "top_performing_topics": [
     "Actionable market timing and technical support levels",
-    "Wealth-gap and affordability anxiety (real estate/lifestyle)",
-    "Arbitrage and valuation discrepancies (buying assets at a discount)"
+    "Real estate affordability and middle-class wealth gaps",
+    "Value investing strategies and arbitrage opportunities"
   ],
   "winning_hook_formulas": [
-    "The 'Stop/Warning' Pattern: [Negative Action] + [Specific Financial Consequence] + [Urgent Reason to Watch]",
-    "The 'Lost Opportunity' Pattern: [Aspirational Goal] + [Hidden Obstacle] + [Immediate Financial Loss]"
+    "The 'Counter-Intuitive Warning' formula: [Stop/Don't] + [Common Action] + [Specific Negative Consequence]",
+    "The 'Wealth Erosion' formula: [Why your] + [Asset/Goal] + [Is slipping away/failing] + [Due to hidden factor]"
   ],
   "script_directives": [
-    "Start with a high-contrast visual or text overlay that directly mirrors the hook within the first 1.5 seconds.",
-    "Maintain a rapid-fire cadence with zero dead air; transition between points every 3-5 seconds to prevent drop-offs.",
-    "End with a 'Save for Later' call-to-action that promises a specific, actionable takeaway (e.g., a checklist or specific price level)."
+    "Maintain a sub-25 second duration to ensure high completion rates and loopability.",
+    "Use high-contrast visual cues (charts/price drops) within the first 3 seconds to validate the hook's claim.",
+    "Focus on a single, high-impact financial insight per video; avoid multi-point lists that cause cognitive overload."
   ],
   "seo_directives": [
-    "Use high-intent keywords in the first sentence of the caption that match the hook's primary financial pain point.",
-    "Mix 3 broad finance hashtags with 2 niche-specific tickers or asset class tags to optimize for both discovery and intent."
+    "Use specific, searchable financial keywords in the title (e.g., Nifty, Stocks, Real Estate) rather than vague warnings.",
+    "Include high-intent hashtags that target investor behavior like #StockMarketIndia, #PersonalFinance, and #InvestingTips."
   ]
 }

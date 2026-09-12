@@ -1,11 +1,11 @@
 {
-  "topic_thesis": "Zero-Cost EMI is a legal marketing trap where banks charge mandatory 18% GST on hidden interest, instantly turning your 'free' offer into an expensive credit leak.",
-  "strategic_angle": "Expose how e-commerce sites and banks artificially split your invoice into a discounted principal and phantom interest, forcing you to pay 18% GST on that interest alongside an unadvertised upfront processing fee.",
+  "topic_thesis": "Choosing a hospital room above your health insurance policy's 1% room-rent limit triggers proportionate deduction, wiping out up to 50% of your total claim settlement.",
+  "strategic_angle": "Expose how insurance companies hide the 'Proportionate Deduction Clause' in room rent caps, forcing policyholders to pay ICU, surgeon, and diagnostic fees out-of-pocket even if the total bill is below the sum insured.",
   "format_type": "STANDALONE",
   "hook_style": "HARD_NUMBER_SHOCK",
-  "key_statistic": "18% GST on interest + \u20b9299 hidden processing fee",
-  "target_emotion": "Shock and immediate urge to check personal accounts",
-  "pinned_comment_text": "Did you buy your phone on 'Zero Cost EMI'? Check your statement for 'GST on EMI Interest'! Comment 'CALCULATE' for our free breakdown tool to see how much you overpaid. \ud83d\udcac\ud83d\udc47",
-  "tamil_adaptation_directive": "Target middle-class shoppers in Tamil Nadu buying electronics. Use relatable Tanglish phrases like 'Zero Cost EMI Nambi Aapa Vangathaenga' and expose how a \u20b960,000 phone silently drains extra cash through hidden GST and processing fees.",
-  "source_signal": "Audience pain-point & market trend"
+  "key_statistic": "50% claim loss / \u20b92,50,000 out-of-pocket penalty",
+  "target_emotion": "Panic and urgency to immediately verify policy room-rent capping clauses",
+  "pinned_comment_text": "Did your health insurance pay less than expected on your last claim? Drop your experience below, or comment 'POLICY' for our room-rent check guide! \ud83c\udfe5\ud83d\udc47",
+  "tamil_adaptation_directive": "Focus on middle-class families in Tamil Nadu. Use relatable Tanglish phrases like 'Insurance Claim Gaali' and 'Hospital Bill Trap', breaking down how an extra \u20b91,000 room upgrade leads to a \u20b92.5 Lakh loss.",
+  "source_signal": "Middle-class consumer health insurance claim dispute trends"
 }
