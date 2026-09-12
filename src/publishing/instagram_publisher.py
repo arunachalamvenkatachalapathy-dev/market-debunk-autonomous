@@ -23,6 +23,11 @@ from src.utils.logger import get_logger
 log = get_logger(__name__, phase="instagram_publish")
 
 
+class PublishResult(str):
+    """String URL carrying attached media_id metadata."""
+    media_id: Optional[str] = None
+
+
 def _upload_binary_resumable(upload_uri: str, video_path: Path, token: str) -> bool:
     """Stream local MP4 binary data directly to Meta's resumable upload server."""
     file_size = video_path.stat().st_size
@@ -277,10 +282,11 @@ def publish_reel(
         except Exception:
             pass
 
-        final_link = reel_url or f"https://www.instagram.com/reel/{media_id}/"
+        final_link = PublishResult(reel_url or f"https://www.instagram.com/reel/{media_id}/")
+        final_link.media_id = str(media_id)
         log.info("==================================================")
         log.info("🎉 INSTAGRAM REEL PUBLISHED SUCCESSFULLY!")
-        log.info("Reel URL: %s", final_link)
+        log.info("Reel URL: %s (Media ID: %s)", final_link, media_id)
         log.info("==================================================")
         return final_link
 

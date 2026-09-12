@@ -269,7 +269,7 @@ def run_pipeline():
                     hashtags=dist_pkg.instagram.hashtags,
                 )
                 if ig_url:
-                    ig_id = ig_url.rstrip("/").split("/")[-1]
+                    ig_id = getattr(ig_url, "media_id", None) or ig_url.rstrip("/").split("/")[-1]
 
             fb_url = None
             fb_id = None

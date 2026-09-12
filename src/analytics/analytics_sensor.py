@@ -199,7 +199,23 @@ class AnalyticsSensor:
 
         clean_media_id = str(media_id).strip("/").split("/")[-1].split("?")[0]
         version = getattr(settings, "INSTAGRAM_GRAPH_VERSION", "v21.0")
-        url = f"https://graph.facebook.com/{version}/{clean_media_id}/insights"
+        user_id = getattr(settings, "INSTAGRAM_USER_ID", "").strip() or os.environ.get("INSTAGRAM_USER_ID", "").strip()
+
+        # If clean_media_id is a shortcode (non-digit) and user_id is set, resolve numeric ID via recent media list
+        numeric_id = clean_media_id
+        if not clean_media_id.isdigit() and user_id:
+            try:
+                list_url = f"https://graph.facebook.com/{version}/{user_id}/media"
+                res = requests.get(list_url, params={"fields": "id,shortcode,permalink", "limit": 25, "access_token": token}, timeout=10)
+                if res.status_code == 200:
+                    for item in res.json().get("data", []):
+                        if item.get("shortcode") == clean_media_id or clean_media_id in item.get("permalink", ""):
+                            numeric_id = item.get("id")
+                            break
+            except Exception as e:
+                log.debug("Failed to resolve Instagram shortcode %s: %s", clean_media_id, e)
+
+        url = f"https://graph.facebook.com/{version}/{numeric_id}/insights"
         params = {
             "metric": "reach,saved,shares,total_interactions",
             "access_token": token,
@@ -215,17 +231,17 @@ class AnalyticsSensor:
                     values = m.get("values", [{}])
                     val = values[0].get("value", 0) if values else 0
                     metrics[name] = val
-                log.info("✓ Meta Graph API insights for %s: %s", media_id, metrics)
+                log.info("✓ Meta Graph API insights for %s: %s", numeric_id, metrics)
                 return metrics
             else:
-                log.debug("Instagram insights for %s returned HTTP %d: %s", media_id, res.status_code, res.text[:150])
+                log.debug("Instagram insights for %s returned HTTP %d: %s", numeric_id, res.status_code, res.text[:150])
         except Exception as exc:
             log.debug("Instagram insights request failed: %s", exc)
 
         return {}
 
     def _fetch_youtube_metrics(self, video_id: Optional[str]) -> dict:
-        """Fetch YouTube short statistics via YouTube Data API v3."""
+        """Fetch YouTube short statistics via YouTube Data API v3 (API key or OAuth)."""
         if not video_id:
             return {}
 
@@ -238,21 +254,48 @@ class AnalyticsSensor:
         elif "v=" in video_id:
             clean_id = video_id.split("v=")[1].split("&")[0]
 
-        yt_key = getattr(settings, "YT_API_KEY", "").strip() or getattr(settings, "GEMINI_API_KEY", "").strip()
-        if not yt_key:
-            return {}
+        yt_key = getattr(settings, "YT_API_KEY", "").strip()
+        if yt_key:
+            url = "https://www.googleapis.com/youtube/v3/videos"
+            params = {
+                "part": "statistics",
+                "id": clean_id,
+                "key": yt_key,
+            }
+            try:
+                res = requests.get(url, params=params, timeout=10)
+                if res.status_code == 200:
+                    items = res.json().get("items", [])
+                    if items:
+                        stats = items[0].get("statistics", {})
+                        metrics = {
+                            "views": int(stats.get("viewCount", 0)),
+                            "likes": int(stats.get("likeCount", 0)),
+                            "comments": int(stats.get("commentCount", 0)),
+                        }
+                        log.info("✓ YouTube statistics for %s: %s", clean_id, metrics)
+                        return metrics
+            except Exception as exc:
+                log.debug("YouTube statistics API key request failed: %s", exc)
 
-        url = "https://www.googleapis.com/youtube/v3/videos"
-        params = {
-            "part": "statistics",
-            "id": clean_id,
-            "key": yt_key,
-        }
-
-        try:
-            res = requests.get(url, params=params, timeout=10)
-            if res.status_code == 200:
-                items = res.json().get("items", [])
+        # Fallback to OAuth credentials if available
+        refresh_token = getattr(settings, "YT_REFRESH_TOKEN", "") or os.environ.get("YT_REFRESH_TOKEN", "")
+        client_id = getattr(settings, "YT_CLIENT_ID", "") or os.environ.get("YT_CLIENT_ID", "")
+        client_secret = getattr(settings, "YT_CLIENT_SECRET", "") or os.environ.get("YT_CLIENT_SECRET", "")
+        if all((refresh_token, client_id, client_secret)):
+            try:
+                from google.oauth2.credentials import Credentials
+                from googleapiclient.discovery import build
+                creds = Credentials(
+                    token=None,
+                    refresh_token=refresh_token,
+                    token_uri="https://oauth2.googleapis.com/token",
+                    client_id=client_id,
+                    client_secret=client_secret,
+                )
+                yt_service = build("youtube", "v3", credentials=creds, cache_discovery=False)
+                res = yt_service.videos().list(part="statistics", id=clean_id).execute()
+                items = res.get("items", [])
                 if items:
                     stats = items[0].get("statistics", {})
                     metrics = {
@@ -260,11 +303,9 @@ class AnalyticsSensor:
                         "likes": int(stats.get("likeCount", 0)),
                         "comments": int(stats.get("commentCount", 0)),
                     }
-                    log.info("✓ YouTube statistics for %s: %s", clean_id, metrics)
+                    log.info("✓ YouTube statistics via OAuth for %s: %s", clean_id, metrics)
                     return metrics
-            else:
-                log.debug("YouTube statistics for %s returned HTTP %d", clean_id, res.status_code)
-        except Exception as exc:
-            log.debug("YouTube statistics request failed: %s", exc)
+            except Exception as oauth_exc:
+                log.debug("YouTube statistics OAuth request failed: %s", oauth_exc)
 
         return {}
