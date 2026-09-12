@@ -165,7 +165,7 @@
       "instagram": "DdG9gMqjOhk",
       "facebook": "1390513703265027"
     },
-    "audited": false
+    "audited": true
   },
   {
     "timestamp": "2026-09-11T06:25:53.434952+00:00",
@@ -220,6 +220,34 @@
       "youtube": "OubKMDJnClg",
       "instagram": "DdJ43uXEmfO",
       "facebook": "884137464635147"
+    },
+    "audited": false
+  },
+  {
+    "timestamp": "2026-09-12T08:18:37.955804+00:00",
+    "title": "Forex Markup Trap: 3.5% Bank Fee Exposed #Shorts",
+    "topic": "Your bank secretly taxes every coffee you buy on vacation with a 3.5% forex markup plus GST, turning your holiday into their payday.",
+    "hook": "🚨 Your bank is secretly stealing 3.5% of your holiday budget",
+    "hashtags": [
+      "#WealthCreationIndia",
+      "#SIPInvesting",
+      "#SmallCapStocks",
+      "#FinancialFreedomIndia",
+      "#MultibaggerStocks",
+      "#IndianStockMarket",
+      "#NiftyAlert",
+      "#NSEIndia"
+    ],
+    "duration_seconds": 24.528000000000002,
+    "urls": {
+      "youtube": "https://www.youtube.com/shorts/8guUepF4sa4",
+      "instagram": "https://www.instagram.com/reel/DdLidYeDruH/",
+      "facebook": "https://www.facebook.com/reel/2918244415202993/"
+    },
+    "ids": {
+      "youtube": "8guUepF4sa4",
+      "instagram": "DdLidYeDruH",
+      "facebook": "2918244415202993"
     },
     "audited": false
   }

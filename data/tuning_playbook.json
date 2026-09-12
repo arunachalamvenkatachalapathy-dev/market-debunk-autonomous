@@ -1,23 +1,24 @@
 {
-  "last_updated": "2026-09-11T16:49:36.845375+00:00",
-  "analyzed_videos_count": 5,
-  "optimal_runtime_seconds": 22.4,
-  "optimal_word_count": 57,
+  "last_updated": "2026-09-12T08:09:06.018710+00:00",
+  "analyzed_videos_count": 6,
+  "optimal_runtime_seconds": 22.0,
+  "optimal_word_count": 56,
   "top_performing_topics": [
-    "Market timing and technical support levels for retail investors",
-    "Macroeconomic wealth-gap issues affecting middle-class aspirations"
+    "Actionable market timing and technical support levels",
+    "Real estate affordability and middle-class wealth gaps",
+    "Value investing strategies and stock valuation anomalies"
   ],
   "winning_hook_formulas": [
-    "The 'Warning/Stop' formula: [Negative Action] + [Specific Financial Metric/Level] + [Consequence]",
-    "The 'Identity/Aspiration' formula: [Pain Point regarding Asset] + [Emotional Consequence] + [Urgency]"
+    "The 'Stop/Warning' Command: Start with an urgent imperative to prevent a specific financial mistake (e.g., 'Stop doing X before you check Y').",
+    "The 'Hidden Reality' Reveal: Highlight a painful financial truth that contradicts common savings advice (e.g., 'Why your X is actually making you poorer')."
   ],
   "script_directives": [
-    "Start with a high-stakes visual or auditory alert within the first 1.5 seconds to interrupt scrolling.",
-    "Eliminate fluff; every sentence must introduce a new, actionable data point or a provocative financial truth.",
-    "Use rapid-fire editing with text overlays that highlight specific numbers or support levels to maintain visual engagement."
+    "Eliminate fluff: Start the hook within the first 0.5 seconds and maintain a high-density information flow with no pauses.",
+    "Visual anchoring: Use on-screen text overlays for every key metric or support level mentioned to increase cognitive retention.",
+    "The 'Gap' structure: Present a problem in the first 5 seconds, provide a counter-intuitive insight in the middle, and end with a specific, non-generic action item."
   ],
   "seo_directives": [
-    "Use high-intent keywords in the title that address specific financial fears (e.g., 'Nifty', 'Home', 'Trap', 'Critical').",
-    "Include a mix of broad niche hashtags (#Finance, #Investing) and specific, high-volume Indian market tags (#Nifty50, #StockMarketIndia)."
+    "Use high-intent keywords in the title that address specific financial pain points (e.g., 'Nifty', 'Stocks', 'Home Prices').",
+    "Combine broad niche tags with specific ticker or asset-class hashtags to trigger the algorithm's interest-based recommendation engine."
   ]
 }
