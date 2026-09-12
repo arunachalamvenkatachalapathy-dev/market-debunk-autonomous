@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-12T08:36:23.536252+00:00",
+  "last_updated": "2026-09-12T08:42:13.631898+00:00",
   "analyzed_videos_count": 6,
   "optimal_runtime_seconds": 22.0,
   "optimal_word_count": 56,
   "top_performing_topics": [
     "Actionable market timing and technical support levels",
-    "Real estate affordability and middle-class wealth gaps",
-    "Value investing strategies and arbitrage opportunities"
+    "Wealth-gap and affordability anxiety (real estate/lifestyle)",
+    "Arbitrage and valuation discrepancies (buying assets at a discount)"
   ],
   "winning_hook_formulas": [
-    "The 'Counter-Intuitive Warning' formula: [Stop/Don't] + [Common Action] + [Specific Negative Consequence]",
-    "The 'Missing Out' formula: [Urgent Problem] + [While your money/savings] + [Status Quo/Stagnation]"
+    "The 'Stop/Warning' Pattern: [Negative Action] + [Specific Financial Consequence] + [Urgent Reason to Watch]",
+    "The 'Lost Opportunity' Pattern: [Aspirational Goal] + [Hidden Obstacle] + [Immediate Financial Loss]"
   ],
   "script_directives": [
-    "Start with high-contrast visual or text overlays that directly address the hook within the first 1.5 seconds.",
+    "Start with a high-contrast visual or text overlay that directly mirrors the hook within the first 1.5 seconds.",
     "Maintain a rapid-fire cadence with zero dead air; transition between points every 3-5 seconds to prevent drop-offs.",
-    "End with a 'Save for later' call-to-action that references a specific data point or level mentioned in the video."
+    "End with a 'Save for Later' call-to-action that promises a specific, actionable takeaway (e.g., a checklist or specific price level)."
   ],
   "seo_directives": [
-    "Use high-intent, long-tail keywords in the title that address specific financial pain points rather than broad categories.",
-    "Limit hashtags to 3-4 highly relevant tags (e.g., #StockMarketIndia, #PersonalFinance, #InvestmentStrategy) to avoid algorithmic dilution."
+    "Use high-intent keywords in the first sentence of the caption that match the hook's primary financial pain point.",
+    "Mix 3 broad finance hashtags with 2 niche-specific tickers or asset class tags to optimize for both discovery and intent."
   ]
 }
