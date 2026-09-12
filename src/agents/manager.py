@@ -79,17 +79,39 @@ def run_pipeline():
 
     timing_guard.apply_jitter(min_seconds=5, max_seconds=20)
 
+    # ── Phase 0.5: Autonomous Channel Director Strategic Brief ─────────────
+    director = None
+    strategic_brief = None
+    try:
+        from src.agents.channel_director import ChannelDirectorAgent
+        director = ChannelDirectorAgent()
+        strategic_brief = director.formulate_strategic_brief()
+    except Exception as dir_err:
+        log.warning("Director Agent brief notice (%s); proceeding with autonomous scraper", dir_err)
+        strategic_brief = None
+
     try:
         # ── Phase 1: Topic Discovery ──────────────────────────────────────
         with PhaseTimer("Phase 1: Topic Discovery"):
-            topic_data = topic_agent.discover_topic()
-            channel = topic_data["channel"]
-            video_id = topic_data["video_id"]
-            thesis = topic_data["thesis"]
-            story_seed = topic_data.get("story_seed", {})
-            log.info("Chosen channel: %s", channel)
-            log.info("Core thesis: %s", thesis)
-            log.info("Story seed concept: %s", story_seed.get("concept_name", "N/A"))
+            if strategic_brief and strategic_brief.topic_thesis:
+                from src.agents.topic_agent import summarize_to_story_seed
+                channel = "Channel Director Strategy"
+                video_id = "director_strategy"
+                thesis = strategic_brief.topic_thesis
+                seed_data = summarize_to_story_seed(f"FINANCIAL STRATEGY: {strategic_brief.strategic_angle}", thesis)
+                story_seed = seed_data.get("story_seed", {})
+                topic_data = {"channel": channel, "video_id": video_id, "thesis": thesis, "story_seed": story_seed, "source_id": "channel_director"}
+                log.info("✓ Commissioned topic by Channel Director: '%s'", thesis)
+                log.info("Story seed concept: %s", story_seed.get("concept_name", "N/A"))
+            else:
+                topic_data = topic_agent.discover_topic()
+                channel = topic_data["channel"]
+                video_id = topic_data["video_id"]
+                thesis = topic_data["thesis"]
+                story_seed = topic_data.get("story_seed", {})
+                log.info("Chosen channel: %s", channel)
+                log.info("Core thesis: %s", thesis)
+                log.info("Story seed concept: %s", story_seed.get("concept_name", "N/A"))
 
         # ── Phase 1.5: Dedup Gate ─────────────────────────────────────────
         with PhaseTimer("Phase 1.5: Dedup Gate"):
@@ -169,6 +191,7 @@ def run_pipeline():
                 script_dict,
                 visual_results,
                 source_id=topic_data.get("source_id", ""),
+                strategic_brief=strategic_brief.model_dump() if strategic_brief else None,
             )
             log.info("Exported Tamil companion visual package: %s", master_package)
 
@@ -286,6 +309,17 @@ def run_pipeline():
                 )
             except Exception as rec_err:
                 log.warning("Failed to record publication to ledger: %s", rec_err)
+
+            # Autonomous Community Engagement (Channel Director)
+            if director and strategic_brief:
+                try:
+                    director.execute_post_publish(
+                        youtube_id=yt_id,
+                        instagram_id=ig_id,
+                        brief=strategic_brief,
+                    )
+                except Exception as comm_err:
+                    log.warning("Post-publish engagement step skipped non-fatally: %s", comm_err)
 
         total_time = time.time() - total_start
         log.info("==================================================")

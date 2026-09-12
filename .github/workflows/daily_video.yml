@@ -130,7 +130,7 @@ jobs:
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          for f in data/used_topics.json data/channel_ids.json data/used_broll.json data/publish_ledger.json data/analytics_ledger.json data/deprecated_patterns.json data/tuning_playbook.json; do
+          for f in data/used_topics.json data/channel_ids.json data/used_broll.json data/publish_ledger.json data/analytics_ledger.json data/deprecated_patterns.json data/tuning_playbook.json data/strategic_brief.json; do
             [ -f "$f" ] && git add "$f"
           done
           # Only commit if there are changes

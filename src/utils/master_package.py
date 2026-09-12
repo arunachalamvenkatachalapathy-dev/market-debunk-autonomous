@@ -4,9 +4,17 @@ from __future__ import annotations
 import json
 import shutil
 from pathlib import Path
+from typing import Optional
 
 
-def export_master_package(run_dir: Path, thesis: str, script: dict, visuals: list[dict], source_id: str = "") -> Path:
+def export_master_package(
+    run_dir: Path,
+    thesis: str,
+    script: dict,
+    visuals: list[dict],
+    source_id: str = "",
+    strategic_brief: Optional[dict] = None,
+) -> Path:
     """Copy scene assets plus the scene-aligned English script into one package."""
     package_dir = run_dir / "master_visual_package"
     assets_dir = package_dir / "visuals"
@@ -31,6 +39,7 @@ def export_master_package(run_dir: Path, thesis: str, script: dict, visuals: lis
         "source_id": source_id,
         "script": script,
         "scenes": manifest_scenes,
+        "strategic_brief": strategic_brief,
     }
     (package_dir / "master_package.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
