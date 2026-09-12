@@ -248,61 +248,148 @@ def concatenate_voice_audio(voice_results: list[dict], output_path: Path) -> Pat
     return output_path
 
 
+def _load_pcm_stereo_48k(file_path: Path, temp_dir: Path, target_volume: float = 1.0) -> Optional[bytes]:
+    """Helper to load 48kHz stereo 16-bit PCM bytes from WAV or other audio formats."""
+    if not file_path.is_file():
+        return None
+    
+    # If already a 48kHz stereo 16-bit WAV and no volume change, read directly
+    if file_path.suffix.lower() == ".wav" and target_volume == 1.0:
+        try:
+            with wave.open(str(file_path), "rb") as wf:
+                if wf.getnchannels() == 2 and wf.getsampwidth() == 2 and wf.getframerate() == 48000:
+                    return wf.readframes(wf.getnframes())
+        except Exception:
+            pass
+
+    # Otherwise decode via FFmpeg
+    temp_wav = temp_dir / f"decode_{file_path.stem}_{int(target_volume*100)}.wav"
+    try:
+        vol_filter = f"volume={target_volume:.2f}" if target_volume != 1.0 else "anull"
+        _ffmpeg(
+            "-i", str(file_path),
+            "-af", vol_filter,
+            "-ar", "48000",
+            "-ac", "2",
+            "-c:a", "pcm_s16le",
+            str(temp_wav),
+            description=f"decode {file_path.name} to 48kHz PCM"
+        )
+        with wave.open(str(temp_wav), "rb") as wf:
+            return wf.readframes(wf.getnframes())
+    except Exception as exc:
+        log.warning("Could not decode audio asset %s: %s", file_path.name, exc)
+        return None
+    finally:
+        if temp_wav.exists():
+            try:
+                temp_wav.unlink()
+            except Exception:
+                pass
+
+
+def _mix_pcm_into_buffer(
+    buffer: bytearray,
+    sfx_bytes: bytes,
+    start_sec: float,
+    bytes_per_sec: int = 192000,
+    gain: float = 1.0,
+) -> None:
+    """Mixes 48kHz 16-bit stereo PCM bytes into buffer at start_sec with sample-accurate alignment."""
+    if not sfx_bytes or start_sec < 0:
+        return
+    offset = int(start_sec * bytes_per_sec)
+    offset = (offset // 4) * 4  # Align to 4-byte stereo 16-bit sample boundary
+    max_len = min(len(sfx_bytes), len(buffer) - offset)
+    for j in range(0, max_len, 2):
+        orig_val = int.from_bytes(buffer[offset + j : offset + j + 2], "little", signed=True)
+        sfx_val = int.from_bytes(sfx_bytes[j : j + 2], "little", signed=True)
+        if gain != 1.0:
+            sfx_val = int(sfx_val * gain)
+        mixed_val = max(-32768, min(32767, orig_val + sfx_val))
+        buffer[offset + j : offset + j + 2] = mixed_val.to_bytes(2, "little", signed=True)
+
+
 def build_sfx_track(
     voice_results: list[dict],
     total_duration: float,
     output_path: Path,
 ) -> Optional[Path]:
     """
-    Build a continuous 48kHz stereo WAV track containing subtle whooshes on scene cuts.
-    Returns path to sfx WAV file or None if SFX assets are missing.
+    Build a continuous 48kHz stereo WAV master SFX track with high-impact sound design:
+    1. Scene 1 (0.0s): Cinematic sub-bass impact hit timed with warning hook banner.
+    2. Scene Cuts: Crisp, punchy transition whooshes leading cuts by 80ms.
+    3. Scene 3/4 Reveal: Sharp metallic chime / cash ding for trap revelation.
+    4. Final Scene: Snappy UI pop for the spoken CTA.
     """
-    whoosh_src = settings.ASSETS_DIR / "audio" / "whoosh.mp3"
+    sfx_dir = settings.ASSETS_DIR / "audio" / "sfx"
+    audio_dir = settings.ASSETS_DIR / "audio"
+    temp_dir = output_path.parent
+
+    # Find SFX assets with multiple fallbacks
+    impact_src = sfx_dir / "impact_hit.wav"
+    if not impact_src.is_file():
+        impact_src = audio_dir / "impact_hit.wav"
+
+    whoosh_src = sfx_dir / "whoosh.mp3"
     if not whoosh_src.is_file():
-        whoosh_src = settings.ASSETS_DIR / "audio" / "sfx" / "sfx_whoosh.webm"
+        whoosh_src = audio_dir / "whoosh.mp3"
     if not whoosh_src.is_file():
-        log.warning("SFX whoosh asset not found at %s — skipping SFX track generation", whoosh_src)
+        whoosh_src = sfx_dir / "sfx_whoosh.webm"
+
+    ding_src = sfx_dir / "accent_ding.wav"
+    if not ding_src.is_file():
+        ding_src = audio_dir / "accent_ding.wav"
+
+    pop_src = sfx_dir / "pop_accent.wav"
+    if not pop_src.is_file():
+        pop_src = audio_dir / "pop_accent.wav"
+
+    # Load audio buffers
+    impact_bytes = _load_pcm_stereo_48k(impact_src, temp_dir, target_volume=1.0) if impact_src.is_file() else None
+    whoosh_bytes = _load_pcm_stereo_48k(whoosh_src, temp_dir, target_volume=1.05) if whoosh_src.is_file() else None
+    ding_bytes = _load_pcm_stereo_48k(ding_src, temp_dir, target_volume=0.95) if ding_src.is_file() else None
+    pop_bytes = _load_pcm_stereo_48k(pop_src, temp_dir, target_volume=0.90) if pop_src.is_file() else None
+
+    if not any([impact_bytes, whoosh_bytes, ding_bytes, pop_bytes]):
+        log.warning("No SFX assets found in %s or %s — skipping SFX track", sfx_dir, audio_dir)
         return None
 
-    temp_whoosh = output_path.parent / "temp_whoosh.wav"
     try:
-        # Decode whoosh to 48kHz stereo 16-bit PCM, volume boosted to 0.65 (-3.7dB) for punchy transition
-        _ffmpeg(
-            "-i", str(whoosh_src),
-            "-t", "0.5",
-            "-af", "volume=0.65",
-            "-ar", "48000",
-            "-ac", "2",
-            "-c:a", "pcm_s16le",
-            str(temp_whoosh),
-            description="decode whoosh sfx"
-        )
-
-        with wave.open(str(temp_whoosh), "rb") as wf:
-            whoosh_frames = wf.getnframes()
-            whoosh_bytes = wf.readframes(whoosh_frames)
-
-        # 48000 samples/sec * 2 channels * 2 bytes/sample = 192000 bytes/sec
-        bytes_per_sec = 48000 * 2 * 2
+        bytes_per_sec = 48000 * 2 * 2  # 192,000 bytes/sec
         total_bytes = int(total_duration * bytes_per_sec) + bytes_per_sec
         sfx_buffer = bytearray(total_bytes)
 
-        # Place whoosh at each scene transition (scenes 2, 3, 4, 5, 6), leading cut by 80ms
+        # 1. Scene 1 Hook Impact Hit at t = 0.0s
+        if impact_bytes:
+            _mix_pcm_into_buffer(sfx_buffer, impact_bytes, start_sec=0.0, bytes_per_sec=bytes_per_sec)
+            log.info("  ↳ SFX: Added Scene 1 hook impact hit at 0.00s")
+
         sorted_voices = sorted(voice_results, key=lambda r: r["scene_id"])
+        num_scenes = len(sorted_voices)
         current_time = 0.0
+
         for i, voice in enumerate(sorted_voices):
             dur = voice["duration"]
-            if i > 0:  # Start of scene 2 onwards (the cut)
-                lead_time = max(0.0, current_time - 0.08)
-                byte_offset = int(lead_time * bytes_per_sec)
-                # Word-aligned 4-byte sample offset
-                byte_offset = (byte_offset // 4) * 4
-                # Mix whoosh bytes into buffer
-                for j in range(0, min(len(whoosh_bytes), len(sfx_buffer) - byte_offset), 2):
-                    orig_val = int.from_bytes(sfx_buffer[byte_offset + j : byte_offset + j + 2], "little", signed=True)
-                    whoosh_val = int.from_bytes(whoosh_bytes[j : j + 2], "little", signed=True)
-                    mixed_val = max(-32768, min(32767, orig_val + whoosh_val))
-                    sfx_buffer[byte_offset + j : byte_offset + j + 2] = mixed_val.to_bytes(2, "little", signed=True)
+
+            # 2. Transition Whoosh at each scene cut (leading cut by 80ms)
+            if i > 0 and whoosh_bytes:
+                cut_time = max(0.0, current_time - 0.08)
+                _mix_pcm_into_buffer(sfx_buffer, whoosh_bytes, start_sec=cut_time, bytes_per_sec=bytes_per_sec)
+
+            # 3. Core Revelation / Math Trap Accent (Scene 3 or Scene 4)
+            reveal_scene_idx = 2 if num_scenes >= 4 else 1
+            if i == reveal_scene_idx and ding_bytes:
+                ding_time = current_time + 0.12
+                _mix_pcm_into_buffer(sfx_buffer, ding_bytes, start_sec=ding_time, bytes_per_sec=bytes_per_sec)
+                log.info("  ↳ SFX: Added revelation accent ding at %.2fs (Scene %d)", ding_time, i + 1)
+
+            # 4. Final Scene CTA Pop Accent
+            if i == num_scenes - 1 and num_scenes > 2 and pop_bytes:
+                pop_time = current_time + 0.10
+                _mix_pcm_into_buffer(sfx_buffer, pop_bytes, start_sec=pop_time, bytes_per_sec=bytes_per_sec)
+                log.info("  ↳ SFX: Added CTA pop accent at %.2fs (Scene %d)", pop_time, i + 1)
+
             current_time += dur
 
         with wave.open(str(output_path), "wb") as out_wf:
@@ -311,14 +398,11 @@ def build_sfx_track(
             out_wf.setframerate(48000)
             out_wf.writeframes(sfx_buffer)
 
-        log.info(" ✓ Master SFX track built successfully: %s (%.2fs)", output_path.name, total_duration)
+        log.info(" ✓ Master high-impact SFX track built successfully: %s (%.2fs)", output_path.name, total_duration)
         return output_path
     except Exception as e:
-        log.warning("Failed to build SFX track (%s) — proceeding without SFX", e)
+        log.warning("Failed to build high-impact SFX track (%s) — proceeding without SFX", e)
         return None
-    finally:
-        if temp_whoosh.exists():
-            temp_whoosh.unlink()
 
 
 def mux_video_and_audio(video_path: Path, audio_path: Path, output_path: Path) -> Path:
@@ -503,7 +587,7 @@ def mix_bgm(
         # Just normalise loudness with high-presence vocal boost
         _ffmpeg(
             "-i", str(video_path),
-            "-af", "highpass=f=80,equalizer=f=3500:t=q:w=1.5:g=3.5,compand=attacks=0.02:decays=0.1:points=-45/-45|-20/-10|0/-1:soft-knee=6,volume=1.4,loudnorm=I=-12:TP=-0.5:LRA=7",
+            "-af", "highpass=f=80,equalizer=f=3500:t=q:w=1.5:g=3.5,compand=attacks=0.02:decays=0.1:points=-45/-45|-20/-10|0/-1:soft-knee=6,volume=1.5,loudnorm=I=-11:TP=-0.5:LRA=6",
             "-c:v", "copy",
             "-c:a", "aac",
             "-b:a", "192k",
@@ -512,29 +596,29 @@ def mix_bgm(
         )
         return output_path
 
-    # Mix: voice (boosted + EQ) + audible BGM with aggressive ducking under speech.
+    # Mix: voice (boosted + EQ) + audible BGM with gentle, rhythmic ducking under speech.
     vol_factor = 10 ** (bgm_volume_db / 20)
     if use_ducking:
         audio_filter = (
-            "[0:a]highpass=f=80,equalizer=f=3500:t=q:w=1.5:g=3.5,compand=attacks=0.02:decays=0.1:points=-45/-45|-20/-10|0/-1:soft-knee=6,volume=1.4,"
+            "[0:a]highpass=f=80,equalizer=f=3500:t=q:w=1.5:g=3.5,compand=attacks=0.02:decays=0.1:points=-45/-45|-20/-10|0/-1:soft-knee=6,volume=1.5,"
             "aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asplit=2[voice_mix][voice_key];"
             f"[1:a]aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,volume={vol_factor:.4f}[bgm];"
-            "[bgm][voice_key]sidechaincompress=threshold=0.06:ratio=4:attack=30:release=350[ducked];"
-            "[voice_mix][ducked]amix=inputs=2:duration=first:dropout_transition=0,"
+            "[bgm][voice_key]sidechaincompress=threshold=0.10:ratio=2.2:attack=20:release=220[ducked];"
+            "[voice_mix][ducked]amix=inputs=2:duration=first:dropout_transition=0:normalize=0,"
             "aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,"
-            "loudnorm=I=-12:TP=-0.5:LRA=7[out]"
+            "loudnorm=I=-11:TP=-0.5:LRA=6[out]"
         )
-        description = "BGM ducking mix + loudness normalisation (-12 LUFS)"
+        description = "BGM ducking mix + loudness normalisation (-11 LUFS)"
     else:
         audio_filter = (
-            "[0:a]highpass=f=80,equalizer=f=3500:t=q:w=1.5:g=3.5,compand=attacks=0.02:decays=0.1:points=-45/-45|-20/-10|0/-1:soft-knee=6,volume=1.4,"
+            "[0:a]highpass=f=80,equalizer=f=3500:t=q:w=1.5:g=3.5,compand=attacks=0.02:decays=0.1:points=-45/-45|-20/-10|0/-1:soft-knee=6,volume=1.5,"
             "aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo[voice];"
             f"[1:a]aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,volume={vol_factor:.4f}[bgm];"
-            "[voice][bgm]amix=inputs=2:duration=first:dropout_transition=0,"
+            "[voice][bgm]amix=inputs=2:duration=first:dropout_transition=0:normalize=0,"
             "aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,"
-            "loudnorm=I=-12:TP=-0.5:LRA=7[out]"
+            "loudnorm=I=-11:TP=-0.5:LRA=6[out]"
         )
-        description = "BGM simple mix + loudness normalisation (-12 LUFS)"
+        description = "BGM simple mix + loudness normalisation (-11 LUFS)"
 
     _ffmpeg(
         "-i", str(video_path),
@@ -587,7 +671,7 @@ def finalize_without_bgm(video_path: Path, output_path: Path) -> Path:
     try:
         _ffmpeg(
             "-i", str(video_path),
-            "-af", "aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,loudnorm=I=-14:TP=-1:LRA=11",
+            "-af", "aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,loudnorm=I=-11:TP=-0.5:LRA=6",
             "-c:v", "copy",
             "-c:a", "aac",
             "-b:a", "192k",
@@ -656,7 +740,7 @@ def assemble_video(
             _ffmpeg(
                 "-i", str(master_voice_wav),
                 "-i", str(sfx_path),
-                "-filter_complex", "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=0,aformat=sample_fmts=s16:sample_rates=48000:channel_layouts=stereo",
+                "-filter_complex", "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=0:normalize=0,aformat=sample_fmts=s16:sample_rates=48000:channel_layouts=stereo",
                 "-c:a", "pcm_s16le",
                 str(mixed_voice_sfx),
                 description="mix master voice with sfx track"

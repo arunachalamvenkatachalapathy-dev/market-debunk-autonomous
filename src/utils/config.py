@@ -87,7 +87,7 @@ class Settings:
     MIN_VIDEO_DURATION: float = float(_get("MIN_VIDEO_DURATION", default="15.0"))
     MAX_VIDEO_DURATION: float = float(_get("MAX_VIDEO_DURATION", default="45.0"))
     VISUAL_GENERATION_DELAY_SECONDS: float = float(_get("VISUAL_GENERATION_DELAY_SECONDS", default="10"))
-    BGM_VOLUME_DB: float = float(_get("BGM_VOLUME_DB", default="-25.0"))
+    BGM_VOLUME_DB: float = float(_get("BGM_VOLUME_DB", default="-14.5"))
     BGM_MIX_RETRIES: int = int(_get("BGM_MIX_RETRIES", default="3"))
     BGM_MIX_REQUIRED: bool = (_get("BGM_MIX_REQUIRED", default="true") or "true").lower() == "true"
     BGM_MIN_BYTES: int = int(_get("BGM_MIN_BYTES", default="1000000"))
