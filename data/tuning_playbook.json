@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-12T16:22:01.139458+00:00",
+  "last_updated": "2026-09-12T16:29:03.716946+00:00",
   "analyzed_videos_count": 6,
   "optimal_runtime_seconds": 22.0,
   "optimal_word_count": 56,
   "top_performing_topics": [
     "Actionable market timing and technical support levels",
-    "Real estate affordability and middle-class wealth gaps",
-    "Value investing strategies and arbitrage opportunities"
+    "Real-estate affordability and middle-class wealth gaps",
+    "Value investing and arbitrage opportunities in blue-chip assets"
   ],
   "winning_hook_formulas": [
     "The 'Counter-Intuitive Warning' formula: [Stop/Don't] + [Common Action] + [Specific Negative Consequence]",
-    "The 'Wealth Erosion' formula: [Why your] + [Asset/Goal] + [Is slipping away/failing] + [Due to hidden factor]"
+    "The 'FOMO/Loss Aversion' formula: [Urgent Status] + [Why your current strategy] + [is failing you]"
   ],
   "script_directives": [
-    "Maintain a sub-25 second duration to ensure high completion rates and loopability.",
-    "Use high-contrast visual cues (charts/price drops) within the first 3 seconds to validate the hook's claim.",
-    "Focus on a single, high-impact financial insight per video; avoid multi-point lists that cause cognitive overload."
+    "Cut every 2-3 seconds: Use rapid visual transitions or text overlays to maintain high cognitive engagement.",
+    "Eliminate preamble: Start the narration at 0.0s with the hook; avoid intros or channel branding.",
+    "Data-first storytelling: Use specific numbers (e.g., 23600, 30%) to establish immediate authority and credibility."
   ],
   "seo_directives": [
-    "Use specific, searchable financial keywords in the title (e.g., Nifty, Stocks, Real Estate) rather than vague warnings.",
-    "Include high-intent hashtags that target investor behavior like #StockMarketIndia, #PersonalFinance, and #InvestingTips."
+    "Use high-intent keywords in the first 50 characters of the caption to optimize for search discovery.",
+    "Mix 3 broad finance hashtags with 2 niche-specific tags (e.g., #Nifty50, #StockMarketIndia) to balance reach and relevance."
   ]
 }
