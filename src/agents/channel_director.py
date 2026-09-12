@@ -187,10 +187,16 @@ class ChannelDirectorAgent:
     # 3. Formulate Strategic Brief (The Director's Directive)
     # ──────────────────────────────────────────────────────────────────────────
 
-    def formulate_strategic_brief(self, override_slot: Optional[str] = None) -> StrategicBrief:
+    def formulate_strategic_brief(
+        self,
+        topic_data: Optional[Dict[str, Any]] = None,
+        override_slot: Optional[str] = None,
+    ) -> StrategicBrief:
         """
-        Synthesizes trends, audience signals, and anti-repetition rules to create
-        a high-converting StrategicBrief for the day's production run.
+        Synthesizes trends, audience signals, and anti-repetition rules.
+        When topic_data from topic_agent.discover_topic() is provided, acts as the
+        LLM Strategic Layer on top of that fresh sourced story, elevating it with
+        cynical framing, hard statistics, hook formulas, and Tamil adaptation directives.
         """
         utc_hour = datetime.now(timezone.utc).hour
         slot_domain = override_slot or ("MARKET_INVESTING" if utc_hour < 8 else "CONSUMER_DEFENSE")
@@ -208,8 +214,41 @@ class ChannelDirectorAgent:
             except Exception:
                 pass
 
+        sourced_context = ""
+        if topic_data:
+            s_ch = topic_data.get("channel", "Market Intelligence")
+            s_title = topic_data.get("video_title") or topic_data.get("thesis", "")
+            s_thesis = topic_data.get("thesis", "")
+            s_seed = topic_data.get("story_seed", {})
+            s_concept = s_seed.get("concept_name", "")
+            s_oneliner = s_seed.get("concept_one_liner", "")
+            s_anchor = s_seed.get("real_world_anchor", "")
+            s_source_id = topic_data.get("source_id", "")
+            sourced_context = f"""
+PRIMARY SOURCED REAL-WORLD STORY (FROM BATTLE-TESTED SOURCING PIPELINE):
+- Sourced Channel / Provider: {s_ch}
+- Sourced Headline: {s_title}
+- Discovered Core Thesis: {s_thesis}
+- Finance Concept: {s_concept}
+- Concept One-Liner: {s_oneliner}
+- Real-World Anchor: {s_anchor}
+- Source ID: {s_source_id}
+
+MANDATE FOR CHANNEL DIRECTOR:
+Do NOT discard or replace this fresh sourced story with an unrelated generic topic!
+Your mission is to ELEVATE AND SHARPEN THIS EXACT STORY into an elite, cynical, high-retention debunk video:
+1. Elevate the discovered thesis with razor-sharp cynical framing exposing the math, fine print, or marketing trick.
+2. Formulate the cynical strategic angle.
+3. Compute or specify the key statistic / numbers to anchor the debunk.
+4. Select the optimal hook style (HARD_NUMBER_SHOCK, CONFRONTATIONAL_TRUTH, EXPOSING_HYPOCRISY, etc.).
+5. Write the high-converting pinned comment to spark debate or trigger 'GUIDE' comments.
+6. Provide a tailored 'tamil_adaptation_directive' for the Tamil companion pipeline to localize THIS EXACT STORY with native cultural nuance and Tanglish terms.
+"""
+
         prompt = f"""You are the Executive Channel Director & Growth Strategist for an elite, cynical financial debunking media brand ("Market Debunk" in English and "Market Debunk Tamil").
 Your goal: Maximize 30-second view retention, direct-message shares, and comment volume across YouTube Shorts and Instagram Reels.
+
+{sourced_context}
 
 SLOT MANDATE:
 - Slot Domain: {slot_domain}
@@ -223,7 +262,7 @@ RECENTLY COVERED CONCEPTS (STRICT 14-DAY LOCKOUT - DO NOT REPEAT):
 {json.dumps(used_concepts, indent=2)}
 
 DIRECTOR INSTRUCTIONS:
-1. Pick ONE razor-sharp, high-intent financial leak or trap that retail investors / middle-class consumers fall into everyday.
+1. Ground your strategy directly on the PRIMARY SOURCED STORY provided above.
 2. Formulate a CYNICAL, street-smart debunk angle exposing the absurdity and math behind the gimmick.
 3. State the exact numeric calculation or statistic (e.g. "₹15,00,000 lost in 25 years", "18% GST on interest", "6% penalty").
 4. Provide an engaging pinned comment that asks a controversial question or offers a checklist for commenting "GUIDE".
@@ -232,7 +271,7 @@ DIRECTOR INSTRUCTIONS:
 OUTPUT FORMAT:
 Respond ONLY with a valid JSON object matching this schema:
 {{
-  "topic_thesis": "One crisp sentence stating the core trap/myth (e.g. 'Mutual fund regular plans silently siphons 35% of your final wealth to middlemen distributors.')",
+  "topic_thesis": "One crisp sentence stating the sharpened core trap/myth based on the sourced story",
   "strategic_angle": "The cynical, hard-hitting breakdown angle exposing the hidden mechanism",
   "format_type": "STANDALONE",
   "hook_style": "HARD_NUMBER_SHOCK",
@@ -247,13 +286,13 @@ Respond ONLY with a valid JSON object matching this schema:
         brief_dict = self._call_llm_for_brief(prompt)
         if not brief_dict:
             log.warning("Director: LLM brief generation failed; using fallback strategic directive.")
-            brief_dict = self._build_emergency_fallback(slot_domain)
+            brief_dict = self._build_emergency_fallback(slot_domain, topic_data=topic_data)
 
         try:
             brief = StrategicBrief(**brief_dict)
         except Exception as err:
             log.warning("Director: Pydantic validation error (%s); sanitizing fallback brief", err)
-            fallback = self._build_emergency_fallback(slot_domain)
+            fallback = self._build_emergency_fallback(slot_domain, topic_data=topic_data)
             brief = StrategicBrief(**fallback)
 
         try:
@@ -315,8 +354,29 @@ Respond ONLY with a valid JSON object matching this schema:
 
         return None
 
-    def _build_emergency_fallback(self, slot_domain: str) -> Dict[str, Any]:
-        """Provides an evergreen high-retention strategic brief if LLM calls fail."""
+    def _build_emergency_fallback(
+        self,
+        slot_domain: str,
+        topic_data: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """Provides an emergency strategic brief if LLM calls fail."""
+        if topic_data:
+            thesis = topic_data.get("thesis") or topic_data.get("video_title", "Financial Myth Debunk")
+            seed = topic_data.get("story_seed", {})
+            concept = seed.get("concept_name", "Financial Mechanism")
+            channel = topic_data.get("channel", "Market Intelligence")
+            return {
+                "topic_thesis": thesis,
+                "strategic_angle": f"Exposing the hidden fees, fine print, and math behind {concept}.",
+                "format_type": "STANDALONE",
+                "hook_style": "HARD_NUMBER_SHOCK",
+                "key_statistic": "Real financial impact exposed",
+                "target_emotion": "Shock and urgent urge to verify personal accounts",
+                "pinned_comment_text": "Did your bank or broker push you into this? Drop your thoughts below, or comment 'GUIDE' for our checklist! 💬👇",
+                "tamil_adaptation_directive": f"Break down '{thesis}' with relatable Tanglish terms. Explain the exact math in lakhs and focus on middle-class consumer impact in Tamil Nadu.",
+                "source_signal": f"Fresh Sourced Story ({channel})",
+            }
+
         if slot_domain == "MARKET_INVESTING":
             return {
                 "topic_thesis": "Mutual fund regular plans secretly pocket 35% of your final returns compared to zero-commission direct plans.",
