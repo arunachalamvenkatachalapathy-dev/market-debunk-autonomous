@@ -145,6 +145,13 @@ jobs:
             echo "TAMIL_WORKFLOW_TOKEN is missing. English completed, but Tamil trigger was skipped."
             exit 0
           fi
+          # Guard: Only trigger Tamil if a master visual package was actually produced in this run
+          MANIFEST_FILE=$(find output -name master_package.json -print -quit 2>/dev/null || true)
+          if [ -z "$MANIFEST_FILE" ]; then
+            echo "🛑 No master visual package produced in this English run (e.g. cooldown active or skipped). Skipping Tamil trigger."
+            exit 0
+          fi
+          echo "✓ Master visual package verified ($MANIFEST_FILE). Triggering Tamil companion pipeline..."
           gh workflow run daily_video.yml \
             --repo arunachalamvenkatachalapathy-dev/market-debunk-tamil \
             --ref master \
