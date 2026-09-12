@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-12T08:09:06.018710+00:00",
+  "last_updated": "2026-09-12T08:36:23.536252+00:00",
   "analyzed_videos_count": 6,
   "optimal_runtime_seconds": 22.0,
   "optimal_word_count": 56,
   "top_performing_topics": [
     "Actionable market timing and technical support levels",
     "Real estate affordability and middle-class wealth gaps",
-    "Value investing strategies and stock valuation anomalies"
+    "Value investing strategies and arbitrage opportunities"
   ],
   "winning_hook_formulas": [
-    "The 'Stop/Warning' Command: Start with an urgent imperative to prevent a specific financial mistake (e.g., 'Stop doing X before you check Y').",
-    "The 'Hidden Reality' Reveal: Highlight a painful financial truth that contradicts common savings advice (e.g., 'Why your X is actually making you poorer')."
+    "The 'Counter-Intuitive Warning' formula: [Stop/Don't] + [Common Action] + [Specific Negative Consequence]",
+    "The 'Missing Out' formula: [Urgent Problem] + [While your money/savings] + [Status Quo/Stagnation]"
   ],
   "script_directives": [
-    "Eliminate fluff: Start the hook within the first 0.5 seconds and maintain a high-density information flow with no pauses.",
-    "Visual anchoring: Use on-screen text overlays for every key metric or support level mentioned to increase cognitive retention.",
-    "The 'Gap' structure: Present a problem in the first 5 seconds, provide a counter-intuitive insight in the middle, and end with a specific, non-generic action item."
+    "Start with high-contrast visual or text overlays that directly address the hook within the first 1.5 seconds.",
+    "Maintain a rapid-fire cadence with zero dead air; transition between points every 3-5 seconds to prevent drop-offs.",
+    "End with a 'Save for later' call-to-action that references a specific data point or level mentioned in the video."
   ],
   "seo_directives": [
-    "Use high-intent keywords in the title that address specific financial pain points (e.g., 'Nifty', 'Stocks', 'Home Prices').",
-    "Combine broad niche tags with specific ticker or asset-class hashtags to trigger the algorithm's interest-based recommendation engine."
+    "Use high-intent, long-tail keywords in the title that address specific financial pain points rather than broad categories.",
+    "Limit hashtags to 3-4 highly relevant tags (e.g., #StockMarketIndia, #PersonalFinance, #InvestmentStrategy) to avoid algorithmic dilution."
   ]
 }
