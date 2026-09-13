@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-13T09:27:46.129575+00:00",
+  "last_updated": "2026-09-13T09:37:16.562768+00:00",
   "analyzed_videos_count": 8,
   "optimal_runtime_seconds": 22.5,
   "optimal_word_count": 58,
   "top_performing_topics": [
-    "Actionable market timing and technical support analysis",
-    "Asset pricing anomalies and wealth-gap warnings",
-    "High-stakes risk warnings regarding global market exposure"
+    "Actionable market timing and technical support levels",
+    "Wealth preservation against systemic economic shifts",
+    "Arbitrage and valuation gaps in established assets"
   ],
   "winning_hook_formulas": [
-    "The 'Stop/Warning' formula: [Negative Action] + [Specific Financial Metric/Level] + [Consequence]",
-    "The 'Opportunity Cost' formula: [Urgent Pain Point] + [Why Current Strategy is Failing] + [Implied Solution]"
+    "The 'Stop/Warning' constraint: Start with a negative imperative followed by a specific technical or financial threshold (e.g., 'Stop doing X before you check Y').",
+    "The 'Hidden Reality' reveal: Highlight a painful financial gap between current savings and future goals to trigger immediate viewer anxiety and curiosity."
   ],
   "script_directives": [
-    "Keep total duration strictly between 20-22 seconds to maintain high completion rates.",
-    "Eliminate preamble; start immediately with the warning or the specific numerical data point.",
-    "Use high-contrast visual callouts for numbers (e.g., support levels, percentages) to anchor viewer attention."
+    "Maintain a strict duration between 20-24 seconds to prevent audience fatigue.",
+    "Eliminate fluff; start the value proposition within the first 1.5 seconds to avoid the 'skip' threshold.",
+    "Use high-stakes, direct address narration that frames the viewer as a potential victim of market mechanics unless they take the suggested action."
   ],
   "seo_directives": [
-    "Use high-intent keywords in titles that address specific financial fears (e.g., 'Nifty', 'Stocks', 'Home Prices').",
-    "Limit hashtags to 3-4 highly relevant finance tags to avoid algorithm dilution and prioritize search discoverability."
+    "Use high-intent, contrarian keywords in the title that challenge common retail investor behavior.",
+    "Limit hashtags to 3-4 highly specific financial tags to ensure algorithm categorization without appearing spammy."
   ]
 }
