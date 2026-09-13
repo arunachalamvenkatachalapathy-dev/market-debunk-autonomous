@@ -306,5 +306,33 @@
       "facebook": "3233722260155984"
     },
     "audited": false
+  },
+  {
+    "timestamp": "2026-09-13T17:05:58.919545+00:00",
+    "title": "WhatsApp Scam Alert: Bank Accounts Drained in #Shorts",
+    "topic": "Opening a disguised 'wedding invite' or 'utility bill' sent by a trusted family member on WhatsApp can silently execute a trojan script that empties your linked bank accounts in under 180 seconds.",
+    "hook": "🚨 That ‘wedding invite’ from family could drain your bank account in 180 seconds",
+    "hashtags": [
+      "#MarketDebunk",
+      "#StockMarketMyths",
+      "#RetailInvestor",
+      "#F&O",
+      "#OptionsTrading",
+      "#IndianStockMarket",
+      "#NiftyAlert",
+      "#NSEIndia"
+    ],
+    "duration_seconds": 30.528000000000002,
+    "urls": {
+      "youtube": "https://www.youtube.com/shorts/FpCxIGcPEB0",
+      "instagram": "https://www.instagram.com/reel/DdPDmZRkkG6/",
+      "facebook": "https://www.facebook.com/reel/1434882265181251/"
+    },
+    "ids": {
+      "youtube": "FpCxIGcPEB0",
+      "instagram": "17907220239514015",
+      "facebook": "1434882265181251"
+    },
+    "audited": false
   }
 ]
