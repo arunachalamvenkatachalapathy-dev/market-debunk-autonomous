@@ -1,11 +1,11 @@
 {
-  "topic_thesis": "Choosing a hospital room above your health insurance policy's 1% room-rent limit triggers proportionate deduction, wiping out up to 50% of your total claim settlement.",
-  "strategic_angle": "Expose how insurance companies hide the 'Proportionate Deduction Clause' in room rent caps, forcing policyholders to pay ICU, surgeon, and diagnostic fees out-of-pocket even if the total bill is below the sum insured.",
+  "topic_thesis": "Health insurers collect 100% of your premium from day one while hiding 24 to 48-month Pre-Existing Disease (PED) clauses that legally allow them to reject 100% of your medical claims during your most vulnerable years.",
+  "strategic_angle": "Expose the systemic trap where agents pitch 'instant full coverage' to collect high upfront commissions, while fine-print waiting period clauses convert your first 2-4 years of premiums into guaranteed profit for the insurer with zero claim risk.",
   "format_type": "STANDALONE",
   "hook_style": "HARD_NUMBER_SHOCK",
-  "key_statistic": "50% claim loss / \u20b92,50,000 out-of-pocket penalty",
-  "target_emotion": "Panic and urgency to immediately verify policy room-rent capping clauses",
-  "pinned_comment_text": "Did your health insurance pay less than expected on your last claim? Drop your experience below, or comment 'POLICY' for our room-rent check guide! \ud83c\udfe5\ud83d\udc47",
-  "tamil_adaptation_directive": "Focus on middle-class families in Tamil Nadu. Use relatable Tanglish phrases like 'Insurance Claim Gaali' and 'Hospital Bill Trap', breaking down how an extra \u20b91,000 room upgrade leads to a \u20b92.5 Lakh loss.",
-  "source_signal": "Middle-class consumer health insurance claim dispute trends"
+  "key_statistic": "48-month waiting period / \u20b91,00,000 premiums paid for \u20b90 claim eligibility",
+  "target_emotion": "Shock and immediate urge to audit existing health insurance policies",
+  "pinned_comment_text": "Did your insurance agent sell you a policy without disclosing the 2-4 year PED waiting period? Comment 'CHECK' to get our free 3-step Policy Audit Checklist directly in your DMs! \ud83d\udcac\ud83d\udc47",
+  "tamil_adaptation_directive": "Focus on middle-class Tamil Nadu families purchasing health plans through bank managers or agents ('Agent Sonna Nambaadheenga'). Highlight Tanglish terms like 'PED Waiting Period Trap', 'Claim Reject Aagama Look-in Period', and show how diabetes or BP declared late leads to absolute claim rejection despite paying 3 years of regular premiums.",
+  "source_signal": "serp:4c62b8d0f3f836b2"
 }

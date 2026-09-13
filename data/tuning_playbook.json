@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-12T16:33:07.760847+00:00",
-  "analyzed_videos_count": 6,
+  "last_updated": "2026-09-13T08:33:53.351936+00:00",
+  "analyzed_videos_count": 7,
   "optimal_runtime_seconds": 22.0,
   "optimal_word_count": 56,
   "top_performing_topics": [
-    "Actionable market timing and technical support analysis",
-    "Real-estate affordability and middle-class wealth erosion",
-    "Value-based stock picking and arbitrage opportunities"
+    "Actionable market timing and technical support levels",
+    "Real estate affordability and middle-class wealth gaps",
+    "Value investing and arbitrage opportunities in stock pricing"
   ],
   "winning_hook_formulas": [
-    "The 'Urgency-Warning' Formula: [Warning Emoji] Stop [Common Action] before you [Specific Negative Consequence].",
-    "The 'Counter-Intuitive Opportunity' Formula: [Money Emoji] Stop [Common Action] when you can [Superior Alternative/Discounted Action]."
+    "The 'Counter-Intuitive Warning' formula: [Action/Belief] + [Negative Consequence] + [Critical Knowledge Gap]",
+    "The 'Opportunity Cost' formula: [Common Financial Habit] + [Financial Loss/Missed Gain] + [Specific Solution]"
   ],
   "script_directives": [
-    "Maintain a sub-25 second duration to ensure high completion rates.",
-    "Front-load the core value proposition within the first 3 seconds to prevent immediate scroll-offs.",
-    "Use high-contrast visual cues (charts or price drops) to anchor the narrative to tangible financial data."
+    "Start with a high-stakes visual or verbal warning within the first 1.5 seconds to prevent immediate scroll-off.",
+    "Maintain a rapid-fire cadence with zero dead air; transition between points using visual overlays or text pops every 3-4 seconds.",
+    "End with a 'Save for later' call-to-action that promises a specific, actionable reference point (e.g., a support level or a specific stock metric)."
   ],
   "seo_directives": [
-    "Use high-intent keywords in the title that address specific investor pain points like 'Nifty', 'Stocks', or 'Savings'.",
-    "Include a mix of broad finance tags (#StockMarketIndia, #Investing) and specific niche tags related to the video topic to improve algorithmic categorization."
+    "Use high-intent keywords in the first 50 characters of the caption to ensure search discoverability for specific financial queries.",
+    "Limit hashtags to 3-5 highly relevant tags that blend broad finance categories with specific niche identifiers like #NiftyAnalysis or #ValueInvesting."
   ]
 }

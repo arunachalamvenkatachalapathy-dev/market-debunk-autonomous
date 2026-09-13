@@ -193,7 +193,7 @@
       "instagram": "DdIww9WkT_U",
       "facebook": "1615878403260153"
     },
-    "audited": false
+    "audited": true
   },
   {
     "timestamp": "2026-09-11T16:56:00.303246+00:00",
@@ -276,6 +276,34 @@
       "youtube": "-c31uS5H9l0",
       "instagram": "DdMaO8FEgIJ",
       "facebook": "1045482721658102"
+    },
+    "audited": false
+  },
+  {
+    "timestamp": "2026-09-13T08:39:32.577300+00:00",
+    "title": "Health Insurance: 48-Month Claim Trap #Shorts",
+    "topic": "Health insurers collect 100% of your premium from day one while hiding 24 to 48-month Pre-Existing Disease (PED) clauses that legally allow them to reject 100% of your medical claims during your most vulnerable years.",
+    "hook": "🚨 Why your health insurance claim gets rejected despite paying 100% premium",
+    "hashtags": [
+      "#MoneyMistakes",
+      "#FinanceLiteracy",
+      "#NiftyTrading",
+      "#IndiaInvests",
+      "#SwingTrading",
+      "#IndianStockMarket",
+      "#NiftyAlert",
+      "#NSEIndia"
+    ],
+    "duration_seconds": 29.688,
+    "urls": {
+      "youtube": "https://www.youtube.com/shorts/RV-v2Tl2oDs",
+      "instagram": "https://www.instagram.com/reel/DdOJpoJjBiM/",
+      "facebook": "https://www.facebook.com/reel/3233722260155984/"
+    },
+    "ids": {
+      "youtube": "RV-v2Tl2oDs",
+      "instagram": "18088660574558640",
+      "facebook": "3233722260155984"
     },
     "audited": false
   }
