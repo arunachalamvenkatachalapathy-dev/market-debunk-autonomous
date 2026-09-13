@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-13T08:33:53.351936+00:00",
-  "analyzed_videos_count": 7,
-  "optimal_runtime_seconds": 22.0,
-  "optimal_word_count": 56,
+  "last_updated": "2026-09-13T09:27:46.129575+00:00",
+  "analyzed_videos_count": 8,
+  "optimal_runtime_seconds": 22.5,
+  "optimal_word_count": 58,
   "top_performing_topics": [
-    "Actionable market timing and technical support levels",
-    "Real estate affordability and middle-class wealth gaps",
-    "Value investing and arbitrage opportunities in stock pricing"
+    "Actionable market timing and technical support analysis",
+    "Asset pricing anomalies and wealth-gap warnings",
+    "High-stakes risk warnings regarding global market exposure"
   ],
   "winning_hook_formulas": [
-    "The 'Counter-Intuitive Warning' formula: [Action/Belief] + [Negative Consequence] + [Critical Knowledge Gap]",
-    "The 'Opportunity Cost' formula: [Common Financial Habit] + [Financial Loss/Missed Gain] + [Specific Solution]"
+    "The 'Stop/Warning' formula: [Negative Action] + [Specific Financial Metric/Level] + [Consequence]",
+    "The 'Opportunity Cost' formula: [Urgent Pain Point] + [Why Current Strategy is Failing] + [Implied Solution]"
   ],
   "script_directives": [
-    "Start with a high-stakes visual or verbal warning within the first 1.5 seconds to prevent immediate scroll-off.",
-    "Maintain a rapid-fire cadence with zero dead air; transition between points using visual overlays or text pops every 3-4 seconds.",
-    "End with a 'Save for later' call-to-action that promises a specific, actionable reference point (e.g., a support level or a specific stock metric)."
+    "Keep total duration strictly between 20-22 seconds to maintain high completion rates.",
+    "Eliminate preamble; start immediately with the warning or the specific numerical data point.",
+    "Use high-contrast visual callouts for numbers (e.g., support levels, percentages) to anchor viewer attention."
   ],
   "seo_directives": [
-    "Use high-intent keywords in the first 50 characters of the caption to ensure search discoverability for specific financial queries.",
-    "Limit hashtags to 3-5 highly relevant tags that blend broad finance categories with specific niche identifiers like #NiftyAnalysis or #ValueInvesting."
+    "Use high-intent keywords in titles that address specific financial fears (e.g., 'Nifty', 'Stocks', 'Home Prices').",
+    "Limit hashtags to 3-4 highly relevant finance tags to avoid algorithm dilution and prioritize search discoverability."
   ]
 }
