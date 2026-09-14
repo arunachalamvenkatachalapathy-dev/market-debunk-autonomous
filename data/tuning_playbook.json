@@ -1,25 +1,24 @@
 {
-  "last_updated": "2026-09-14T09:59:00.944508+00:00",
+  "last_updated": "2026-09-14T17:42:39.574245+00:00",
   "analyzed_videos_count": 10,
   "optimal_runtime_seconds": 22.3,
   "optimal_word_count": 57,
   "top_performing_topics": [
-    "hidden charges",
-    "EMI trap",
-    "F&O lot size margin traps",
-    "credit card tricks"
+    "Retail investment traps and market timing warnings",
+    "Macro-economic wealth erosion (inflation vs. savings)",
+    "Contrarian asset valuation (buying at discounts)"
   ],
   "winning_hook_formulas": [
-    "Open with the exact Rupee amount quietly lost: 'Your bank took ₹X without an alert'",
-    "Contradict popular wisdom: 'Why your zero-cost EMI is actually charging 18% GST'"
+    "The 'Stop Doing X' Warning: [Negative Action] + [Specific Financial Risk] + [Urgency]",
+    "The 'Hidden Loss' Reveal: [Common Financial Product] + [Emotional Trigger/Negative Consequence] + [Why it is failing the viewer]"
   ],
   "script_directives": [
-    "Keep Scene 1 under 8 words for immediate hook velocity.",
-    "Introduce the financial trap mechanism by Scene 3.",
-    "Always end with a dual CTA: save the video and comment 'GUIDE'."
+    "Keep total duration strictly under 22 seconds to maximize loop potential.",
+    "Use high-contrast, negative-space visuals to emphasize the 'trap' or 'loss' immediately at the 0-2 second mark.",
+    "Eliminate all fluff; start the value proposition within the first 3 seconds and maintain a high-intensity, cautionary tone throughout."
   ],
   "seo_directives": [
-    "Prioritize problem-aware hashtags (#MoneyMistakes, #HiddenFees).",
-    "Ensure caption line 1 matches spoken hook word-for-word."
+    "Use titles that frame the content as a 'secret' or 'trap' to trigger curiosity and high click-through rates.",
+    "Include high-intent, niche-specific hashtags like #StockMarketIndia, #PersonalFinance, and #InvestingTips to target the algorithm toward financially literate audiences."
   ]
 }
