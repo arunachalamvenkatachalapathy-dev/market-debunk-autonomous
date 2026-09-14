@@ -234,9 +234,9 @@ class AnalyticsSensor:
                 log.info("✓ Meta Graph API insights for %s: %s", numeric_id, metrics)
                 return metrics
             else:
-                log.debug("Instagram insights for %s returned HTTP %d: %s", numeric_id, res.status_code, res.text[:150])
+                log.warning("Instagram insights for %s returned HTTP %d: %s", numeric_id, res.status_code, res.text[:150])
         except Exception as exc:
-            log.debug("Instagram insights request failed: %s", exc)
+            log.warning("Instagram insights request failed for %s: %s", numeric_id, exc)
 
         return {}
 

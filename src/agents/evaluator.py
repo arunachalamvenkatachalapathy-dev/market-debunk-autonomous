@@ -123,7 +123,10 @@ _FINANCIAL_CONCEPTS: dict[str, tuple[str, ...]] = {
     # ── Market & Stock Investing Debunks ──────────────────────────────────────
     "expense_ratio": ("expense ratio", "regular plan", "direct plan", "mutual fund fee", "commission cut", "expense ratios", "fund fee"),
     "options_trading": ("f&o", "options trading", "expiry day", "call option", "put option", "sebi options", "lot size margin"),
-    "fixed_deposit": ("fixed deposit tax", "fd inflation", "tds on fd", "real return fd", "negative real return", "fd vs inflation"),
+    "fixed_deposit": (
+        "fixed deposit", "fixed deposits", "fd", "fds", "term deposit", "term deposits",
+        "fixed deposit tax", "fd inflation", "tds on fd", "real return fd", "negative real return", "fd vs inflation", "fd rate", "fd rates"
+    ),
     "ipo_valuation_trap": ("ipo trap", "overvalued ipo", "ipo listing gain", "ipo grey market", "sme ipo", "gmp trap", "anchor investor lock"),
     "dividend_yield_trap": ("dividend yield trap", "high dividend trap", "dividend payout ratio", "dividend myth", "chasing high dividend"),
     "algorithmic_trading_scam": ("algo trading scam", "algorithmic trading scam", "guaranteed algo", "trading bot scam"),
