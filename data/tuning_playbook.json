@@ -1,25 +1,24 @@
 {
-  "last_updated": "2026-09-14T18:41:08.825561+00:00",
+  "last_updated": "2026-09-14T18:52:04.452662+00:00",
   "analyzed_videos_count": 10,
   "optimal_runtime_seconds": 22.3,
   "optimal_word_count": 57,
   "top_performing_topics": [
-    "hidden charges",
-    "EMI trap",
-    "F&O lot size margin traps",
-    "credit card tricks"
+    "Retail investment traps (Nifty/Market timing)",
+    "Wealth erosion (Inflation vs. FD/Savings)",
+    "Asset accessibility/valuation (Home ownership, Discounted stocks)"
   ],
   "winning_hook_formulas": [
-    "Open with the exact Rupee amount quietly lost: 'Your bank took ₹X without an alert'",
-    "Contradict popular wisdom: 'Why your zero-cost EMI is actually charging 18% GST'"
+    "The 'Stop/Warning' Imperative: Start with a negative command followed by a specific, high-stakes consequence (e.g., 'Stop doing X before you lose Y').",
+    "The 'Hidden Loss' Reveal: Highlight a common financial product and frame it as a 'secret' or 'silent' mechanism that is actively making the viewer poorer."
   ],
   "script_directives": [
-    "Keep Scene 1 under 8 words for immediate hook velocity.",
-    "Introduce the financial trap mechanism by Scene 3.",
-    "Always end with a dual CTA: save the video and comment 'GUIDE'."
+    "Keep total duration strictly between 20-22 seconds to maintain high completion rates.",
+    "Use high-contrast, urgent visual cues (e.g., red warning icons or downward trend lines) within the first 3 seconds to match the hook's intensity.",
+    "Eliminate fluff; start the value proposition immediately after the hook without introductory greetings or channel branding."
   ],
   "seo_directives": [
-    "Prioritize problem-aware hashtags (#MoneyMistakes, #HiddenFees).",
-    "Ensure caption line 1 matches spoken hook word-for-word."
+    "Use titles that frame the content as a 'trap' or 'secret' to trigger curiosity-based clicks.",
+    "Include high-intent, niche-specific hashtags (e.g., #StockMarketIndia, #PersonalFinanceIndia, #InvestingTips) rather than generic broad tags."
   ]
 }
