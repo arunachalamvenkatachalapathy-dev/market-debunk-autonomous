@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-13T16:59:52.912554+00:00",
-  "analyzed_videos_count": 8,
-  "optimal_runtime_seconds": 22.5,
-  "optimal_word_count": 58,
+  "last_updated": "2026-09-14T09:48:24.885564+00:00",
+  "analyzed_videos_count": 10,
+  "optimal_runtime_seconds": 22.3,
+  "optimal_word_count": 57,
   "top_performing_topics": [
-    "Market timing and technical support levels for retail investors",
-    "Asset valuation and identifying 'discounted' entry points in blue-chip stocks",
-    "Macro-economic barriers to middle-class wealth accumulation"
+    "Retail investment traps (Nifty/Stocks)",
+    "Wealth erosion (Inflation vs. Savings)",
+    "Macro-financial barriers (Housing/Global markets)"
   ],
   "winning_hook_formulas": [
-    "The 'Warning/Stop' Formula: [Negative Action] + [Specific Financial Metric/Level] + [Consequence]",
-    "The 'FOMO/Loss' Formula: [Urgent Emotional Trigger] + [Common Financial Habit] + [Hidden Reality]"
+    "The 'Stop Doing X' Warning: Start with a negative imperative that directly challenges a common, seemingly safe financial habit.",
+    "The 'Hidden Loss' Reveal: Highlight a specific, relatable financial vehicle (FDs, home buying) and frame it as a 'secret' mechanism of wealth destruction."
   ],
   "script_directives": [
-    "Keep total duration under 22 seconds to maintain high completion rates.",
-    "Eliminate preamble; start the video mid-sentence with the core conflict or data point.",
-    "Use high-contrast visual overlays (charts/numbers) every 3 seconds to reset viewer attention."
+    "Keep total duration strictly between 20-22 seconds to maintain high completion rates.",
+    "Eliminate preamble; start the hook within the first 1.5 seconds using high-contrast visual or auditory cues.",
+    "Use a 'Problem-Insight-Action' structure: identify the pain point, reveal the hidden cost, and provide a singular, actionable takeaway."
   ],
   "seo_directives": [
-    "Use high-intent keywords in titles that promise a specific 'how-to' or 'what-to-avoid' outcome.",
-    "Limit hashtags to 3 highly relevant tags (e.g., #StockMarketIndia, #InvestingTips, #PersonalFinance) to avoid algorithm confusion."
+    "Use high-intent keywords in the title that address specific financial anxieties (e.g., 'Stop', 'Trap', 'Loss').",
+    "Limit hashtags to 3-4 highly relevant tags that focus on Indian finance niches like #StockMarketIndia and #PersonalFinance."
   ]
 }

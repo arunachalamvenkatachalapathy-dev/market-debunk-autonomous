@@ -249,7 +249,7 @@
       "instagram": "DdLidYeDruH",
       "facebook": "2918244415202993"
     },
-    "audited": false
+    "audited": true
   },
   {
     "timestamp": "2026-09-12T16:26:01.168587+00:00",
@@ -277,7 +277,7 @@
       "instagram": "DdMaO8FEgIJ",
       "facebook": "1045482721658102"
     },
-    "audited": false
+    "audited": true
   },
   {
     "timestamp": "2026-09-13T08:39:32.577300+00:00",
@@ -332,6 +332,34 @@
       "youtube": "FpCxIGcPEB0",
       "instagram": "17907220239514015",
       "facebook": "1434882265181251"
+    },
+    "audited": false
+  },
+  {
+    "timestamp": "2026-09-14T09:54:07.325137+00:00",
+    "title": "Fixed Deposit Rate: -1.2% Real Return #Shorts",
+    "topic": "Banks are drowning in a record ₹10 Trillion liquidity surplus, allowing them to slash FD rates while inflation and taxes quietly destroy your real savings.",
+    "hook": "🚨 Your bank FD is losing money every single day—here’s why",
+    "hashtags": [
+      "#WealthCreationIndia",
+      "#SIPInvesting",
+      "#IntradayTrading",
+      "#MarketDebunk",
+      "#SmartInvesting",
+      "#IndianStockMarket",
+      "#NiftyAlert",
+      "#NSEIndia"
+    ],
+    "duration_seconds": 25.464,
+    "urls": {
+      "youtube": "https://www.youtube.com/shorts/I_E4U14lLYc",
+      "instagram": "https://www.instagram.com/reel/DdQ2_ZxAApD/",
+      "facebook": "https://www.facebook.com/reel/4516437151943376/"
+    },
+    "ids": {
+      "youtube": "I_E4U14lLYc",
+      "instagram": "17936910984368818",
+      "facebook": "4516437151943376"
     },
     "audited": false
   }
