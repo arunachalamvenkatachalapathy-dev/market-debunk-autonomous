@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-14T18:52:04.452662+00:00",
+  "last_updated": "2026-09-14T18:54:50.863399+00:00",
   "analyzed_videos_count": 10,
   "optimal_runtime_seconds": 22.3,
   "optimal_word_count": 57,
   "top_performing_topics": [
-    "Retail investment traps (Nifty/Market timing)",
-    "Wealth erosion (Inflation vs. FD/Savings)",
-    "Asset accessibility/valuation (Home ownership, Discounted stocks)"
+    "Market Timing & Technical Support Levels",
+    "Macro-Economic Wealth Erosion (Inflation vs. Savings)",
+    "Asset Valuation Discrepancies (Discounted Stocks/Real Estate)"
   ],
   "winning_hook_formulas": [
-    "The 'Stop/Warning' Imperative: Start with a negative command followed by a specific, high-stakes consequence (e.g., 'Stop doing X before you lose Y').",
-    "The 'Hidden Loss' Reveal: Highlight a common financial product and frame it as a 'secret' or 'silent' mechanism that is actively making the viewer poorer."
+    "The 'Counter-Intuitive Warning' Formula: [Warning Emoji] + [Common Financial Habit] + [The Hidden Danger/Trap]",
+    "The 'Urgency/FOMO' Formula: [Alarm Emoji] + [Specific Pain Point] + [The Consequence of Inaction]"
   ],
   "script_directives": [
-    "Keep total duration strictly between 20-22 seconds to maintain high completion rates.",
-    "Use high-contrast, urgent visual cues (e.g., red warning icons or downward trend lines) within the first 3 seconds to match the hook's intensity.",
-    "Eliminate fluff; start the value proposition immediately after the hook without introductory greetings or channel branding."
+    "Keep total duration under 22 seconds to force high repeat-view rates.",
+    "Eliminate fluff intros; start the hook within the first 0.5 seconds of the video.",
+    "Use high-contrast visual callouts for numbers and percentages to anchor viewer attention."
   ],
   "seo_directives": [
-    "Use titles that frame the content as a 'trap' or 'secret' to trigger curiosity-based clicks.",
-    "Include high-intent, niche-specific hashtags (e.g., #StockMarketIndia, #PersonalFinanceIndia, #InvestingTips) rather than generic broad tags."
+    "Use specific, searchable financial keywords in the title (e.g., Nifty, FD, Stocks) rather than generic clickbait.",
+    "Limit hashtags to 3-4 highly relevant tags (e.g., #StockMarketIndia, #PersonalFinance, #Investing) to avoid algorithm confusion."
   ]
 }
