@@ -1,24 +1,25 @@
 {
-  "last_updated": "2026-09-14T09:48:24.885564+00:00",
+  "last_updated": "2026-09-14T09:59:00.944508+00:00",
   "analyzed_videos_count": 10,
   "optimal_runtime_seconds": 22.3,
   "optimal_word_count": 57,
   "top_performing_topics": [
-    "Retail investment traps (Nifty/Stocks)",
-    "Wealth erosion (Inflation vs. Savings)",
-    "Macro-financial barriers (Housing/Global markets)"
+    "hidden charges",
+    "EMI trap",
+    "F&O lot size margin traps",
+    "credit card tricks"
   ],
   "winning_hook_formulas": [
-    "The 'Stop Doing X' Warning: Start with a negative imperative that directly challenges a common, seemingly safe financial habit.",
-    "The 'Hidden Loss' Reveal: Highlight a specific, relatable financial vehicle (FDs, home buying) and frame it as a 'secret' mechanism of wealth destruction."
+    "Open with the exact Rupee amount quietly lost: 'Your bank took ₹X without an alert'",
+    "Contradict popular wisdom: 'Why your zero-cost EMI is actually charging 18% GST'"
   ],
   "script_directives": [
-    "Keep total duration strictly between 20-22 seconds to maintain high completion rates.",
-    "Eliminate preamble; start the hook within the first 1.5 seconds using high-contrast visual or auditory cues.",
-    "Use a 'Problem-Insight-Action' structure: identify the pain point, reveal the hidden cost, and provide a singular, actionable takeaway."
+    "Keep Scene 1 under 8 words for immediate hook velocity.",
+    "Introduce the financial trap mechanism by Scene 3.",
+    "Always end with a dual CTA: save the video and comment 'GUIDE'."
   ],
   "seo_directives": [
-    "Use high-intent keywords in the title that address specific financial anxieties (e.g., 'Stop', 'Trap', 'Loss').",
-    "Limit hashtags to 3-4 highly relevant tags that focus on Indian finance niches like #StockMarketIndia and #PersonalFinance."
+    "Prioritize problem-aware hashtags (#MoneyMistakes, #HiddenFees).",
+    "Ensure caption line 1 matches spoken hook word-for-word."
   ]
 }
