@@ -81,18 +81,23 @@ def source_all_visuals(scenes: list, output_dir: Path, story_seed: Optional[dict
                 sourced = True
 
         if not sourced:
-            # Fallback: Use presenter portrait still with cinematic ken-burns pan-zoom
-            scene_img_path = output_dir / f"scene_{scene_id}.png"
-            if PRESENTER_AVATAR_PATH.exists() and PRESENTER_AVATAR_PATH.stat().st_size > 0:
-                shutil.copy2(PRESENTER_AVATAR_PATH, scene_img_path)
-                visual_paths.append({
-                    "scene_id": scene_id,
-                    "asset_type": "image",
-                    "asset_path": str(scene_img_path.resolve()),
-                    "source": "presenter_avatar"
-                })
-                log.info(" ✓ Scene %d visual fallback to presenter avatar", scene_id)
-            else:
-                raise RuntimeError(f"Could not source visual for scene {scene_id} and presenter avatar missing.")
-
+            # Generate a simple blurred placeholder video (5 seconds) for the scene
+            placeholder_path = output_dir / f"scene_{scene_id}_blur.mp4"
+            # Create a black image and apply blur via FFmpeg filter
+            cmd = [
+                "ffmpeg", "-y",
+                "-f", "lavfi", "-i", "color=c=black:s=1080x1920:d=5",
+                "-vf", "gblur=sigma=20",
+                "-c:v", "libx264", "-t", "5", "-pix_fmt", "yuv420p",
+                str(placeholder_path)
+            ]
+            subprocess.run(cmd, capture_output=True, check=True)
+            visual_paths.append({
+                "scene_id": scene_id,
+                "asset_type": "video",
+                "asset_path": str(placeholder_path.resolve()),
+                "source": "blur_placeholder"
+            })
+            log.info(" ✓ Scene %d visual placeholder blur generated", scene_id)
+            # No continue here; proceed to next scene
     return visual_paths
