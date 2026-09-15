@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-15T05:29:40.192221+00:00",
+  "last_updated": "2026-09-15T06:30:13.349758+00:00",
   "analyzed_videos_count": 11,
   "optimal_runtime_seconds": 22.3,
   "optimal_word_count": 57,
   "top_performing_topics": [
-    "Retail investment traps and market timing warnings",
-    "Macro-financial lifestyle anxieties (housing/inflation)",
-    "Contrarian investment strategies (buying discounts/avoiding common assets)"
+    "Market Timing & Technical Traps (e.g., Nifty support levels)",
+    "Wealth Erosion & Inflation Awareness (e.g., FD vs. Inflation)",
+    "Asset Valuation Discrepancies (e.g., Buying stocks at discounts)"
   ],
   "winning_hook_formulas": [
-    "The 'Stop/Warning' Imperative: Start with a negative command followed by a specific, high-stakes consequence (e.g., 'Stop doing X before you lose Y').",
-    "The 'Hidden Loss' Reveal: Highlight a common financial product and frame it as a 'secret' mechanism that is actively draining the viewer's wealth."
+    "The 'Counter-Intuitive Warning' Formula: [Warning Emoji] + [Common Financial Action] + [Specific Negative Consequence] (e.g., 'Stop buying Nifty dips before you check this one critical support level')",
+    "The 'Hidden Loss' Formula: [Urgency Emoji] + [Common Financial Product] + [Specific Hidden Cost/Loss] (e.g., 'Your bank’s 6.8% FD is secretly making you poorer every single day')"
   ],
   "script_directives": [
-    "Maintain a sub-22 second duration to force rapid, high-density information delivery.",
-    "Use 'Urgency-First' pacing: The core problem must be identified within the first 3 seconds; avoid all intros or channel branding.",
-    "Focus on 'Retail Pain Points': Use aggressive, relatable language that frames the viewer as a victim of institutional systems (banks, brokers, inflation)."
+    "Keep total duration strictly between 20-22 seconds to maintain high completion rates.",
+    "Eliminate all fluff; start the value proposition within the first 1.5 seconds.",
+    "Use high-contrast visual callouts for specific numbers (e.g., 23600, 6.8%) to anchor attention."
   ],
   "seo_directives": [
-    "Use high-intent, negative-emotion keywords in titles (e.g., Trap, Loss, Warning, Secret) to trigger curiosity-based clicks.",
-    "Limit hashtags to 3-4 highly relevant finance-specific tags (e.g., #StockMarketIndia, #PersonalFinance, #InvestingTips) to avoid algorithmic dilution."
+    "Use specific, actionable keywords in the title that address a 'pain point' rather than a broad topic.",
+    "Include exactly 3-4 high-intent hashtags that blend broad finance (#StockMarketIndia) with specific niche intent (#NiftyAnalysis, #PersonalFinanceTips)."
   ]
 }
