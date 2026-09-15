@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-15T06:30:13.349758+00:00",
+  "last_updated": "2026-09-15T08:21:52.527790+00:00",
   "analyzed_videos_count": 11,
   "optimal_runtime_seconds": 22.3,
   "optimal_word_count": 57,
   "top_performing_topics": [
-    "Market Timing & Technical Traps (e.g., Nifty support levels)",
-    "Wealth Erosion & Inflation Awareness (e.g., FD vs. Inflation)",
-    "Asset Valuation Discrepancies (e.g., Buying stocks at discounts)"
+    "Market Timing & Technical Support Levels",
+    "Real Estate Affordability & Wealth Erosion",
+    "Hidden Costs of Traditional Banking Products"
   ],
   "winning_hook_formulas": [
-    "The 'Counter-Intuitive Warning' Formula: [Warning Emoji] + [Common Financial Action] + [Specific Negative Consequence] (e.g., 'Stop buying Nifty dips before you check this one critical support level')",
-    "The 'Hidden Loss' Formula: [Urgency Emoji] + [Common Financial Product] + [Specific Hidden Cost/Loss] (e.g., 'Your bank’s 6.8% FD is secretly making you poorer every single day')"
+    "The 'Urgency-Warning' Formula: [Emoji] Stop [Action] before you [Negative Outcome/Critical Checkpoint].",
+    "The 'Hard Truth' Formula: [Emoji] Why your [Common Financial Asset] is secretly [Negative Verb] your wealth every single day."
   ],
   "script_directives": [
-    "Keep total duration strictly between 20-22 seconds to maintain high completion rates.",
-    "Eliminate all fluff; start the value proposition within the first 1.5 seconds.",
-    "Use high-contrast visual callouts for specific numbers (e.g., 23600, 6.8%) to anchor attention."
+    "Keep total duration strictly between 20-22 seconds to maximize loop potential.",
+    "Front-load the 'pain point' in the first 3 seconds; avoid intros or branding.",
+    "Use high-contrast, fast-paced visual callouts for specific numbers (e.g., '23600', '6.8%') to maintain viewer focus."
   ],
   "seo_directives": [
-    "Use specific, actionable keywords in the title that address a 'pain point' rather than a broad topic.",
-    "Include exactly 3-4 high-intent hashtags that blend broad finance (#StockMarketIndia) with specific niche intent (#NiftyAnalysis, #PersonalFinanceTips)."
+    "Use high-intent keywords in the title that address a specific 'money-losing' fear.",
+    "Include exactly one broad finance hashtag and one specific niche hashtag (e.g., #Nifty50 #PersonalFinanceIndia) to balance reach and relevance."
   ]
 }
