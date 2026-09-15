@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-15T09:29:48.184064+00:00",
+  "last_updated": "2026-09-15T09:48:17.730539+00:00",
   "analyzed_videos_count": 12,
   "optimal_runtime_seconds": 22.5,
   "optimal_word_count": 58,
   "top_performing_topics": [
-    "Market timing and technical support levels",
-    "Wealth erosion via inflation and low-yield instruments",
-    "Asset valuation and discount buying opportunities"
+    "Market Timing and Tactical Asset Allocation",
+    "Wealth Erosion via Inflation and Hidden Costs",
+    "Institutional Arbitrage and Value Investing"
   ],
   "winning_hook_formulas": [
-    "The 'Counter-Intuitive Warning': Stop [Common Action] before you [Specific Negative Outcome/Data Point]",
-    "The 'Hidden Cost' Reveal: Your [Common Financial Product] is secretly [Negative Action] your [Wealth/Purchasing Power]"
+    "The 'Counter-Intuitive Warning' Formula: [Warning Emoji] Stop [Common Action] before you [Negative Consequence].",
+    "The 'Financial Reality Check' Formula: [Alarm Emoji] Why your [Common Financial Product] is secretly [Negative Outcome] every single day."
   ],
   "script_directives": [
-    "Keep total duration strictly under 22 seconds to maximize loop potential.",
+    "Keep total duration strictly between 20-22 seconds to maximize completion rates.",
     "Eliminate all fluff; start the value proposition within the first 1.5 seconds.",
-    "Use high-contrast visual cues or text overlays to highlight specific numbers (e.g., support levels, inflation percentages) to anchor viewer attention."
+    "Use high-contrast visual cues (charts or red/green text) every 3 seconds to reset viewer attention."
   ],
   "seo_directives": [
-    "Include the primary financial keyword (e.g., Nifty, FD, Stocks) within the first 5 characters of the title.",
-    "Use a mix of one high-volume broad hashtag (#Finance) and two specific niche hashtags (#StockMarketIndia, #InvestingTips) to optimize discovery."
+    "Use high-intent keywords in the title that address a specific pain point rather than a broad topic.",
+    "Limit hashtags to 3-4 highly relevant, niche-specific tags to avoid diluting the algorithm's categorization."
   ]
 }
