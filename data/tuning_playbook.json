@@ -1,24 +1,25 @@
 {
-  "last_updated": "2026-09-15T08:59:35.518019+00:00",
-  "analyzed_videos_count": 11,
-  "optimal_runtime_seconds": 22.3,
-  "optimal_word_count": 57,
+  "last_updated": "2026-09-15T09:23:05.639107+00:00",
+  "analyzed_videos_count": 12,
+  "optimal_runtime_seconds": 22.5,
+  "optimal_word_count": 58,
   "top_performing_topics": [
-    "Market Timing & Technical Support Levels",
-    "Macro-Economic Wealth Erosion (Inflation vs. Savings)",
-    "Institutional Arbitrage & Hidden Valuation Gaps"
+    "hidden charges",
+    "EMI trap",
+    "F&O lot size margin traps",
+    "credit card tricks"
   ],
   "winning_hook_formulas": [
-    "The 'Stop/Warning' Formula: [Negative Action] + [Specific Financial Metric/Level] + [Urgency]",
-    "The 'Hidden Loss' Formula: [Common Financial Product] + [Hidden Cost/Inflation] + [Emotional Consequence]"
+    "Open with the exact Rupee amount quietly lost: 'Your bank took ₹X without an alert'",
+    "Contradict popular wisdom: 'Why your zero-cost EMI is actually charging 18% GST'"
   ],
   "script_directives": [
-    "Keep total duration strictly under 22 seconds to force high completion rates.",
-    "Eliminate fluff intros; start the hook within the first 0.5 seconds with high-contrast visual text.",
-    "Use a 'Problem-Agitation-Solution' structure where the solution is a specific, actionable data point or strategy."
+    "Keep Scene 1 under 8 words for immediate hook velocity.",
+    "Introduce the financial trap mechanism by Scene 3.",
+    "Always end with a dual CTA: save the video and comment 'GUIDE'."
   ],
   "seo_directives": [
-    "Use high-intent keywords in the title that address specific pain points (e.g., 'Nifty', 'FD', 'Stocks').",
-    "Limit hashtags to 3-4 highly relevant tags (e.g., #FinanceShorts, #InvestingTips, #StockMarketIndia) to avoid algorithm confusion."
+    "Prioritize problem-aware hashtags (#MoneyMistakes, #HiddenFees).",
+    "Ensure caption line 1 matches spoken hook word-for-word."
   ]
 }
