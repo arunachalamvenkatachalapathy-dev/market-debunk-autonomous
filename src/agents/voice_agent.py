@@ -182,7 +182,7 @@ def _synthesize_fish_audio(
         "top_p": 0.85,
         "chunk_length": 200,
         "prosody": {
-            "speed": 1.0,
+            "speed": 1.10,
             "volume": 0.0
         }
     }

@@ -618,6 +618,9 @@ def mix_bgm(
         )
         return output_path
 
+    # Calculate BGM volume factor from dB
+    vol_factor = 10 ** (bgm_volume_db / 20)
+
     # Mix: voice (boosted + EQ) + audible BGM with gentle, rhythmic ducking under speech.
     # Voice mastering: Clean low-end cut (60Hz), subtle warm presence (+1.5dB @ 2.5kHz), smooth optical compression, gentle de-essing
     voice_chain = (
@@ -633,7 +636,7 @@ def mix_bgm(
             f"[0:a]{voice_chain},"
             "aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asplit=2[voice_mix][voice_key];"
             f"[1:a]aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,volume={vol_factor:.4f}[bgm];"
-            "[bgm][voice_key]sidechaincompress=threshold=0.12:ratio=2.0:attack=20:release=300[ducked];"
+            "[bgm][voice_key]sidechaincompress=threshold=0.15:ratio=1.8:attack=25:release=350[ducked];"
             "[voice_mix][ducked]amix=inputs=2:duration=first:dropout_transition=0:normalize=0,"
             "aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,"
             "loudnorm=I=-14:TP=-1.0:LRA=7[out]"

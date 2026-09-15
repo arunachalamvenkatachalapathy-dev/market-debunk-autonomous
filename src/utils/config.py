@@ -105,7 +105,7 @@ class Settings:
     
     # Fallback / Secondary: Google Cloud TTS
     VOICE_NAME: str = _get("VOICE_NAME", default="en-IN-Chirp3-HD-Fenrir") or "en-IN-Chirp3-HD-Fenrir"
-    VOICE_SPEAKING_RATE: float = float(_get("VOICE_SPEAKING_RATE", default="1.02"))
+    VOICE_SPEAKING_RATE: float = float(_get("VOICE_SPEAKING_RATE", default="1.10"))
     VOICE_PITCH: float = float(_get("VOICE_PITCH", default="0.0"))
     MAX_SSML_LENGTH: int = int(_get("MAX_SSML_LENGTH", default="4800"))
 
