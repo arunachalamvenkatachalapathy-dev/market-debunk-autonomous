@@ -552,10 +552,15 @@ def burn_subtitles(video_path: Path, ass_path: Path, output_path: Path) -> Path:
 
 
 def overlay_brand_mark(video_path: Path, output_path: Path) -> Path:
-    """Overlay the channel protection mark at the top-right corner."""
-    logo_path = settings.BRAND_MARK_PATH
+    """Overlay the creator host badge or channel protection mark at the top-right corner."""
+    creator_badge = settings.ASSETS_DIR / "creator_badge.png"
+    if creator_badge.is_file():
+        logo_path = creator_badge
+    else:
+        logo_path = settings.BRAND_MARK_PATH
+
     if not logo_path.is_file():
-        log.warning("Brand protection mark not found at %s — skipping overlay", logo_path)
+        log.warning("Brand protection / creator mark not found at %s — skipping overlay", logo_path)
         shutil.copy2(video_path, output_path)
         return output_path
 

@@ -37,24 +37,7 @@ def source_all_visuals(scenes: list, output_dir: Path, story_seed: Optional[dict
         is_first_scene = (idx == 0 or scene_id == 1)
         is_last_scene = (idx == total_scenes - 1 or scene_id == total_scenes)
 
-        # ── Mandatory Presenter Avatar for Scene 1 & Outro Scene ──
-        if is_first_scene or is_last_scene:
-            scene_img_path = output_dir / f"scene_{scene_id}.png"
-            if PRESENTER_AVATAR_PATH.exists() and PRESENTER_AVATAR_PATH.stat().st_size > 0:
-                shutil.copy2(PRESENTER_AVATAR_PATH, scene_img_path)
-                visual_paths.append({
-                    "scene_id": scene_id,
-                    "asset_type": "image",
-                    "asset_path": str(scene_img_path.resolve()),
-                    "source": "presenter_avatar"
-                })
-                role = "Hook Anchor" if is_first_scene else "Closer CTA"
-                log.info(" ✓ Scene %d visual sourced | type: image (Presenter Avatar - %s)", scene_id, role)
-                continue
-            else:
-                log.warning("Presenter avatar (%s) not found; falling back to B-roll.", PRESENTER_AVATAR_PATH)
-
-        # ── Contextual B-Roll for Intermediate Scenes (or fallback if avatar missing) ──
+        # ── 100% Dynamic High-Velocity B-Roll for All Scenes (Approach A) ──
         sourced = False
         if pexels_key:
             video_filename = f"scene_{scene_id}.mp4"
