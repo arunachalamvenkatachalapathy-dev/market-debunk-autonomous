@@ -345,11 +345,11 @@ def build_sfx_track(
     if not pop_src.is_file():
         pop_src = audio_dir / "pop_accent.wav"
 
-    # Load audio buffers
-    impact_bytes = _load_pcm_stereo_48k(impact_src, temp_dir, target_volume=1.0) if impact_src.is_file() else None
-    whoosh_bytes = _load_pcm_stereo_48k(whoosh_src, temp_dir, target_volume=1.05) if whoosh_src.is_file() else None
-    ding_bytes = _load_pcm_stereo_48k(ding_src, temp_dir, target_volume=0.95) if ding_src.is_file() else None
-    pop_bytes = _load_pcm_stereo_48k(pop_src, temp_dir, target_volume=0.90) if pop_src.is_file() else None
+    # Load audio buffers (calibrated so speech remains dominant and crisp)
+    impact_bytes = _load_pcm_stereo_48k(impact_src, temp_dir, target_volume=0.60) if impact_src.is_file() else None
+    whoosh_bytes = _load_pcm_stereo_48k(whoosh_src, temp_dir, target_volume=0.45) if whoosh_src.is_file() else None
+    ding_bytes = _load_pcm_stereo_48k(ding_src, temp_dir, target_volume=0.50) if ding_src.is_file() else None
+    pop_bytes = _load_pcm_stereo_48k(pop_src, temp_dir, target_volume=0.45) if pop_src.is_file() else None
 
     if not any([impact_bytes, whoosh_bytes, ding_bytes, pop_bytes]):
         log.warning("No SFX assets found in %s or %s — skipping SFX track", sfx_dir, audio_dir)
@@ -584,10 +584,9 @@ def mix_bgm(
         if settings.BGM_MIX_REQUIRED:
             raise FileNotFoundError(message)
         log.warning("%s — applying voice-only loudness normalisation", message)
-        # Just normalise loudness with high-presence vocal boost
         _ffmpeg(
             "-i", str(video_path),
-            "-af", "highpass=f=80,equalizer=f=3500:t=q:w=1.5:g=3.5,compand=attacks=0.02:decays=0.1:points=-45/-45|-20/-10|0/-1:soft-knee=6,volume=1.5,loudnorm=I=-11:TP=-0.5:LRA=6",
+            "-af", "highpass=f=60,equalizer=f=2500:t=q:w=1.2:g=1.5,equalizer=f=6500:t=q:w=2.0:g=-1.5,compand=attacks=0.03:decays=0.15:points=-50/-50|-24/-16|0/-2:soft-knee=6,volume=1.0,loudnorm=I=-14:TP=-1.0:LRA=7",
             "-c:v", "copy",
             "-c:a", "aac",
             "-b:a", "192k",
@@ -597,28 +596,36 @@ def mix_bgm(
         return output_path
 
     # Mix: voice (boosted + EQ) + audible BGM with gentle, rhythmic ducking under speech.
-    vol_factor = 10 ** (bgm_volume_db / 20)
+    # Voice mastering: Clean low-end cut (60Hz), subtle warm presence (+1.5dB @ 2.5kHz), smooth optical compression, gentle de-essing
+    voice_chain = (
+        "highpass=f=60,"
+        "equalizer=f=2500:t=q:w=1.2:g=1.5,"
+        "equalizer=f=6500:t=q:w=2.0:g=-1.5,"
+        "compand=attacks=0.03:decays=0.15:points=-50/-50|-24/-16|0/-2:soft-knee=6,"
+        "volume=1.0"
+    )
+
     if use_ducking:
         audio_filter = (
-            "[0:a]highpass=f=80,equalizer=f=3500:t=q:w=1.5:g=3.5,compand=attacks=0.02:decays=0.1:points=-45/-45|-20/-10|0/-1:soft-knee=6,volume=1.5,"
+            f"[0:a]{voice_chain},"
             "aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asplit=2[voice_mix][voice_key];"
             f"[1:a]aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,volume={vol_factor:.4f}[bgm];"
-            "[bgm][voice_key]sidechaincompress=threshold=0.10:ratio=2.2:attack=20:release=220[ducked];"
+            "[bgm][voice_key]sidechaincompress=threshold=0.08:ratio=3.0:attack=15:release=250[ducked];"
             "[voice_mix][ducked]amix=inputs=2:duration=first:dropout_transition=0:normalize=0,"
             "aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,"
-            "loudnorm=I=-11:TP=-0.5:LRA=6[out]"
+            "loudnorm=I=-14:TP=-1.0:LRA=7[out]"
         )
-        description = "BGM ducking mix + loudness normalisation (-11 LUFS)"
+        description = "BGM ducking mix + broadcast loudness normalisation (-14 LUFS)"
     else:
         audio_filter = (
-            "[0:a]highpass=f=80,equalizer=f=3500:t=q:w=1.5:g=3.5,compand=attacks=0.02:decays=0.1:points=-45/-45|-20/-10|0/-1:soft-knee=6,volume=1.5,"
+            f"[0:a]{voice_chain},"
             "aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo[voice];"
             f"[1:a]aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,volume={vol_factor:.4f}[bgm];"
             "[voice][bgm]amix=inputs=2:duration=first:dropout_transition=0:normalize=0,"
             "aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,"
-            "loudnorm=I=-11:TP=-0.5:LRA=6[out]"
+            "loudnorm=I=-14:TP=-1.0:LRA=7[out]"
         )
-        description = "BGM simple mix + loudness normalisation (-11 LUFS)"
+        description = "BGM simple mix + broadcast loudness normalisation (-14 LUFS)"
 
     _ffmpeg(
         "-i", str(video_path),

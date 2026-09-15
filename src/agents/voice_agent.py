@@ -178,6 +178,13 @@ def _synthesize_fish_audio(
         "reference_id": voice_id,
         "format": "mp3",
         "normalize": True,
+        "temperature": 0.7,
+        "top_p": 0.7,
+        "chunk_length": 200,
+        "prosody": {
+            "speed": 1.0,
+            "volume": 0.0
+        }
     }
 
     max_attempts = 4
