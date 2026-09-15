@@ -93,11 +93,16 @@ class Settings:
     BGM_MIN_BYTES: int = int(_get("BGM_MIN_BYTES", default="1000000"))
 
     # ── Voice Settings ─────────────────────────────────────────────
-    # Natural human prosody: pitch 0.0 avoids vocoder distortion, 1.05x speaking rate ensures crisp Shorts momentum
+    # Primary: Fish Audio S2.1 Pro with custom human cloned voice
+    TTS_PROVIDER: str = _get("TTS_PROVIDER", default="fish_audio") or "fish_audio"
+    FISH_AUDIO_API_KEY: str = _get("FISH_AUDIO_API_KEY", default="sk-fish-qylnfekCVlDO5tnS0TNL7ID58fEiM19Mgv5W2gjOPpE") or "sk-fish-qylnfekCVlDO5tnS0TNL7ID58fEiM19Mgv5W2gjOPpE"
+    FISH_AUDIO_VOICE_ID: str = _get("FISH_AUDIO_VOICE_ID", default="4b24c8719a4c4c52baabbc418d2af196") or "4b24c8719a4c4c52baabbc418d2af196"
+    FISH_AUDIO_MODEL: str = _get("FISH_AUDIO_MODEL", default="s2.1-pro-free") or "s2.1-pro-free"
+    
+    # Fallback / Secondary: Google Cloud TTS
     VOICE_NAME: str = _get("VOICE_NAME", default="en-IN-Chirp3-HD-Fenrir") or "en-IN-Chirp3-HD-Fenrir"
     VOICE_SPEAKING_RATE: float = float(_get("VOICE_SPEAKING_RATE", default="1.02"))
     VOICE_PITCH: float = float(_get("VOICE_PITCH", default="0.0"))
-    # New: Maximum SSML length to avoid API limit (approx 4800 chars)
     MAX_SSML_LENGTH: int = int(_get("MAX_SSML_LENGTH", default="4800"))
 
     # ── Deduplication ─────────────────────────────────────────────

@@ -12,13 +12,12 @@ Default voice: en-IN-Chirp3-HD-Fenrir (Look F — Dark Editorial)
 import html
 import json
 import re
+import os
+import time
 import subprocess
 from pathlib import Path
 
-try:
-    from google.cloud import texttospeech
-except ImportError:
-    texttospeech = None
+texttospeech = None
 
 from src.utils.config import settings
 from src.utils.logger import get_logger
@@ -156,63 +155,101 @@ def _build_ssml(narration: str, scene_id: int = 1) -> str:
     return ssml
 
 
+def _synthesize_fish_audio(
+    text: str,
+    output_path: Path,
+    voice_id: str,
+    api_key: str,
+    model_string: str = "s2.1-pro-free",
+) -> bool:
+    """Call Fish Audio S2.1 Pro API with exponential backoff on HTTP 429."""
+    import requests
+    import time
+    import random
+
+    url = "https://api.fish.audio/v1/tts"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+        "model": model_string,
+    }
+    payload = {
+        "text": text,
+        "reference_id": voice_id,
+        "format": "mp3",
+        "normalize": True,
+    }
+
+    max_attempts = 4
+    for attempt in range(1, max_attempts + 1):
+        try:
+            res = requests.post(url, headers=headers, json=payload, timeout=35)
+            if res.status_code == 200 and len(res.content) > 1000:
+                output_path.write_bytes(res.content)
+                return True
+            elif res.status_code == 429:
+                wait_time = (2 ** attempt) + random.uniform(0.5, 1.5)
+                log.warning("Fish Audio 429 rate limit reached. Backing off for %.2fs (attempt %d/%d)...", wait_time, attempt, max_attempts)
+                time.sleep(wait_time)
+            else:
+                log.warning("Fish Audio returned HTTP %d: %s", res.status_code, res.text[:200])
+                time.sleep(2)
+        except Exception as exc:
+            log.warning("Fish Audio network attempt %d failed: %s", attempt, exc)
+            time.sleep(2)
+
+    return False
+
+
 def synthesize_scene(
     scene_id: int,
     narration: str,
     audio_dir: Path,
     voice_name: str = DEFAULT_VOICE,
 ) -> dict:
-    """Synthesize a single scene's narration using Google TTS."""
-    log.info("Synthesizing scene %d with Google TTS...", scene_id)
+    """Synthesize a single scene's narration using Fish Audio S2.1 Pro."""
     audio_dir.mkdir(parents=True, exist_ok=True)
     
     raw_mp3_path = audio_dir / f"scene_{scene_id}_raw.mp3"
     mp3_path = audio_dir / f"scene_{scene_id}.mp3"
     timings_path = audio_dir / f"scene_{scene_id}_timings.json"
 
-    client = texttospeech.TextToSpeechClient()
-    
-    # Extract language code from voice name (e.g. "en-IN-Wavenet-B" -> "en-IN")
-    lang_code = "-".join(voice_name.split("-")[:2])
-    
-    voice = texttospeech.VoiceSelectionParams(
-        language_code=lang_code,
-        name=voice_name
+    api_key = getattr(settings, "FISH_AUDIO_API_KEY", "") or os.environ.get("FISH_AUDIO_API_KEY", "")
+    voice_id = getattr(settings, "FISH_AUDIO_VOICE_ID", "") or os.environ.get("FISH_AUDIO_VOICE_ID", "4b24c8719a4c4c52baabbc418d2af196")
+    model_str = getattr(settings, "FISH_AUDIO_MODEL", "s2.1-pro-free")
+
+    clean_text = normalize_english_for_tts(narration)
+    log.info("🎙️ Synthesizing scene %d with Fish Audio S2.1 Pro (Voice ID: %s)...", scene_id, voice_id)
+
+    success = _synthesize_fish_audio(
+        text=clean_text,
+        output_path=raw_mp3_path,
+        voice_id=voice_id,
+        api_key=api_key,
+        model_string=model_str,
     )
-    audio_config = texttospeech.AudioConfig(
-        audio_encoding=texttospeech.AudioEncoding.MP3,
-    )
-    
-    # Attempt SSML synthesis first; fall back cleanly to normalized plain text if SSML fails
-    try:
-        synthesis_input = texttospeech.SynthesisInput(ssml=_build_ssml(narration, scene_id))
-        request = texttospeech.SynthesizeSpeechRequest(
-            input=synthesis_input,
-            voice=voice,
-            audio_config=audio_config
-        )
-        response = client.synthesize_speech(request=request)
-    except Exception as ssml_err:
-        log.warning("Scene %d SSML synthesis failed (%s), falling back to plain text", scene_id, ssml_err)
-        clean_text = normalize_english_for_tts(narration)
-        request = texttospeech.SynthesizeSpeechRequest(
-            input=texttospeech.SynthesisInput(text=clean_text),
-            voice=voice,
-            audio_config=audio_config
-        )
-        response = client.synthesize_speech(request=request)
-    raw_mp3_path.write_bytes(response.audio_content)
-    
+
+    if not success or not raw_mp3_path.exists():
+        log.warning("Fish Audio S2.1 Pro synthesis failed for scene %d; cascading to Edge TTS (en-IN-PrabhatNeural)...", scene_id)
+        try:
+            import asyncio
+            import edge_tts
+            async def _run_edge():
+                communicate = edge_tts.Communicate(clean_text, "en-IN-PrabhatNeural", rate="+6%")
+                await communicate.save(str(raw_mp3_path))
+            asyncio.run(_run_edge())
+        except Exception as edge_err:
+            log.error("Edge TTS fallback also failed: %s", edge_err)
+            raise RuntimeError(f"Both Fish Audio and Edge TTS failed for scene {scene_id}.")
+
     # Trim silence to ensure fluid pacing across scene cuts
     trim_audio_silence(raw_mp3_path, mp3_path)
-    # Cleanup raw file
     raw_mp3_path.unlink(missing_ok=True)
     
     duration = get_audio_duration(mp3_path)
     
     # Generate approximate word timings for subtitles based on character length
     words = narration.split()
-    # Strip punctuation for length calculation to be more accurate
     clean_words = ["".join(c for c in w if c.isalnum()) for w in words]
     total_chars = sum(len(w) for w in clean_words)
     
@@ -220,7 +257,6 @@ def synthesize_scene(
     current_time = 0.0
     
     for i, w in enumerate(words):
-        # Give each word a duration proportional to its letter count (plus a tiny baseline)
         c_len = max(len(clean_words[i]), 1)
         word_duration = duration * (c_len / max(total_chars, 1))
         
@@ -232,6 +268,9 @@ def synthesize_scene(
         current_time += word_duration
         
     timings_path.write_text(json.dumps(word_timings, indent=2, ensure_ascii=False), encoding="utf-8")
+
+    # Gentle inter-scene pacing throttle (400ms) to respect Fair Use limits
+    time.sleep(0.4)
 
     return {
         "scene_id": scene_id,
@@ -351,10 +390,6 @@ def synthesize_all_scenes(scenes: list[dict], audio_dir: Path, voice: str = DEFA
 
 
 def get_available_voices() -> list[str]:
-    """Return available Google Cloud TTS voices for English/India and English/US."""
-    client = texttospeech.TextToSpeechClient()
-    voices = client.list_voices().voices
-    return [
-        voice.name for voice in voices
-        if voice.language_codes and any(code in {"en-IN", "en-US"} for code in voice.language_codes)
-    ]
+    """Return configured Fish Audio voice and fallbacks."""
+    voice_id = getattr(settings, "FISH_AUDIO_VOICE_ID", "4b24c8719a4c4c52baabbc418d2af196")
+    return [f"fish_audio:{voice_id}", "edge-tts:en-IN-PrabhatNeural"]

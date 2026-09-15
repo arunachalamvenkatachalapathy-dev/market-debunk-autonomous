@@ -34,10 +34,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ffmpeg
 
-      - id: 'auth'
-        uses: 'google-github-actions/auth@v2'
-        with:
-          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
 
       - name: Install Dependencies
         run: pip install -r requirements.txt
@@ -82,7 +78,8 @@ jobs:
           GEMINI_SCRIPT_API_KEY: ${{ secrets.GEMINI_SCRIPT_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMMA_FALLBACK_MODEL: ${{ secrets.GEMMA_FALLBACK_MODEL || 'gemma-3-27b-it' }}
-          GEMINI_IMAGE_API_KEY: ${{ secrets.GEMINI_IMAGE_API_KEY }}
+          FISH_AUDIO_API_KEY: ${{ secrets.FISH_AUDIO_API_KEY }}
+          FISH_AUDIO_VOICE_ID: ${{ secrets.FISH_AUDIO_VOICE_ID || '4b24c8719a4c4c52baabbc418d2af196' }}
           PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
           RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
           SERPAPI_KEY: ${{ secrets.SERPAPI_KEY }}
