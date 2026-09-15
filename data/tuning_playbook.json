@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-14T18:54:50.863399+00:00",
-  "analyzed_videos_count": 10,
+  "last_updated": "2026-09-15T04:51:51.116376+00:00",
+  "analyzed_videos_count": 11,
   "optimal_runtime_seconds": 22.3,
   "optimal_word_count": 57,
   "top_performing_topics": [
-    "Market Timing & Technical Support Levels",
-    "Macro-Economic Wealth Erosion (Inflation vs. Savings)",
-    "Asset Valuation Discrepancies (Discounted Stocks/Real Estate)"
+    "Market Timing & Technical Traps (Nifty/Stocks)",
+    "Wealth Erosion via Inflation/Banking Products",
+    "Macro-Economic Realities (Real Estate/Global Markets)"
   ],
   "winning_hook_formulas": [
-    "The 'Counter-Intuitive Warning' Formula: [Warning Emoji] + [Common Financial Habit] + [The Hidden Danger/Trap]",
-    "The 'Urgency/FOMO' Formula: [Alarm Emoji] + [Specific Pain Point] + [The Consequence of Inaction]"
+    "The 'Hidden Penalty' Formula: [Warning Emoji] [Specific Financial Product] is secretly [Negative Outcome] every [Timeframe].",
+    "The 'Contrarian Action' Formula: Stop [Common Retail Action] before you [Specific Financial Risk/Loss]."
   ],
   "script_directives": [
-    "Keep total duration under 22 seconds to force high repeat-view rates.",
-    "Eliminate fluff intros; start the hook within the first 0.5 seconds of the video.",
-    "Use high-contrast visual callouts for numbers and percentages to anchor viewer attention."
+    "Maintain a strict 20-22 second duration to maximize completion rates.",
+    "Front-load the pain point in the first 3 seconds; avoid intros or branding.",
+    "Use high-contrast visual callouts for specific numbers (e.g., 23600, 30%, 6.8%) to anchor attention."
   ],
   "seo_directives": [
-    "Use specific, searchable financial keywords in the title (e.g., Nifty, FD, Stocks) rather than generic clickbait.",
-    "Limit hashtags to 3-4 highly relevant tags (e.g., #StockMarketIndia, #PersonalFinance, #Investing) to avoid algorithm confusion."
+    "Use title-case, high-intent keywords that address a specific financial 'trap' or 'mistake'.",
+    "Include #Shorts and 2-3 hyper-niche finance tags (e.g., #StockMarketIndia, #PersonalFinance) to trigger algorithmic categorization."
   ]
 }

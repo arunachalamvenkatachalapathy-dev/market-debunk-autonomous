@@ -305,7 +305,7 @@
       "instagram": "18088660574558640",
       "facebook": "3233722260155984"
     },
-    "audited": false
+    "audited": true
   },
   {
     "timestamp": "2026-09-13T17:05:58.919545+00:00",
@@ -388,6 +388,34 @@
       "youtube": "Lub68s7749M",
       "instagram": "18204186406372259",
       "facebook": "1570860687681813"
+    },
+    "audited": false
+  },
+  {
+    "timestamp": "2026-09-15T04:57:16.712359+00:00",
+    "title": "SME IPO Trap: 100% Fake GMP Dump Exposed #Shorts",
+    "topic": "Chasing 100%+ SME IPO Grey Market Premiums (GMP) is an operator-driven illusion designed to dump zero-revenue, hyped companies onto retail investors who mistake fake Telegram demand for real value.",
+    "hook": "⚠️ That 100% SME IPO gain is a trap designed to wipe out your savings",
+    "hashtags": [
+      "#IPO2026",
+      "#IPOAlert",
+      "#MoneyMistakes",
+      "#SensexAlert",
+      "#FinanceLiteracy",
+      "#IndianStockMarket",
+      "#NiftyAlert",
+      "#NSEIndia"
+    ],
+    "duration_seconds": 27.010613,
+    "urls": {
+      "youtube": "https://www.youtube.com/shorts/-sok-bv1I2o",
+      "instagram": "https://www.instagram.com/reel/DdS5ypSFHP0/",
+      "facebook": "https://www.facebook.com/reel/1074479878502588/"
+    },
+    "ids": {
+      "youtube": "-sok-bv1I2o",
+      "instagram": "18162296641489165",
+      "facebook": "1074479878502588"
     },
     "audited": false
   }
