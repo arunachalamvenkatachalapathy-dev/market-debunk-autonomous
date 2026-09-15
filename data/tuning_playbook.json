@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-15T08:21:52.527790+00:00",
+  "last_updated": "2026-09-15T08:59:35.518019+00:00",
   "analyzed_videos_count": 11,
   "optimal_runtime_seconds": 22.3,
   "optimal_word_count": 57,
   "top_performing_topics": [
     "Market Timing & Technical Support Levels",
-    "Real Estate Affordability & Wealth Erosion",
-    "Hidden Costs of Traditional Banking Products"
+    "Macro-Economic Wealth Erosion (Inflation vs. Savings)",
+    "Institutional Arbitrage & Hidden Valuation Gaps"
   ],
   "winning_hook_formulas": [
-    "The 'Urgency-Warning' Formula: [Emoji] Stop [Action] before you [Negative Outcome/Critical Checkpoint].",
-    "The 'Hard Truth' Formula: [Emoji] Why your [Common Financial Asset] is secretly [Negative Verb] your wealth every single day."
+    "The 'Stop/Warning' Formula: [Negative Action] + [Specific Financial Metric/Level] + [Urgency]",
+    "The 'Hidden Loss' Formula: [Common Financial Product] + [Hidden Cost/Inflation] + [Emotional Consequence]"
   ],
   "script_directives": [
-    "Keep total duration strictly between 20-22 seconds to maximize loop potential.",
-    "Front-load the 'pain point' in the first 3 seconds; avoid intros or branding.",
-    "Use high-contrast, fast-paced visual callouts for specific numbers (e.g., '23600', '6.8%') to maintain viewer focus."
+    "Keep total duration strictly under 22 seconds to force high completion rates.",
+    "Eliminate fluff intros; start the hook within the first 0.5 seconds with high-contrast visual text.",
+    "Use a 'Problem-Agitation-Solution' structure where the solution is a specific, actionable data point or strategy."
   ],
   "seo_directives": [
-    "Use high-intent keywords in the title that address a specific 'money-losing' fear.",
-    "Include exactly one broad finance hashtag and one specific niche hashtag (e.g., #Nifty50 #PersonalFinanceIndia) to balance reach and relevance."
+    "Use high-intent keywords in the title that address specific pain points (e.g., 'Nifty', 'FD', 'Stocks').",
+    "Limit hashtags to 3-4 highly relevant tags (e.g., #FinanceShorts, #InvestingTips, #StockMarketIndia) to avoid algorithm confusion."
   ]
 }
