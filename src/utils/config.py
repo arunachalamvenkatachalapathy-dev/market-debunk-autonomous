@@ -87,7 +87,7 @@ class Settings:
     MIN_VIDEO_DURATION: float = float(_get("MIN_VIDEO_DURATION", default="15.0"))
     MAX_VIDEO_DURATION: float = float(_get("MAX_VIDEO_DURATION", default="45.0"))
     VISUAL_GENERATION_DELAY_SECONDS: float = float(_get("VISUAL_GENERATION_DELAY_SECONDS", default="10"))
-    BGM_VOLUME_DB: float = float(_get("BGM_VOLUME_DB", default="-18.0"))
+    BGM_VOLUME_DB: float = float(_get("BGM_VOLUME_DB", default="-11.0"))
     BGM_MIX_RETRIES: int = int(_get("BGM_MIX_RETRIES", default="3"))
     BGM_MIX_REQUIRED: bool = (_get("BGM_MIX_REQUIRED", default="true") or "true").lower() == "true"
     BGM_MIN_BYTES: int = int(_get("BGM_MIN_BYTES", default="1000000"))
@@ -96,8 +96,12 @@ class Settings:
     # Primary: Fish Audio S2.1 Pro with custom human cloned voice
     TTS_PROVIDER: str = _get("TTS_PROVIDER", default="fish_audio") or "fish_audio"
     FISH_AUDIO_API_KEY: str = _get("FISH_AUDIO_API_KEY", default="sk-fish-qylnfekCVlDO5tnS0TNL7ID58fEiM19Mgv5W2gjOPpE") or "sk-fish-qylnfekCVlDO5tnS0TNL7ID58fEiM19Mgv5W2gjOPpE"
-    FISH_AUDIO_VOICE_ID: str = _get("FISH_AUDIO_VOICE_ID", default="4b24c8719a4c4c52baabbc418d2af196") or "4b24c8719a4c4c52baabbc418d2af196"
+    FISH_AUDIO_VOICE_ID: str = _get("FISH_AUDIO_VOICE_ID", default="dc2c982dea5b4ab8a72331056f5aa9c3") or "dc2c982dea5b4ab8a72331056f5aa9c3"
     FISH_AUDIO_MODEL: str = _get("FISH_AUDIO_MODEL", default="s2.1-pro-free") or "s2.1-pro-free"
+    
+    # Secondary Fallback: ElevenLabs TTS
+    ELEVENLABS_API_KEY: str = _get("ELEVENLABS_API_KEY", default="sk_60811b378aecdbbaef2be1e18ad2cff56fcc5a6b1e489814") or "sk_60811b378aecdbbaef2be1e18ad2cff56fcc5a6b1e489814"
+    ELEVENLABS_VOICE_ID: str = _get("ELEVENLABS_VOICE_ID", default="21m00Tcm4TlvDq8ikWAM") or "21m00Tcm4TlvDq8ikWAM"
     
     # Fallback / Secondary: Google Cloud TTS
     VOICE_NAME: str = _get("VOICE_NAME", default="en-IN-Chirp3-HD-Fenrir") or "en-IN-Chirp3-HD-Fenrir"

@@ -109,9 +109,11 @@ def _build_scene_from_image(
     duration: float,
     output_path: Path,
     scene_id: int = 1,
+    is_avatar: bool = False,
 ) -> None:
     """
     Scale image to fill (no black bars), crop to 1080x1920, and apply varied ken-burns zoom.
+    If is_avatar is True (Scene 1 Hook / Outro), adds animated speech mouth/jaw movement.
     Builds a pure video clip without audio so voice track remains continuous.
     """
     w, h = settings.VIDEO_WIDTH, settings.VIDEO_HEIGHT
@@ -121,36 +123,56 @@ def _build_scene_from_image(
     # Vary the zoom direction based on scene_id to prevent repetitive motion
     pan_type = scene_id % 3
     if pan_type == 0:
-        # Straight slow zoom in
         zp_motion = "x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'"
     elif pan_type == 1:
-        # Zoom in while panning slightly right
         zp_motion = "x='iw/2-(iw/zoom/2)+2':y='ih/2-(ih/zoom/2)'"
     else:
-        # Zoom in while panning slightly left
         zp_motion = "x='iw/2-(iw/zoom/2)-2':y='ih/2-(ih/zoom/2)'"
 
-    vf = (
-        f"scale={w}:{h}:force_original_aspect_ratio=increase," # Fill frame, no black bars
-        f"crop={w}:{h},"
-        f"setsar=1,"
-        f"zoompan=z='min(zoom+0.0008,1.05)':{zp_motion}:d={n_frames}:s={w}x{h}:fps={fps}"
-    )
-
-    _ffmpeg(
-        "-loop", "1",
-        "-framerate", str(fps),
-        "-i", str(image_path),
-        "-vf", vf,
-        "-t", str(duration),
-        "-c:v", "libx264",
-        "-preset", "fast",
-        "-crf", "23",
-        "-pix_fmt", "yuv420p",
-        "-an",
-        str(output_path),
-        description=f"build scene clip from image: {output_path.name}"
-    )
+    if is_avatar:
+        # Talking mouth movement animation synchronized with speech cadence (4.2 Hz)
+        filter_complex = (
+            f"[0:v]scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h},setsar=1,"
+            f"zoompan=z='min(zoom+0.0006,1.04)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d={n_frames}:s={w}x{h}:fps={fps},split=2[base1][base2];"
+            f"[base2]crop=w=240:h=140:x=420:y=1080[jaw];"
+            f"[base1][jaw]overlay=x=420:y='1080 + 6*max(0, sin(2*PI*t*4.2))':eval=frame[vout]"
+        )
+        _ffmpeg(
+            "-loop", "1",
+            "-framerate", str(fps),
+            "-i", str(image_path),
+            "-filter_complex", filter_complex,
+            "-map", "[vout]",
+            "-t", str(duration),
+            "-c:v", "libx264",
+            "-preset", "fast",
+            "-crf", "23",
+            "-pix_fmt", "yuv420p",
+            "-an",
+            str(output_path),
+            description=f"build animated speaking avatar clip: {output_path.name}"
+        )
+    else:
+        vf = (
+            f"scale={w}:{h}:force_original_aspect_ratio=increase," # Fill frame, no black bars
+            f"crop={w}:{h},"
+            f"setsar=1,"
+            f"zoompan=z='min(zoom+0.0008,1.05)':{zp_motion}:d={n_frames}:s={w}x{h}:fps={fps}"
+        )
+        _ffmpeg(
+            "-loop", "1",
+            "-framerate", str(fps),
+            "-i", str(image_path),
+            "-vf", vf,
+            "-t", str(duration),
+            "-c:v", "libx264",
+            "-preset", "fast",
+            "-crf", "23",
+            "-pix_fmt", "yuv420p",
+            "-an",
+            str(output_path),
+            description=f"build scene clip from image: {output_path.name}"
+        )
 
 
 def build_scene_clips(
@@ -191,7 +213,8 @@ def build_scene_clips(
         if asset_type == "video":
             _build_scene_from_video(asset_path, duration, clip_path)
         else:
-            _build_scene_from_image(asset_path, duration, clip_path, scene_id=scene_id)
+            is_avatar = visual.get("source") == "presenter_avatar" or "presenter" in asset_path.name.lower()
+            _build_scene_from_image(asset_path, duration, clip_path, scene_id=scene_id, is_avatar=is_avatar)
 
         clip_paths.append(clip_path)
 
@@ -610,7 +633,7 @@ def mix_bgm(
             f"[0:a]{voice_chain},"
             "aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,asplit=2[voice_mix][voice_key];"
             f"[1:a]aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,volume={vol_factor:.4f}[bgm];"
-            "[bgm][voice_key]sidechaincompress=threshold=0.08:ratio=3.0:attack=15:release=250[ducked];"
+            "[bgm][voice_key]sidechaincompress=threshold=0.12:ratio=2.0:attack=20:release=300[ducked];"
             "[voice_mix][ducked]amix=inputs=2:duration=first:dropout_transition=0:normalize=0,"
             "aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo,"
             "loudnorm=I=-14:TP=-1.0:LRA=7[out]"
@@ -728,36 +751,10 @@ def assemble_video(
         log.warning("Clean concat failed (%s); falling back to direct stream concat", exc)
         concatenate_clips(clip_paths, raw_video_only)
 
-    # Step 2b: Create continuous master voice track and dynamic SFX track, then mux with video
-    log.info("Step 2b/5: Creating unified master voice track & dynamic SFX track …")
+    # Step 2b: Create continuous master voice track and mux with video (SFX abolished per user requirement)
+    log.info("Step 2b/5: Creating unified master voice track (SFX completely abolished) …")
     concatenate_voice_audio(voice_results, master_voice_wav)
-
-    master_sfx_wav = run_dir / "master_sfx.wav"
-    sfx_path = None
-    try:
-        total_voice_duration = get_audio_duration(master_voice_wav)
-        sfx_path = build_sfx_track(voice_results, total_voice_duration, master_sfx_wav)
-    except Exception as exc:
-        log.warning("SFX generation failed (%s); continuing with pure voice track", exc)
-        sfx_path = None
-
-    if sfx_path and sfx_path.is_file():
-        mixed_voice_sfx = run_dir / "voice_sfx_mix.wav"
-        try:
-            _ffmpeg(
-                "-i", str(master_voice_wav),
-                "-i", str(sfx_path),
-                "-filter_complex", "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=0:normalize=0,aformat=sample_fmts=s16:sample_rates=48000:channel_layouts=stereo",
-                "-c:a", "pcm_s16le",
-                str(mixed_voice_sfx),
-                description="mix master voice with sfx track"
-            )
-            mux_video_and_audio(raw_video_only, mixed_voice_sfx, raw_video)
-        except Exception as e:
-            log.warning("Voice/SFX mix failed (%s); falling back to pure voice track", e)
-            mux_video_and_audio(raw_video_only, master_voice_wav, raw_video)
-    else:
-        mux_video_and_audio(raw_video_only, master_voice_wav, raw_video)
+    mux_video_and_audio(raw_video_only, master_voice_wav, raw_video)
 
     # Step 3: Burn subtitles
     log.info("Step 3/5: Burning subtitles …")

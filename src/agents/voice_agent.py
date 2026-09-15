@@ -178,8 +178,8 @@ def _synthesize_fish_audio(
         "reference_id": voice_id,
         "format": "mp3",
         "normalize": True,
-        "temperature": 0.7,
-        "top_p": 0.7,
+        "temperature": 0.92,
+        "top_p": 0.85,
         "chunk_length": 200,
         "prosody": {
             "speed": 1.0,
@@ -208,13 +208,52 @@ def _synthesize_fish_audio(
     return False
 
 
+def _synthesize_elevenlabs(
+    text: str,
+    output_path: Path,
+    api_key: str,
+    voice_id: str = "21m00Tcm4TlvDq8ikWAM",
+) -> bool:
+    """Secondary fallback using ElevenLabs API with expressive voice settings."""
+    import requests
+    if not api_key:
+        return False
+    url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
+    headers = {
+        "xi-api-key": api_key,
+        "Content-Type": "application/json",
+        "Accept": "audio/mpeg"
+    }
+    payload = {
+        "text": text,
+        "model_id": "eleven_multilingual_v2",
+        "voice_settings": {
+            "stability": 0.35,
+            "similarity_boost": 0.85,
+            "style": 0.45,
+            "use_speaker_boost": True
+        }
+    }
+    try:
+        res = requests.post(url, headers=headers, json=payload, timeout=35)
+        if res.status_code == 200 and len(res.content) > 1000:
+            output_path.write_bytes(res.content)
+            log.info("✓ Successfully synthesized with ElevenLabs fallback!")
+            return True
+        else:
+            log.warning("ElevenLabs returned HTTP %d: %s", res.status_code, res.text[:200])
+    except Exception as err:
+        log.warning("ElevenLabs request failed: %s", err)
+    return False
+
+
 def synthesize_scene(
     scene_id: int,
     narration: str,
     audio_dir: Path,
     voice_name: str = DEFAULT_VOICE,
 ) -> dict:
-    """Synthesize a single scene's narration using Fish Audio S2.1 Pro."""
+    """Synthesize a single scene's narration using Fish Audio S2.1 Pro with ElevenLabs and Edge TTS fallbacks."""
     audio_dir.mkdir(parents=True, exist_ok=True)
     
     raw_mp3_path = audio_dir / f"scene_{scene_id}_raw.mp3"
@@ -222,11 +261,13 @@ def synthesize_scene(
     timings_path = audio_dir / f"scene_{scene_id}_timings.json"
 
     api_key = getattr(settings, "FISH_AUDIO_API_KEY", "") or os.environ.get("FISH_AUDIO_API_KEY", "")
-    voice_id = getattr(settings, "FISH_AUDIO_VOICE_ID", "") or os.environ.get("FISH_AUDIO_VOICE_ID", "4b24c8719a4c4c52baabbc418d2af196")
+    voice_id = getattr(settings, "FISH_AUDIO_VOICE_ID", "") or os.environ.get("FISH_AUDIO_VOICE_ID", "dc2c982dea5b4ab8a72331056f5aa9c3")
     model_str = getattr(settings, "FISH_AUDIO_MODEL", "s2.1-pro-free")
+    eleven_key = getattr(settings, "ELEVENLABS_API_KEY", "") or os.environ.get("ELEVENLABS_API_KEY", "")
+    eleven_voice = getattr(settings, "ELEVENLABS_VOICE_ID", "21m00Tcm4TlvDq8ikWAM")
 
     clean_text = normalize_english_for_tts(narration)
-    log.info("🎙️ Synthesizing scene %d with Fish Audio S2.1 Pro (Voice ID: %s)...", scene_id, voice_id)
+    log.info("🎙️ Synthesizing scene %d with Fish Audio S2.1 Pro (Voice ID: %s, temp: 0.92)...", scene_id, voice_id)
 
     success = _synthesize_fish_audio(
         text=clean_text,
@@ -237,7 +278,16 @@ def synthesize_scene(
     )
 
     if not success or not raw_mp3_path.exists():
-        log.warning("Fish Audio S2.1 Pro synthesis failed for scene %d; cascading to Edge TTS (en-IN-PrabhatNeural)...", scene_id)
+        log.warning("Fish Audio S2.1 Pro failed for scene %d; cascading to ElevenLabs fallback...", scene_id)
+        success = _synthesize_elevenlabs(
+            text=clean_text,
+            output_path=raw_mp3_path,
+            api_key=eleven_key,
+            voice_id=eleven_voice,
+        )
+
+    if not success or not raw_mp3_path.exists():
+        log.warning("ElevenLabs failed for scene %d; cascading to Edge TTS (en-IN-PrabhatNeural)...", scene_id)
         try:
             import asyncio
             import edge_tts
@@ -247,7 +297,7 @@ def synthesize_scene(
             asyncio.run(_run_edge())
         except Exception as edge_err:
             log.error("Edge TTS fallback also failed: %s", edge_err)
-            raise RuntimeError(f"Both Fish Audio and Edge TTS failed for scene {scene_id}.")
+            raise RuntimeError(f"All TTS engines (Fish Audio, ElevenLabs, Edge TTS) failed for scene {scene_id}.")
 
     # Trim silence to ensure fluid pacing across scene cuts
     trim_audio_silence(raw_mp3_path, mp3_path)
@@ -398,5 +448,5 @@ def synthesize_all_scenes(scenes: list[dict], audio_dir: Path, voice: str = DEFA
 
 def get_available_voices() -> list[str]:
     """Return configured Fish Audio voice and fallbacks."""
-    voice_id = getattr(settings, "FISH_AUDIO_VOICE_ID", "4b24c8719a4c4c52baabbc418d2af196")
-    return [f"fish_audio:{voice_id}", "edge-tts:en-IN-PrabhatNeural"]
+    voice_id = getattr(settings, "FISH_AUDIO_VOICE_ID", "dc2c982dea5b4ab8a72331056f5aa9c3")
+    return [f"fish_audio:{voice_id}", "elevenlabs:21m00Tcm4TlvDq8ikWAM", "edge-tts:en-IN-PrabhatNeural"]

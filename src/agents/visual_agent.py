@@ -81,23 +81,19 @@ def source_all_visuals(scenes: list, output_dir: Path, story_seed: Optional[dict
                 sourced = True
 
         if not sourced:
-            # Generate a simple blurred placeholder video (5 seconds) for the scene
-            placeholder_path = output_dir / f"scene_{scene_id}_blur.mp4"
-            # Create a black image and apply blur via FFmpeg filter
-            cmd = [
-                "ffmpeg", "-y",
-                "-f", "lavfi", "-i", "color=c=black:s=1080x1920:d=5",
-                "-vf", "gblur=sigma=20",
-                "-c:v", "libx264", "-t", "5", "-pix_fmt", "yuv420p",
-                str(placeholder_path)
-            ]
-            subprocess.run(cmd, capture_output=True, check=True)
-            visual_paths.append({
-                "scene_id": scene_id,
-                "asset_type": "video",
-                "asset_path": str(placeholder_path.resolve()),
-                "source": "blur_placeholder"
-            })
-            log.info(" ✓ Scene %d visual placeholder blur generated", scene_id)
-            # No continue here; proceed to next scene
+            # Fallback to high-quality dynamic financial B-roll loop from assets/broll/
+            broll_fallback = Path("assets/broll/broll_1.mp4")
+            if not broll_fallback.exists():
+                broll_fallback = Path("assets/broll/broll_2.mp4")
+
+            if broll_fallback.exists() and broll_fallback.stat().st_size > 0:
+                visual_paths.append({
+                    "scene_id": scene_id,
+                    "asset_type": "video",
+                    "asset_path": str(broll_fallback.resolve()),
+                    "source": "fallback_broll"
+                })
+                log.info(" ✓ Scene %d sourced via fallback cinematic B-roll (%s)", scene_id, broll_fallback.name)
+            else:
+                raise RuntimeError(f"Could not source B-roll for scene {scene_id} and fallback video missing.")
     return visual_paths
