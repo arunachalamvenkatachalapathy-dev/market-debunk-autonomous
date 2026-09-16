@@ -77,23 +77,29 @@ def normalize_english_for_tts(text: str) -> str:
     t = text.strip()
     t = re.sub(r"<[^>]+>", "", t)
 
-    # 1. Currency with units (e.g. ₹1.2 Cr -> 1.2 crore rupees)
-    t = re.sub(r"(?:₹|Rs\.?)\s*(\d+(?:,\d+)*(?:\.\d+)?)\s*(?:Cr|Crores?|crores?)\b", r"\1 crore rupees", t)
-    t = re.sub(r"(?:₹|Rs\.?)\s*(\d+(?:,\d+)*(?:\.\d+)?)\s*(?:L|Lakhs?|lakhs?)\b", r"\1 lakh rupees", t)
-    t = re.sub(r"(?:₹|Rs\.?)\s*(\d+(?:,\d+)*(?:\.\d+)?)\s*[Kk]\b", r"\1 thousand rupees", t)
+    # 0. Clean numeric commas to prevent TTS pausing on commas (e.g. 50,000 -> 50000)
+    t = re.sub(r"(\d+),(\d+)", r"\1\2", t)
 
-    # 2. Currency amount alone (e.g. ₹50,000 -> 50,000 rupees)
-    t = re.sub(r"(?:₹|Rs\.?)\s*(\d+(?:,\d+)*(?:\.\d+)?)", r"\1 rupees", t)
+    # 1. Currency with units (e.g. ₹1.2 Cr -> 1.2 crore rupees, $500 -> 500 dollars)
+    t = re.sub(r"(?:₹|Rs\.?)\s*(\d+(?:\.\d+)?)\s*(?:Cr|Crores?|crores?)\b", r"\1 crore rupees", t)
+    t = re.sub(r"(?:₹|Rs\.?)\s*(\d+(?:\.\d+)?)\s*(?:L|Lakhs?|lakhs?)\b", r"\1 lakh rupees", t)
+    t = re.sub(r"(?:₹|Rs\.?)\s*(\d+(?:\.\d+)?)\s*[Kk]\b", r"\1 thousand rupees", t)
+    t = re.sub(r"(?:₹|Rs\.?)\s*(\d+(?:\.\d+)?)", r"\1 rupees", t)
     t = t.replace("₹", " rupees ")
 
-    # 3. Percentages: 6.8% -> 6.8 percent
+    t = re.sub(r"\$\s*(\d+(?:\.\d+)?)\s*(?:B|Billion|billion)\b", r"\1 billion dollars", t)
+    t = re.sub(r"\$\s*(\d+(?:\.\d+)?)\s*(?:M|Million|million)\b", r"\1 million dollars", t)
+    t = re.sub(r"\$\s*(\d+(?:\.\d+)?)", r"\1 dollars", t)
+
+    # 2. Percentages: 6.8% -> 6.8 percent
     t = re.sub(r"(\d+(?:\.\d+)?)\s*%", r"\1 percent", t)
 
-    # 4. Financial acronyms & spaced pronunciations
+    # 3. Financial acronyms & spaced pronunciations
     t = re.sub(r"\bF&O\b|\bf&o\b", "F and O", t)
     t = re.sub(r"\bP/E\b|\bp/e\b", "P E", t)
     t = re.sub(r"\bFD\b", "F D", t)
     t = re.sub(r"\bFDs\b", "F Ds", t)
+    t = re.sub(r"\bRD\b", "R D", t)
     t = re.sub(r"\bIPO\b", "I P O", t)
     t = re.sub(r"\bIPOs\b", "I P Os", t)
     t = re.sub(r"\bSIP\b", "S I P", t)
@@ -105,6 +111,14 @@ def normalize_english_for_tts(text: str) -> str:
     t = re.sub(r"\bAMC\b", "A M C", t)
     t = re.sub(r"\bRBI\b", "R B I", t)
     t = re.sub(r"\bSEBI\b", "SEBI", t)
+    t = re.sub(r"\bROI\b", "R O I", t)
+    t = re.sub(r"\bCAGR\b", "C A G R", t)
+    t = re.sub(r"\bHDFC\b", "H D F C", t)
+    t = re.sub(r"\bSBI\b", "S B I", t)
+    t = re.sub(r"\bLIC\b", "L I C", t)
+    t = re.sub(r"\bNAV\b", "N A V", t)
+    t = re.sub(r"\bAUM\b", "A U M", t)
+    t = re.sub(r"\bCEO\b", "C E O", t)
     t = re.sub(r"\bNIFTY\b", "Nifty", t)
     t = re.sub(r"\bSENSEX\b", "Sensex", t)
     t = re.sub(r"\bvs\.?\b", "versus", t, flags=re.IGNORECASE)
@@ -185,11 +199,11 @@ def _synthesize_fish_audio(
         "reference_id": voice_id,
         "format": "mp3",
         "normalize": True,
-        "temperature": 0.92,
-        "top_p": 0.85,
+        "temperature": 0.70,
+        "top_p": 0.80,
         "chunk_length": 200,
         "prosody": {
-            "speed": 1.10,
+            "speed": 1.08,
             "volume": 0.0
         }
     }
