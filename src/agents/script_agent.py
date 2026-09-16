@@ -376,7 +376,65 @@ def _call_model(user_prompt: str, model_name: str) -> str:
         except Exception as e:
             last_exc = e
             continue
+
+    # Last Hope Failover: OpenRouter with dynamic script generation
+    openrouter_text = _call_openrouter_failover(user_prompt)
+    if openrouter_text:
+        return openrouter_text
+
     raise last_exc or RuntimeError(f"All clients failed for model {model_name}")
+
+
+def _call_openrouter_failover(user_prompt: str) -> Optional[str]:
+    """Last-hope failover: Call OpenRouter models when all Google AI keys are exhausted."""
+    api_key = (
+        os.getenv("OPENROUTER_API_KEY")
+        or os.getenv("OPENROUTER_KEY")
+        or ""
+    ).strip().replace('\ufeff', '').replace('\u200b', '')
+    if not api_key:
+        return None
+
+    import requests
+    log.info("🛡️ Invoking OpenRouter as last-hope failover for English script generation...")
+    system_instruction = _get_system_prompt_with_negative_guidance()
+    models = [
+        "anthropic/claude-3.7-sonnet",
+        "deepseek/deepseek-chat",
+        "meta-llama/llama-3.3-70b-instruct",
+        "google/gemini-2.5-flash",
+        "z-ai/glm-5.2:free",
+    ]
+    url = "https://openrouter.ai/api/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+        "User-Agent": "MarketDebunk/1.0",
+        "HTTP-Referer": "https://marketdebunk.com",
+        "X-Title": "MarketDebunk",
+    }
+    for model in models:
+        try:
+            payload = {
+                "model": model,
+                "messages": [
+                    {"role": "system", "content": system_instruction + "\n\nCRITICAL: Return valid JSON adhering strictly to the ScriptPayload schema."},
+                    {"role": "user", "content": user_prompt},
+                ],
+                "temperature": 0.70,
+                "response_format": {"type": "json_object"},
+            }
+            res = requests.post(url, headers=headers, json=payload, timeout=45)
+            if res.status_code == 200:
+                data = res.json()
+                content = data["choices"][0]["message"]["content"]
+                log.info("✓ OpenRouter (%s) successfully generated failover script!", model)
+                return content
+            else:
+                log.warning("OpenRouter (%s) failover status %d: %s", model, res.status_code, res.text[:150])
+        except Exception as e:
+            log.warning("OpenRouter (%s) failover exception: %s", model, e)
+    return None
 
 
 def _repair_json(raw_response: str, error: Exception, model_name: str, target_scenes: int = 6) -> str:

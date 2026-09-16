@@ -78,6 +78,7 @@ jobs:
           GEMINI_SCRIPT_API_KEY: ${{ secrets.GEMINI_SCRIPT_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMMA_FALLBACK_MODEL: ${{ secrets.GEMMA_FALLBACK_MODEL || 'gemma-3-27b-it' }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           FISH_AUDIO_API_KEY: ${{ secrets.FISH_AUDIO_API_KEY }}
           FISH_AUDIO_VOICE_ID: ${{ secrets.FISH_AUDIO_VOICE_ID || 'dc2c982dea5b4ab8a72331056f5aa9c3' }}
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
