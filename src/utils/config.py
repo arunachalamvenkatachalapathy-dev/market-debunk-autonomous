@@ -95,12 +95,12 @@ class Settings:
     # ── Voice Settings ─────────────────────────────────────────────
     # Primary: Fish Audio S2.1 Pro with custom human cloned voice
     TTS_PROVIDER: str = _get("TTS_PROVIDER", default="fish_audio") or "fish_audio"
-    FISH_AUDIO_API_KEY: str = _get("FISH_AUDIO_API_KEY", default="sk-fish-qylnfekCVlDO5tnS0TNL7ID58fEiM19Mgv5W2gjOPpE") or "sk-fish-qylnfekCVlDO5tnS0TNL7ID58fEiM19Mgv5W2gjOPpE"
+    FISH_AUDIO_API_KEY: str = _get("FISH_AUDIO_API_KEY", default="") or ""
     FISH_AUDIO_VOICE_ID: str = _get("FISH_AUDIO_VOICE_ID", default="dc2c982dea5b4ab8a72331056f5aa9c3") or "dc2c982dea5b4ab8a72331056f5aa9c3"
     FISH_AUDIO_MODEL: str = _get("FISH_AUDIO_MODEL", default="s2.1-pro-free") or "s2.1-pro-free"
     
     # Secondary Fallback: ElevenLabs TTS
-    ELEVENLABS_API_KEY: str = _get("ELEVENLABS_API_KEY", default="sk_60811b378aecdbbaef2be1e18ad2cff56fcc5a6b1e489814") or "sk_60811b378aecdbbaef2be1e18ad2cff56fcc5a6b1e489814"
+    ELEVENLABS_API_KEY: str = _get("ELEVENLABS_API_KEY", default="") or ""
     ELEVENLABS_VOICE_ID: str = _get("ELEVENLABS_VOICE_ID", default="21m00Tcm4TlvDq8ikWAM") or "21m00Tcm4TlvDq8ikWAM"
     
     # Fallback / Secondary: Google Cloud TTS
