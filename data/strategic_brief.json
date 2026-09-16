@@ -1,11 +1,11 @@
 {
-  "topic_thesis": "Anchor investors are not backing your favorite IPO for the long haul; they are simply holding for 30 days until their mandatory lock-in expires to dump shares on retail buyers.",
-  "strategic_angle": "Expose the institutional mechanism where anchor investors hype up IPO valuations, wait out the mandatory 30-day/90-day lock-in period, and immediately trigger massive sell-offs that cause sharp 15-30% price drops for retail holders.",
+  "topic_thesis": "The EPFO system uses weaponized bureaucratic friction and forced court mediation to exhaust your patience so you abandon your own money.",
+  "strategic_angle": "Break down how 34% of online EPFO claims are systematically rejected for trivial clerical errors, forcing citizens to approach High Courts\u2014which now mandate lengthy mediation just to get back your own hard-earned interest-bearing money.",
   "format_type": "STANDALONE",
   "hook_style": "HARD_NUMBER_SHOCK",
-  "key_statistic": "78% of hot IPOs drop by up to 25% within 48 hours of 30-day anchor lock-in expiry",
-  "target_emotion": "Betrayal and urgent necessity to check current stock holdings against lock-in dates",
-  "pinned_comment_text": "Did you buy a hyped IPO on listing day only to see it fall a month later? Comment 'LOCKIN' below and we'll send you our 2026 Anchor Lock-in Expiry Tracker! \ud83d\udcc9\ud83d\udc47",
-  "tamil_adaptation_directive": "Target retail investors in TN hooked on IPO listing gains. Frame anchor investors using 'Big Shot Scam' cynicism. Use Tanglish terms like 'Listing Gain Aasai', 'Anchor Dump Strategy', and '30 Days-la Share Out'. Explain clearly with Chittorgarh data math.",
-  "source_signal": "Chittorgarh IPO lock-in tracking data & SERP 2026 IPO trends (ID: serp:8974793b9bd0764a)"
+  "key_statistic": "34% rejection rate / \u20b958,000 Crore lying unclaimed in EPFO",
+  "target_emotion": "Outrage and urgent impulse to check personal account status",
+  "pinned_comment_text": "Has EPFO rejected your claim for a minor spelling error or father's name mismatch? Drop your frustration below, or comment 'CLAIM' for our 3-step EPFO rejection fix guide! \ud83d\udcac\ud83d\udc47",
+  "tamil_adaptation_directive": "Focus on salaried IT and factory employees in Tamil Nadu facing 'EPFO Claim Rejected' loops. Use Tanglish terms like 'Joint Declaration Form headache', 'PF Money Locked', and 'Office Alaya Viduvaanga'. Explain the exact trap where people stop chasing \u20b92-3 Lakhs due to endless portal errors.",
+  "source_signal": "Delhi High Court Notification No. 84/Rules/DHC & rising EPFO rejection rates"
 }
