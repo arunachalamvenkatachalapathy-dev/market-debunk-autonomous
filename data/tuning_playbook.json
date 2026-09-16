@@ -1,24 +1,25 @@
 {
-  "last_updated": "2026-09-16T17:40:07.680694+00:00",
+  "last_updated": "2026-09-16T17:44:06.045939+00:00",
   "analyzed_videos_count": 14,
   "optimal_runtime_seconds": 23.4,
   "optimal_word_count": 60,
   "top_performing_topics": [
-    "Market Timing & Wealth Preservation (Nifty/Stocks)",
-    "Macro-Economic Realities vs Middle-Class Aspirations",
-    "Hidden Financial Inefficiencies (Inflation/Bank Product Traps)"
+    "hidden charges",
+    "EMI trap",
+    "F&O lot size margin traps",
+    "credit card tricks"
   ],
   "winning_hook_formulas": [
-    "The 'Stop/Warning' Formula: [Negative Action] + [Specific Financial Asset] + [Critical Consequence] (e.g., 'Stop buying X before you check Y')",
-    "The 'Hidden Loss' Formula: [Common Financial Product] + [Quantified Negative Impact] + [Timeframe] (e.g., 'Your X is secretly losing you Y every day')"
+    "Open with the exact Rupee amount quietly lost: 'Your bank took ₹X without an alert'",
+    "Contradict popular wisdom: 'Why your zero-cost EMI is actually charging 18% GST'"
   ],
   "script_directives": [
-    "Maintain a strict duration of 20-22 seconds; remove all fluff and introductory greetings.",
-    "Use a high-contrast visual or text overlay within the first 2 seconds to validate the hook's urgency.",
-    "Focus on a single, actionable 'contrarian' insight rather than explaining broad, complex systems."
+    "Keep Scene 1 under 8 words for immediate hook velocity.",
+    "Introduce the financial trap mechanism by Scene 3.",
+    "Always end with a dual CTA: save the video and comment 'GUIDE'."
   ],
   "seo_directives": [
-    "Use high-intent keywords in the title that challenge common retail investor behavior (e.g., 'Stop', 'Trap', 'Secretly').",
-    "Limit hashtags to 3-4 high-volume, niche-specific tags (e.g., #StockMarketIndia, #PersonalFinance, #InvestingTips) to avoid algorithm confusion."
+    "Prioritize problem-aware hashtags (#MoneyMistakes, #HiddenFees).",
+    "Ensure caption line 1 matches spoken hook word-for-word."
   ]
 }
