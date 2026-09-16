@@ -1,24 +1,25 @@
 {
-  "last_updated": "2026-09-16T08:51:59.626415+00:00",
+  "last_updated": "2026-09-16T09:16:16.682966+00:00",
   "analyzed_videos_count": 13,
   "optimal_runtime_seconds": 22.5,
   "optimal_word_count": 58,
   "top_performing_topics": [
-    "Market Timing & Technical Analysis (Nifty/Stocks)",
-    "Wealth Erosion (Inflation vs. Savings)",
-    "Asset Valuation (Buying undervalued vs. overpriced assets)"
+    "hidden charges",
+    "EMI trap",
+    "F&O lot size margin traps",
+    "credit card tricks"
   ],
   "winning_hook_formulas": [
-    "The 'Stop/Warning' Imperative: Start with a negative command + a specific, high-stakes financial consequence (e.g., 'Stop doing X before you lose Y').",
-    "The 'Hidden Loss' Reveal: Highlight a common financial product and frame it as a 'trap' that is actively draining the viewer's net worth (e.g., 'Your X is secretly making you poorer')."
+    "Open with the exact Rupee amount quietly lost: 'Your bank took ₹X without an alert'",
+    "Contradict popular wisdom: 'Why your zero-cost EMI is actually charging 18% GST'"
   ],
   "script_directives": [
-    "Maintain a strict 20-22 second duration to maximize completion rates.",
-    "Use high-contrast visual cues (charts or red/green text overlays) every 3 seconds to reset viewer attention.",
-    "Eliminate fluff; start the value proposition within the first 1.5 seconds and maintain a fast-paced, urgent tone throughout."
+    "Keep Scene 1 under 8 words for immediate hook velocity.",
+    "Introduce the financial trap mechanism by Scene 3.",
+    "Always end with a dual CTA: save the video and comment 'GUIDE'."
   ],
   "seo_directives": [
-    "Use high-intent, contrarian keywords in the title that challenge common financial wisdom (e.g., 'Trap', 'Stop', 'Secretly').",
-    "Limit hashtags to 3-4 highly relevant, niche-specific tags (e.g., #Nifty50, #StockMarketIndia, #PersonalFinance) to avoid algorithmic dilution."
+    "Prioritize problem-aware hashtags (#MoneyMistakes, #HiddenFees).",
+    "Ensure caption line 1 matches spoken hook word-for-word."
   ]
 }
