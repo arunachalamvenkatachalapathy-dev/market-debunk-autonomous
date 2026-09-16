@@ -389,7 +389,7 @@
       "instagram": "18204186406372259",
       "facebook": "1570860687681813"
     },
-    "audited": false
+    "audited": true
   },
   {
     "timestamp": "2026-09-15T04:57:16.712359+00:00",
@@ -612,6 +612,34 @@
       "youtube": "B7Cjki2LhgE",
       "instagram": "18148012237558614",
       "facebook": "1073953485340562"
+    },
+    "audited": false
+  },
+  {
+    "timestamp": "2026-09-16T13:56:50.497908+00:00",
+    "title": "UPI Payment Tax: Fake 0.4% Fee Debunked #Shorts",
+    "topic": "Viral news claiming a mandatory 0.4% tax on UPI payments over ₹2,000 is pure clickbait fearmongering—the Finance Ministry's strict Zero-MDR mandate guarantees bank-to-bank UPI remains 100% free for consumers.",
+    "hook": "⚠️ Don’t pay that UPI tax! Here’s why the viral news is a total scam",
+    "hashtags": [
+      "#WealthCreationIndia",
+      "#SIPInvesting",
+      "#StockMarketMyths",
+      "#ValueInvesting",
+      "#OptionsTrading",
+      "#IndianStockMarket",
+      "#NiftyAlert",
+      "#NSEIndia"
+    ],
+    "duration_seconds": 33.332244,
+    "urls": {
+      "youtube": "https://www.youtube.com/shorts/O20Lw_ua22w",
+      "instagram": "https://www.instagram.com/reel/DdWcWR4ktql/",
+      "facebook": "https://www.facebook.com/reel/2548022449010586/"
+    },
+    "ids": {
+      "youtube": "O20Lw_ua22w",
+      "instagram": "17979081309106937",
+      "facebook": "2548022449010586"
     },
     "audited": false
   }
