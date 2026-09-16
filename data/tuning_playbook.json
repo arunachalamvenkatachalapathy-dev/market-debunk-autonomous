@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-15T17:46:32.031506+00:00",
-  "analyzed_videos_count": 12,
+  "last_updated": "2026-09-16T02:39:16.614046+00:00",
+  "analyzed_videos_count": 13,
   "optimal_runtime_seconds": 22.5,
   "optimal_word_count": 58,
   "top_performing_topics": [
     "Market Timing & Technical Analysis (Nifty/Stocks)",
-    "Wealth Erosion (Inflation vs. Savings/FDs)",
-    "Asset Valuation & Arbitrage (Buying at discounts)"
+    "Wealth Erosion (Inflation vs. Traditional Savings)",
+    "Asset Valuation & Discounted Buying Opportunities"
   ],
   "winning_hook_formulas": [
-    "The 'Hidden Loss' Formula: [Warning Emoji] Stop [Action] before you [Negative Outcome/Loss] due to [Specific Hidden Factor].",
-    "The 'Financial Reality' Formula: [Alarm Emoji] Why your [Asset/Investment] is secretly [Negative Verb] while you think it is [Positive State]."
+    "The 'Hidden Loss' Formula: [Warning Emoji] Stop [Action] before you [Negative Consequence/Financial Loss].",
+    "The 'Counter-Intuitive Truth' Formula: [Shocking Statement] is secretly making you poorer every day."
   ],
   "script_directives": [
-    "Keep total duration strictly under 22 seconds to maximize loop potential and retention.",
-    "Eliminate all fluff; start the narrative immediately after the hook with a single, high-value data point or technical level.",
-    "Use a confrontational, 'insider-knowledge' tone that positions the viewer as being 'tricked' by traditional financial institutions."
+    "Keep total duration strictly between 20-22 seconds to maximize completion rates.",
+    "Eliminate all fluff; start the value proposition within the first 1.5 seconds.",
+    "Use high-contrast visual cues or text overlays that highlight specific numbers or 'trap' keywords to maintain visual retention."
   ],
   "seo_directives": [
-    "Use high-intent, search-driven keywords in the first 5 words of the title (e.g., 'Nifty', 'Bank FD', 'Stocks').",
-    "Limit hashtags to 3 highly relevant, broad finance tags (e.g., #StockMarketIndia, #PersonalFinance, #Investing) to avoid algorithm dilution."
+    "Include high-intent keywords like 'Nifty', 'Stocks', or 'Investment' in the first 5 words of the caption.",
+    "Use a mix of 3 broad finance tags and 2 specific niche tags (e.g., #StockMarketIndia #PersonalFinance) to balance reach and relevance."
   ]
 }

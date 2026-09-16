@@ -361,7 +361,7 @@
       "instagram": "17936910984368818",
       "facebook": "4516437151943376"
     },
-    "audited": false
+    "audited": true
   },
   {
     "timestamp": "2026-09-14T17:49:25.174924+00:00",
@@ -556,6 +556,34 @@
       "youtube": "yHKNjR7zJT8",
       "instagram": "18203289922331511",
       "facebook": "2274915573343083"
+    },
+    "audited": false
+  },
+  {
+    "timestamp": "2026-09-16T02:44:36.180772+00:00",
+    "title": "Dividend Yield Trap: 12% Stock Scam Exposed #Shorts",
+    "topic": "Chasing high dividend yield stocks is often a trap because companies slash dividends right after attracting retail investors.",
+    "hook": "⚠️ That 12% dividend yield is a trap designed to drain your portfolio",
+    "hashtags": [
+      "#MarketTrap",
+      "#BearTrap",
+      "#DividendInvesting",
+      "#SmartInvesting",
+      "#DividendStocks",
+      "#IndianStockMarket",
+      "#NiftyAlert",
+      "#NSEIndia"
+    ],
+    "duration_seconds": 34.128,
+    "urls": {
+      "youtube": "https://www.youtube.com/shorts/Yr2QXREAc2U",
+      "instagram": "https://www.instagram.com/reel/DdVPanCkpr6/",
+      "facebook": "https://www.facebook.com/reel/3422834354562885/"
+    },
+    "ids": {
+      "youtube": "Yr2QXREAc2U",
+      "instagram": "17877713826546134",
+      "facebook": "3422834354562885"
     },
     "audited": false
   }
