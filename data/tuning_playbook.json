@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-16T13:48:11.899906+00:00",
+  "last_updated": "2026-09-16T15:45:42.202001+00:00",
   "analyzed_videos_count": 14,
   "optimal_runtime_seconds": 23.4,
   "optimal_word_count": 60,
   "top_performing_topics": [
     "Market Timing & Wealth Preservation (Nifty/Stocks)",
-    "Macro-Economic Realities (Inflation/Real Estate)",
-    "Counter-Intuitive Investment Strategies (Value Investing)"
+    "Macro-Economic Realities (Inflation/Housing/Purchasing Power)",
+    "Investment Arbitrage (Discounted Assets/Value Investing)"
   ],
   "winning_hook_formulas": [
-    "The 'Stop Doing X' Warning: Start with a negative imperative + a specific, high-stakes consequence (e.g., 'Stop buying X before you check Y').",
-    "The 'Hidden Loss' Reveal: Highlight a common financial action and reveal a hidden, silent cost that is actively working against the viewer's wealth."
+    "The 'Counter-Intuitive Warning': Stop [Common Action] before you check [Specific Metric/Data Point].",
+    "The 'Hidden Loss' Reveal: Your [Common Financial Instrument] is secretly [Negative Outcome] every single day."
   ],
   "script_directives": [
-    "Maintain a sub-25 second duration to maximize loop potential and completion rates.",
-    "Eliminate fluff; start the hook at 0:00 and deliver the 'critical insight' within the first 5 seconds.",
-    "Use high-contrast, urgent visual cues (arrows, red text, data charts) to anchor the viewer's attention to the specific financial metric being discussed."
+    "Keep duration strictly between 20-22 seconds to maximize completion rates.",
+    "Eliminate all preamble; start the video with the hook and immediately transition to the 'why' within the first 3 seconds.",
+    "Use high-contrast visual cues (charts or red/green indicators) to emphasize the financial 'trap' or 'opportunity' mentioned in the hook."
   ],
   "seo_directives": [
-    "Use high-intent, search-driven keywords in the title (e.g., 'Nifty', 'Stocks', 'FD', 'Home') rather than generic clickbait.",
-    "Limit hashtags to 3-4 highly relevant, niche-specific tags that categorize the content for the algorithm's recommendation engine."
+    "Use high-intent keywords in the title that address specific investor fears (e.g., 'Trap', 'Stop', 'Loss', 'Discount').",
+    "Limit hashtags to 3-4 highly relevant tags that define the niche (e.g., #StockMarketIndia #PersonalFinance #InvestingTips) to avoid algorithmic dilution."
   ]
 }
