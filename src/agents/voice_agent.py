@@ -51,7 +51,7 @@ def trim_audio_silence(input_path: Path, output_path: Path):
             "areverse,"
             "silenceremove=start_periods=1:start_duration=0.05:start_threshold=-45dB,"
             "areverse,"
-            "apad=pad_dur=0.30"
+            "apad=pad_dur=0.04"
         )
         subprocess.run(
             [
@@ -91,10 +91,21 @@ def normalize_english_for_tts(text: str) -> str:
     t = re.sub(r"\$\s*(\d+(?:\.\d+)?)\s*(?:M|Million|million)\b", r"\1 million dollars", t)
     t = re.sub(r"\$\s*(\d+(?:\.\d+)?)", r"\1 dollars", t)
 
-    # 2. Percentages: 6.8% -> 6.8 percent
+    # 2. Percentages & decimals (e.g. 0.4% -> zero point four percent, 6.8% -> 6.8 percent)
+    t = re.sub(r"0\.(\d+)\s*%", r"zero point \1 percent", t)
+    t = re.sub(r"(\d+)\.(\d+)\s*%", r"\1 point \2 percent", t)
     t = re.sub(r"(\d+(?:\.\d+)?)\s*%", r"\1 percent", t)
 
-    # 3. Financial acronyms & spaced pronunciations
+    # 3. Financial acronyms & rapid phonetic pronunciations (zero awkward pauses)
+    t = re.sub(r"\bUPI\b|\bupi\b", "You-Pee-Eye", t)
+    t = re.sub(r"\bNPCI\b", "N P C I", t)
+    t = re.sub(r"\bMDR\b", "M D R", t)
+    t = re.sub(r"\bZero-MDR\b|\bzero-mdr\b", "Zero M D R", t)
+    t = re.sub(r"\bPPI\b", "P P I", t)
+    t = re.sub(r"\bIMPS\b", "I M P S", t)
+    t = re.sub(r"\bNEFT\b", "N E F T", t)
+    t = re.sub(r"\bRTGS\b", "R T G S", t)
+    t = re.sub(r"\bKYC\b", "K Y C", t)
     t = re.sub(r"\bF&O\b|\bf&o\b", "F and O", t)
     t = re.sub(r"\bP/E\b|\bp/e\b", "P E", t)
     t = re.sub(r"\bFD\b", "F D", t)
