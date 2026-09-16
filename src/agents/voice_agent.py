@@ -167,6 +167,13 @@ def _synthesize_fish_audio(
     import time
     import random
 
+    if api_key:
+        api_key = api_key.strip().replace('\ufeff', '').replace('\u200b', '')
+        api_key = re.sub(r'[^\x20-\x7E]', '', api_key)
+    if voice_id:
+        voice_id = voice_id.strip().replace('\ufeff', '').replace('\u200b', '')
+        voice_id = re.sub(r'[^\x20-\x7E]', '', voice_id)
+
     url = "https://api.fish.audio/v1/tts"
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -278,26 +285,8 @@ def synthesize_scene(
     )
 
     if not success or not raw_mp3_path.exists():
-        log.warning("Fish Audio S2.1 Pro failed for scene %d; cascading to ElevenLabs fallback...", scene_id)
-        success = _synthesize_elevenlabs(
-            text=clean_text,
-            output_path=raw_mp3_path,
-            api_key=eleven_key,
-            voice_id=eleven_voice,
-        )
-
-    if not success or not raw_mp3_path.exists():
-        log.warning("ElevenLabs failed for scene %d; cascading to Edge TTS (en-IN-PrabhatNeural)...", scene_id)
-        try:
-            import asyncio
-            import edge_tts
-            async def _run_edge():
-                communicate = edge_tts.Communicate(clean_text, "en-IN-PrabhatNeural", rate="+6%")
-                await communicate.save(str(raw_mp3_path))
-            asyncio.run(_run_edge())
-        except Exception as edge_err:
-            log.error("Edge TTS fallback also failed: %s", edge_err)
-            raise RuntimeError(f"All TTS engines (Fish Audio, ElevenLabs, Edge TTS) failed for scene {scene_id}.")
+        log.error("❌ Mandatory Fish Audio S2.1 Pro failed for scene %d.", scene_id)
+        raise RuntimeError(f"Fish Audio voice synthesis is mandatory and failed for scene {scene_id}. Check API key and quota.")
 
     # Trim silence to ensure fluid pacing across scene cuts
     trim_audio_silence(raw_mp3_path, mp3_path)
