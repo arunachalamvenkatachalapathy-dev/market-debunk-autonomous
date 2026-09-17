@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-17T17:39:49.716574+00:00",
+  "last_updated": "2026-09-17T17:45:15.979974+00:00",
   "analyzed_videos_count": 20,
   "optimal_runtime_seconds": 24.0,
   "optimal_word_count": 62,
   "top_performing_topics": [
     "Market timing and technical support levels for retail investors",
-    "Inflation-adjusted wealth erosion and the hidden costs of traditional savings",
-    "Contrarian investment opportunities and valuation gaps in major assets"
+    "Macro-economic wealth erosion (inflation vs. traditional savings)",
+    "Contrarian investment strategies (buying discounts/value vs. hype)"
   ],
   "winning_hook_formulas": [
-    "The 'Urgent Warning' formula: [Warning Emoji] Stop [Action] before you [Negative Consequence/Loss]",
-    "The 'Counter-Intuitive Truth' formula: [Common Financial Belief] is actually [Negative Outcome]—here is why"
+    "The 'Urgency-Warning' Formula: [Warning Emoji] Stop [Action] before you [Negative Consequence/Loss]",
+    "The 'Hidden Reality' Formula: [Alarm Emoji] Why your [Common Financial Instrument] is secretly [Negative Outcome]"
   ],
   "script_directives": [
-    "Keep total duration strictly under 22 seconds to force high completion rates",
-    "Open immediately with the pain point; remove all intros, greetings, or channel branding",
-    "Use high-contrast visual callouts for numbers and keywords to anchor viewer attention"
+    "Keep total duration strictly between 20-22 seconds to maximize loop potential.",
+    "Eliminate all fluff; start the core insight within the first 1.5 seconds of the video.",
+    "Use high-contrast visual cues or text overlays to emphasize specific numbers or 'trap' terminology."
   ],
   "seo_directives": [
-    "Use high-intent keywords in the title like 'Stop', 'Trap', 'Secret', or 'Warning' to trigger curiosity",
-    "Limit hashtags to 3 highly relevant tags (e.g., #StockMarketIndia #PersonalFinance #Investing) to avoid algorithm confusion"
+    "Include the specific financial asset or index (e.g., Nifty, FD, Stocks) in the first 5 words of the caption.",
+    "Use a mix of broad finance hashtags (#Finance, #Investing) and high-intent niche tags (#StockMarketIndia, #PersonalFinanceIndia)."
   ]
 }
