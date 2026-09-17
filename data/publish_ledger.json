@@ -417,7 +417,7 @@
       "instagram": "18162296641489165",
       "facebook": "1074479878502588"
     },
-    "audited": false
+    "audited": true
   },
   {
     "timestamp": "2026-09-15T05:36:06.056553+00:00",
@@ -445,7 +445,7 @@
       "instagram": "18176994247434499",
       "facebook": "1105266235265914"
     },
-    "audited": false
+    "audited": true
   },
   {
     "timestamp": "2026-09-15T06:34:23.614547+00:00",
@@ -473,7 +473,7 @@
       "instagram": "18104315954091802",
       "facebook": "1369285835386041"
     },
-    "audited": false
+    "audited": true
   },
   {
     "timestamp": "2026-09-15T08:33:29.520729+00:00",
@@ -501,7 +501,7 @@
       "instagram": "18421421509146659",
       "facebook": "3617218565119702"
     },
-    "audited": false
+    "audited": true
   },
   {
     "timestamp": "2026-09-15T09:54:12.367385+00:00",
@@ -529,7 +529,7 @@
       "instagram": "18342676315281751",
       "facebook": "1694119598347162"
     },
-    "audited": false
+    "audited": true
   },
   {
     "timestamp": "2026-09-15T17:52:00.179122+00:00",
@@ -696,6 +696,34 @@
       "youtube": "JZmbdTgy91g",
       "instagram": "17892289470427297",
       "facebook": "1397210141866803"
+    },
+    "audited": false
+  },
+  {
+    "timestamp": "2026-09-17T09:01:11.762197+00:00",
+    "title": "Debt Fund Tax Trap: Nippon Ultra Short 0% #Shorts",
+    "topic": "Your Nippon India Ultra Short Term Fund is a tax-inefficient wealth incinerator that masks poor real returns behind a 'low-risk' label.",
+    "hook": "🔥 Nippon India Ultra: the dirty secret nobody in finance talks about",
+    "hashtags": [
+      "#MarketDebunk",
+      "#StockMarketMyths",
+      "#SmallCapStocks",
+      "#SensexAlert",
+      "#MutualFundsSahi",
+      "#IndianStockMarket",
+      "#NiftyAlert",
+      "#NSEIndia"
+    ],
+    "duration_seconds": 23.066123,
+    "urls": {
+      "youtube": "https://www.youtube.com/shorts/fWvPt5ZKQEs",
+      "instagram": "https://www.instagram.com/reel/DdYfTgogWMV/",
+      "facebook": "https://www.facebook.com/reel/3524743764368146/"
+    },
+    "ids": {
+      "youtube": "fWvPt5ZKQEs",
+      "instagram": "18129969775707150",
+      "facebook": "3524743764368146"
     },
     "audited": false
   }

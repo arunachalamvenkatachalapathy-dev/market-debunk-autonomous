@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-16T17:46:45.232749+00:00",
-  "analyzed_videos_count": 14,
-  "optimal_runtime_seconds": 23.4,
-  "optimal_word_count": 60,
+  "last_updated": "2026-09-17T08:56:04.423295+00:00",
+  "analyzed_videos_count": 19,
+  "optimal_runtime_seconds": 23.9,
+  "optimal_word_count": 61,
   "top_performing_topics": [
-    "Market Timing & Wealth Preservation (Nifty/Stocks)",
-    "Macro-Economic Realities (Inflation/Housing/Purchasing Power)",
-    "Investment Arbitrage (Discounted Assets/Value Investing)"
+    "Market timing and technical support levels for retail investors",
+    "Wealth erosion caused by inflation vs. traditional banking products",
+    "Value investing and arbitrage opportunities in global/local stock markets"
   ],
   "winning_hook_formulas": [
-    "The 'Hidden Loss' Formula: [Warning Emoji] Stop [Action] before you lose [Asset/Money] to [Hidden Factor].",
-    "The 'Counter-Intuitive Truth' Formula: Why your [Common Financial Habit] is secretly making you [Poorer/Trapped] every day."
+    "The 'Hidden Danger' Formula: [Warning Emoji] Stop doing [Common Action] before you check [Specific Metric/Data Point].",
+    "The 'Loss Aversion' Formula: [Alarm Emoji] Why your [Asset Class] is secretly making you poorer every single day."
   ],
   "script_directives": [
-    "Maintain a strict 20-22 second duration to maximize completion rates.",
-    "Eliminate fluff; start the hook at 0:00 and deliver the 'Why' within the first 5 seconds.",
-    "Use high-contrast, urgent visual cues (red/yellow overlays) specifically when mentioning 'traps' or 'losses' to maintain visual engagement."
+    "Keep total duration strictly between 20-22 seconds to maximize loop potential.",
+    "Eliminate all preamble; start the hook within the first 0.5 seconds of the video.",
+    "Use high-contrast visual overlays (charts or data) to anchor the narration every 3 seconds."
   ],
   "seo_directives": [
-    "Use high-intent keywords in the title that address specific investor pain points (e.g., 'Nifty', 'FD', 'Stocks').",
-    "Limit hashtags to 3 highly relevant tags (e.g., #FinanceIndia #StockMarketIndia #Investing) to avoid algorithmic dilution."
+    "Use specific, high-intent keywords in the title (e.g., Nifty, FD, Stocks) rather than generic financial terms.",
+    "Limit hashtags to 3-4 highly relevant tags (e.g., #FinanceShorts #InvestingIndia #StockMarketIndia) to avoid algorithm confusion."
   ]
 }
