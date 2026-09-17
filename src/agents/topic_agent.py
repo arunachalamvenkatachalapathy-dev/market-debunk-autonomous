@@ -77,6 +77,11 @@ _SERP_CONSUMER_QUERIES = (
     "gold making charges wastage GST hallmark scam India",
     "debit card AMC fee minimum balance deduction RBI India",
     "term insurance claim rejected section 45 insurance India",
+    "UPI platform fee third party payment apps recharge surcharge India",
+    "credit card lounge access quarterly spend criteria devaluation India",
+    "zero cost EMI processing fee 18 percent GST hidden calculation India",
+    "bank savings account quarterly average balance penal charges RBI India",
+    "personal loan pre-closure penalty loan foreclosure charges RBI India",
 )
 
 _SERP_QUERIES = _SERP_MARKET_QUERIES + _SERP_CONSUMER_QUERIES
@@ -300,6 +305,10 @@ def _fetch_recent_videos_rss(channel_id: str, limit: int = 5) -> list[dict]:
     except Exception as exc:
         log.warning("YouTube RSS feed fetch failed for channel %s: %s", channel_id, exc)
     return []
+
+
+# Public alias to safeguard against internal/external caller NameErrors
+fetch_recent_videos_rss = _fetch_recent_videos_rss
 
 
 def _fetch_recent_videos_ytdlp(channel_id: str, limit: int = 5) -> list[dict]:
@@ -784,7 +793,7 @@ def scan_all_channels_parallel(limit_per_channel: int = 5) -> list[dict]:
         ch_id = resolve_channel_id(ch_name)
         if not ch_id:
             return []
-        items = fetch_recent_videos_rss(ch_id, limit=limit_per_channel)
+        items = _fetch_recent_videos_rss(ch_id, limit=limit_per_channel)
         fresh = []
         for item in items:
             vid = item.get("video_id")
