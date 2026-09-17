@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-17T09:24:05.377159+00:00",
+  "last_updated": "2026-09-17T09:31:28.893001+00:00",
   "analyzed_videos_count": 19,
   "optimal_runtime_seconds": 23.9,
   "optimal_word_count": 61,
   "top_performing_topics": [
     "Market timing and technical support levels for retail investors",
     "Wealth erosion through inflation and hidden financial traps",
-    "Asset valuation and arbitrage opportunities in stock markets"
+    "Asset valuation gaps and investment arbitrage opportunities"
   ],
   "winning_hook_formulas": [
-    "The 'Counter-Intuitive Warning' formula: [Action] + [Specific Asset/Metric] + [Negative Consequence] (e.g., 'Stop buying X before you check Y')",
-    "The 'Purchasing Power Paradox' formula: [Asset/Investment] + [Specific Percentage/Number] + [Emotional/Financial Loss] (e.g., 'Your X is secretly making you poorer')"
+    "The 'Stop Doing X' Formula: [Warning Emoji] Stop [Action] before you [Negative Consequence/Critical Data Point].",
+    "The 'Hidden Loss' Formula: [Alarm Emoji] Why your [Common Financial Product] is secretly making you [Negative Outcome] every single day."
   ],
   "script_directives": [
-    "Keep total duration strictly between 20-22 seconds to maximize completion rate",
-    "Eliminate all preamble; start the hook within the first 0.5 seconds",
-    "Use high-contrast visual callouts for specific numbers (e.g., 23600, 6.8%) to anchor attention"
+    "Keep total duration strictly under 22 seconds to maximize loop potential.",
+    "Eliminate all preamble; start the hook at 0.0s and deliver the core insight within the first 5 seconds.",
+    "Use high-contrast visual overlays for numbers and technical levels to anchor viewer attention."
   ],
   "seo_directives": [
-    "Use high-intent keywords in the title that address immediate financial pain points rather than general news",
-    "Limit hashtags to 3-4 highly relevant tags (e.g., #StockMarketIndia #PersonalFinance #InvestingTips) to avoid algorithm dilution"
+    "Use specific, searchable financial keywords in the title (e.g., Nifty, FD, Stocks) rather than vague clickbait.",
+    "Limit hashtags to 3 highly relevant tags (e.g., #FinanceShorts #InvestingIndia #Nifty50) to avoid algorithmic dilution."
   ]
 }
