@@ -293,7 +293,7 @@ def synthesize_scene(
     timings_path = audio_dir / f"scene_{scene_id}_timings.json"
 
     api_key = getattr(settings, "FISH_AUDIO_API_KEY", "") or os.environ.get("FISH_AUDIO_API_KEY", "")
-    voice_id = getattr(settings, "FISH_AUDIO_VOICE_ID", "") or os.environ.get("FISH_AUDIO_VOICE_ID", "dc2c982dea5b4ab8a72331056f5aa9c3")
+    voice_id = getattr(settings, "FISH_AUDIO_VOICE_ID", "") or os.environ.get("FISH_AUDIO_VOICE_ID", "b82d76382a3f40139e76ffbd095da13d")
     model_str = getattr(settings, "FISH_AUDIO_MODEL", "s2.1-pro-free")
     eleven_key = getattr(settings, "ELEVENLABS_API_KEY", "") or os.environ.get("ELEVENLABS_API_KEY", "")
     eleven_voice = getattr(settings, "ELEVENLABS_VOICE_ID", "21m00Tcm4TlvDq8ikWAM")
@@ -462,5 +462,5 @@ def synthesize_all_scenes(scenes: list[dict], audio_dir: Path, voice: str = DEFA
 
 def get_available_voices() -> list[str]:
     """Return configured Fish Audio voice and fallbacks."""
-    voice_id = getattr(settings, "FISH_AUDIO_VOICE_ID", "dc2c982dea5b4ab8a72331056f5aa9c3")
+    voice_id = getattr(settings, "FISH_AUDIO_VOICE_ID", "b82d76382a3f40139e76ffbd095da13d")
     return [f"fish_audio:{voice_id}", "elevenlabs:21m00Tcm4TlvDq8ikWAM", "edge-tts:en-IN-PrabhatNeural"]
