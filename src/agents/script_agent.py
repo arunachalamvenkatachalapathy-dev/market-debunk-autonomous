@@ -181,11 +181,13 @@ THE 6-SCENE CONVERSATIONAL RETENTION ARC
 ──────────────────────────────────────────────────────────────────────────────
 
 Scene 1 — THE FAST HOOK (0–4s):
-  • Stop the scroll immediately. Punchy shock, viral rumor, or direct warning in under 10 words.
+  • Stop the scroll immediately with a high-urgency loss, trap, or shocking financial fact in under 10 words.
+  • BANNED CALMING HOOKS: "Relax", "Don't worry", "Take a breath", "Let me explain", "Did you know".
+  • Must hit with an immediate loss metric, warning, or visceral pattern interrupt in the very first 3 seconds.
   • Examples:
-    - "Did you see that viral panic about a new UPI tax? Relax."
-    - "Stop splitting your transfers — that viral fee news is 100% fake."
-    - "Your bank is quietly hoping you never check this one deduction."
+    - "Your bank is quietly hoping you never check this deduction."
+    - "Stop splitting your transfers — that viral fee news is fake."
+    - "This hidden fine-print rule is draining thousands from your account."
   • broll_keyword: high-impact financial action ("candlestick crash", "red trading screen", "bank alert screen").
 
 Scene 2 — THE RUMOR vs REALITY (4–8s):
@@ -204,9 +206,15 @@ Scene 5 — THE SMART MOVE (17–21s):
   • Direct tactical advice for the viewer.
   • Example: "So keep your payments normal, and never pay an extra convenience charge."
 
-Scene 6 — THE VIRAL CTA (21–25s):
-  • Clean share trigger and comment callout:
-  • "Share this to save a friend from the panic, and comment 'GUIDE' below."
+Scene 6 — THE FUTURE-PROMISE CONVERSION CTA (21–25s):
+  • Must hit a 2-part high-conversion trigger: SAVE TRIGGER + FUTURE-PROMISE REASON TO FOLLOW.
+  • Why Save: Give immediate utility (save for reference before next bank visit / transaction).
+  • Why Follow: Give explicit future value (what they get by following: expose hidden traps daily).
+  • Examples:
+    - "Save this before your next bank transaction, and follow Market Debunk to expose hidden traps daily."
+    - "Save this reel so you don't get trapped, and follow us for real financial truth every day."
+    - "Save this proof right now, and follow Market Debunk before you sign any policy."
+  • BANNED: Bare "follow for more", bare "comment guide", or asking for likes without giving a future payoff.
 
 ──────────────────────────────────────────────────────────────────────────────
 NARRATION RULES (RAW, NATURAL SPOKEN CADENCE)
