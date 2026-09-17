@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-17T17:07:36.111865+00:00",
+  "last_updated": "2026-09-17T17:39:49.716574+00:00",
   "analyzed_videos_count": 20,
   "optimal_runtime_seconds": 24.0,
   "optimal_word_count": 62,
   "top_performing_topics": [
-    "Market timing and technical support levels",
-    "Wealth erosion due to inflation vs. traditional savings",
-    "Hidden costs and structural traps in retail investment products"
+    "Market timing and technical support levels for retail investors",
+    "Inflation-adjusted wealth erosion and the hidden costs of traditional savings",
+    "Contrarian investment opportunities and valuation gaps in major assets"
   ],
   "winning_hook_formulas": [
-    "The 'Stop Doing X' formula: Start with a strong warning against a common, seemingly safe behavior (e.g., 'Stop buying X before you check Y').",
-    "The 'Hidden Loss' formula: Highlight a specific financial metric (like inflation or currency leverage) that is silently eroding the viewer's net worth."
+    "The 'Urgent Warning' formula: [Warning Emoji] Stop [Action] before you [Negative Consequence/Loss]",
+    "The 'Counter-Intuitive Truth' formula: [Common Financial Belief] is actually [Negative Outcome]—here is why"
   ],
   "script_directives": [
-    "Keep duration strictly under 22 seconds to maximize completion rates.",
-    "Use a 'Problem-Consequence-Action' structure: State the trap, explain the hidden cost, and provide one specific, actionable data point.",
-    "Maintain a high-energy, urgent narration style with zero filler words or introductory pleasantries."
+    "Keep total duration strictly under 22 seconds to force high completion rates",
+    "Open immediately with the pain point; remove all intros, greetings, or channel branding",
+    "Use high-contrast visual callouts for numbers and keywords to anchor viewer attention"
   ],
   "seo_directives": [
-    "Use high-intent keywords in the title that address specific financial pain points like 'Nifty', 'FD', or 'Stocks'.",
-    "Limit hashtags to 3-4 highly relevant tags (e.g., #FinanceTips #StockMarketIndia #Investing) to keep the caption clean and focused on the hook."
+    "Use high-intent keywords in the title like 'Stop', 'Trap', 'Secret', or 'Warning' to trigger curiosity",
+    "Limit hashtags to 3 highly relevant tags (e.g., #StockMarketIndia #PersonalFinance #Investing) to avoid algorithm confusion"
   ]
 }
