@@ -557,7 +557,7 @@
       "instagram": "18203289922331511",
       "facebook": "2274915573343083"
     },
-    "audited": false
+    "audited": true
   },
   {
     "timestamp": "2026-09-16T02:44:36.180772+00:00",
@@ -724,6 +724,34 @@
       "youtube": "fWvPt5ZKQEs",
       "instagram": "18129969775707150",
       "facebook": "3524743764368146"
+    },
+    "audited": false
+  },
+  {
+    "timestamp": "2026-09-17T17:12:11.606637+00:00",
+    "title": "Bank Micro-Fees: Hidden UPI Charges Exposed #Shorts",
+    "topic": "Your bank is systematically bleeding your savings through 'micro-fee inflation' while you're distracted by their flashy marketing campaigns.",
+    "hook": "🚨 Your bank is secretly draining your account with hidden micro-fees",
+    "hashtags": [
+      "#WealthCreationIndia",
+      "#SIPInvesting",
+      "#MutualFundsSahi",
+      "#InvestingTruths",
+      "#LongTermInvesting",
+      "#IndianStockMarket",
+      "#NiftyAlert",
+      "#NSEIndia"
+    ],
+    "duration_seconds": 25.913469999999997,
+    "urls": {
+      "youtube": "https://www.youtube.com/shorts/Zc0XDVhh640",
+      "instagram": "https://www.instagram.com/reel/DdZXfvwDPew/",
+      "facebook": "https://www.facebook.com/reel/1393134869610731/"
+    },
+    "ids": {
+      "youtube": "Zc0XDVhh640",
+      "instagram": "18120874042967425",
+      "facebook": "1393134869610731"
     },
     "audited": false
   }

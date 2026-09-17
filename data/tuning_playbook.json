@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-17T09:31:28.893001+00:00",
-  "analyzed_videos_count": 19,
-  "optimal_runtime_seconds": 23.9,
-  "optimal_word_count": 61,
+  "last_updated": "2026-09-17T17:07:36.111865+00:00",
+  "analyzed_videos_count": 20,
+  "optimal_runtime_seconds": 24.0,
+  "optimal_word_count": 62,
   "top_performing_topics": [
-    "Market timing and technical support levels for retail investors",
-    "Wealth erosion through inflation and hidden financial traps",
-    "Asset valuation gaps and investment arbitrage opportunities"
+    "Market timing and technical support levels",
+    "Wealth erosion due to inflation vs. traditional savings",
+    "Hidden costs and structural traps in retail investment products"
   ],
   "winning_hook_formulas": [
-    "The 'Stop Doing X' Formula: [Warning Emoji] Stop [Action] before you [Negative Consequence/Critical Data Point].",
-    "The 'Hidden Loss' Formula: [Alarm Emoji] Why your [Common Financial Product] is secretly making you [Negative Outcome] every single day."
+    "The 'Stop Doing X' formula: Start with a strong warning against a common, seemingly safe behavior (e.g., 'Stop buying X before you check Y').",
+    "The 'Hidden Loss' formula: Highlight a specific financial metric (like inflation or currency leverage) that is silently eroding the viewer's net worth."
   ],
   "script_directives": [
-    "Keep total duration strictly under 22 seconds to maximize loop potential.",
-    "Eliminate all preamble; start the hook at 0.0s and deliver the core insight within the first 5 seconds.",
-    "Use high-contrast visual overlays for numbers and technical levels to anchor viewer attention."
+    "Keep duration strictly under 22 seconds to maximize completion rates.",
+    "Use a 'Problem-Consequence-Action' structure: State the trap, explain the hidden cost, and provide one specific, actionable data point.",
+    "Maintain a high-energy, urgent narration style with zero filler words or introductory pleasantries."
   ],
   "seo_directives": [
-    "Use specific, searchable financial keywords in the title (e.g., Nifty, FD, Stocks) rather than vague clickbait.",
-    "Limit hashtags to 3 highly relevant tags (e.g., #FinanceShorts #InvestingIndia #Nifty50) to avoid algorithmic dilution."
+    "Use high-intent keywords in the title that address specific financial pain points like 'Nifty', 'FD', or 'Stocks'.",
+    "Limit hashtags to 3-4 highly relevant tags (e.g., #FinanceTips #StockMarketIndia #Investing) to keep the caption clean and focused on the hook."
   ]
 }
