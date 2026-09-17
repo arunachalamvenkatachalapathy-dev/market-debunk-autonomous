@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-17T17:45:15.979974+00:00",
+  "last_updated": "2026-09-17T17:46:10.716927+00:00",
   "analyzed_videos_count": 20,
   "optimal_runtime_seconds": 24.0,
   "optimal_word_count": 62,
   "top_performing_topics": [
-    "Market timing and technical support levels for retail investors",
-    "Macro-economic wealth erosion (inflation vs. traditional savings)",
-    "Contrarian investment strategies (buying discounts/value vs. hype)"
+    "Market timing and technical traps for retail investors",
+    "Wealth erosion caused by inflation and traditional banking products",
+    "Global market arbitrage and hidden investment discounts"
   ],
   "winning_hook_formulas": [
-    "The 'Urgency-Warning' Formula: [Warning Emoji] Stop [Action] before you [Negative Consequence/Loss]",
-    "The 'Hidden Reality' Formula: [Alarm Emoji] Why your [Common Financial Instrument] is secretly [Negative Outcome]"
+    "The 'Urgency-Warning' Formula: [Emoji] + [Action/Behavior] + [Direct Consequence] (e.g., 'Stop doing X before you lose Y')",
+    "The 'Counter-Intuitive Truth' Formula: [Emoji] + [Common Belief] + [Hidden Negative Reality] (e.g., 'Why your safe investment is actually making you poorer')"
   ],
   "script_directives": [
-    "Keep total duration strictly between 20-22 seconds to maximize loop potential.",
-    "Eliminate all fluff; start the core insight within the first 1.5 seconds of the video.",
-    "Use high-contrast visual cues or text overlays to emphasize specific numbers or 'trap' terminology."
+    "Maintain a strict duration of 20-22 seconds to maximize completion rates and loop potential.",
+    "Eliminate all fluff; start the core value proposition within the first 1.5 seconds.",
+    "Use high-contrast visual cues or text overlays every 3 seconds to reset viewer attention."
   ],
   "seo_directives": [
-    "Include the specific financial asset or index (e.g., Nifty, FD, Stocks) in the first 5 words of the caption.",
-    "Use a mix of broad finance hashtags (#Finance, #Investing) and high-intent niche tags (#StockMarketIndia, #PersonalFinanceIndia)."
+    "Use high-intent keywords in the title that mirror common search queries like 'Stop', 'Trap', or 'Warning'.",
+    "Limit hashtags to 3-4 highly relevant finance tags to avoid algorithm dilution and maintain professional authority."
   ]
 }
