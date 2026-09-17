@@ -397,6 +397,28 @@ def download_transcript(video_id: str) -> str:
     Handles Tamil, Hindi, Hinglish, or mixed-language transcripts.
     Returns the raw concatenated text.
     """
+    # Priority 1: Direct youtube_transcript_api (zero external API key dependencies, zero quota limits)
+    try:
+        from youtube_transcript_api import YouTubeTranscriptApi
+        api = YouTubeTranscriptApi()
+        snippets = api.fetch(video_id, languages=["ta", "en-IN", "en", "hi", "te"])
+        lines = []
+        for s in snippets:
+            txt = getattr(s, "text", None)
+            if txt is None and isinstance(s, dict):
+                txt = s.get("text", "")
+            elif txt is None:
+                txt = str(s)
+            if txt and txt.strip():
+                lines.append(txt.strip())
+        if lines:
+            final_text = " ".join(lines)
+            log.info("✓ Downloaded transcript via youtube_transcript_api: %d chars", len(final_text))
+            if len(final_text) > 50:
+                return final_text
+    except Exception as exc:
+        log.info("youtube_transcript_api direct fetch not available for %s: %s. Trying RapidAPI...", video_id, exc)
+
     log.info("Downloading transcript via RapidAPI for video: %s", video_id)
 
     # Priority: Tamil -> Hindi -> English
