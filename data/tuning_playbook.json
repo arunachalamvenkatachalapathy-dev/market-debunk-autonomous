@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-17T08:56:04.423295+00:00",
+  "last_updated": "2026-09-17T09:24:05.377159+00:00",
   "analyzed_videos_count": 19,
   "optimal_runtime_seconds": 23.9,
   "optimal_word_count": 61,
   "top_performing_topics": [
     "Market timing and technical support levels for retail investors",
-    "Wealth erosion caused by inflation vs. traditional banking products",
-    "Value investing and arbitrage opportunities in global/local stock markets"
+    "Wealth erosion through inflation and hidden financial traps",
+    "Asset valuation and arbitrage opportunities in stock markets"
   ],
   "winning_hook_formulas": [
-    "The 'Hidden Danger' Formula: [Warning Emoji] Stop doing [Common Action] before you check [Specific Metric/Data Point].",
-    "The 'Loss Aversion' Formula: [Alarm Emoji] Why your [Asset Class] is secretly making you poorer every single day."
+    "The 'Counter-Intuitive Warning' formula: [Action] + [Specific Asset/Metric] + [Negative Consequence] (e.g., 'Stop buying X before you check Y')",
+    "The 'Purchasing Power Paradox' formula: [Asset/Investment] + [Specific Percentage/Number] + [Emotional/Financial Loss] (e.g., 'Your X is secretly making you poorer')"
   ],
   "script_directives": [
-    "Keep total duration strictly between 20-22 seconds to maximize loop potential.",
-    "Eliminate all preamble; start the hook within the first 0.5 seconds of the video.",
-    "Use high-contrast visual overlays (charts or data) to anchor the narration every 3 seconds."
+    "Keep total duration strictly between 20-22 seconds to maximize completion rate",
+    "Eliminate all preamble; start the hook within the first 0.5 seconds",
+    "Use high-contrast visual callouts for specific numbers (e.g., 23600, 6.8%) to anchor attention"
   ],
   "seo_directives": [
-    "Use specific, high-intent keywords in the title (e.g., Nifty, FD, Stocks) rather than generic financial terms.",
-    "Limit hashtags to 3-4 highly relevant tags (e.g., #FinanceShorts #InvestingIndia #StockMarketIndia) to avoid algorithm confusion."
+    "Use high-intent keywords in the title that address immediate financial pain points rather than general news",
+    "Limit hashtags to 3-4 highly relevant tags (e.g., #StockMarketIndia #PersonalFinance #InvestingTips) to avoid algorithm dilution"
   ]
 }
