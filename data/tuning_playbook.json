@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-18T08:58:39.834470+00:00",
+  "last_updated": "2026-09-18T09:04:42.770357+00:00",
   "analyzed_videos_count": 24,
   "optimal_runtime_seconds": 25.0,
   "optimal_word_count": 64,
   "top_performing_topics": [
     "Retail investor traps in common financial instruments (FDs, Nifty dips)",
-    "Wealth erosion due to hidden inflation and taxation",
-    "Contrarian investment strategies (buying discounts vs. market hype)"
+    "Wealth erosion due to inflation vs. traditional savings",
+    "Asset valuation discrepancies (discounted stocks vs. full price)"
   ],
   "winning_hook_formulas": [
-    "The 'Urgency + Warning' formula: [Warning Emoji] Stop [Action] before you [Negative Outcome].",
-    "The 'Hidden Truth' formula: [Provocative Stat/Fact] is secretly [Negative Consequence] your [Asset/Wealth]."
+    "The 'Urgent Warning' formula: [Negative Consequence] + [Specific Financial Instrument] + [Curiosity Gap] (e.g., 'Stop [Action] before you [Negative Outcome] because of [Hidden Factor]')",
+    "The 'Counter-Intuitive Truth' formula: [Common Belief] + [Direct Contradiction] + [Immediate Threat] (e.g., 'Your [Common Investment] is secretly [Negative Outcome] every day')"
   ],
   "script_directives": [
-    "Keep total duration strictly between 20-22 seconds to maximize loop potential.",
-    "Eliminate all jargon; replace complex financial terms with immediate, relatable consequences (e.g., 'eating your purchasing power').",
-    "Start the narration at 0.0 seconds with a high-energy, confrontational tone to prevent early-scroll drop-offs."
+    "Maintain a strict duration of 20-22 seconds; avoid complex jargon that stalls momentum.",
+    "Use a 'Problem-Agitation-Solution' structure where the first 5 seconds focus entirely on the financial pain point.",
+    "Keep narration high-energy and direct; remove all filler words and transition sentences to ensure a rapid-fire information density."
   ],
   "seo_directives": [
-    "Use high-intent, search-friendly keywords in the title (e.g., Nifty, FD, Stocks) followed by #Shorts.",
-    "Keep the caption concise, focusing on a single 'pain point' question that encourages comments and saves."
+    "Use high-intent keywords in the title that reflect a 'Stop' or 'Warning' sentiment to trigger curiosity.",
+    "Limit hashtags to 3-4 highly relevant finance tags (e.g., #FinanceTips, #StockMarketIndia, #Investing) to avoid algorithm confusion."
   ]
 }
