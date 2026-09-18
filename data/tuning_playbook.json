@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-18T06:04:18.869156+00:00",
-  "analyzed_videos_count": 23,
-  "optimal_runtime_seconds": 24.5,
-  "optimal_word_count": 63,
+  "last_updated": "2026-09-18T08:31:21.676002+00:00",
+  "analyzed_videos_count": 24,
+  "optimal_runtime_seconds": 25.0,
+  "optimal_word_count": 64,
   "top_performing_topics": [
-    "Contrarian market analysis (debunking common retail investment strategies)",
-    "Wealth erosion awareness (inflation vs. traditional savings instruments)",
-    "Asset valuation and market timing (identifying true value vs. traps)"
+    "Retail investor traps in market volatility (Nifty/Stocks)",
+    "Wealth erosion through traditional banking products (FDs/Inflation)",
+    "Middle-class affordability crises (Real Estate/Cost of Living)"
   ],
   "winning_hook_formulas": [
-    "The 'Warning/Stop' Formula: [Negative Action] + [Specific Financial Instrument] + [Immediate Consequence] (e.g., 'Stop buying [X] before you check [Y]')",
-    "The 'Hidden Loss' Formula: [Asset Name] + [Specific Percentage/Number] + [Emotional Impact] (e.g., 'Your [X] is secretly making you poorer every single day')"
+    "The 'Counter-Intuitive Warning': Start with an action the viewer is currently doing, label it as a 'trap', and promise a specific, critical piece of missing information.",
+    "The 'Loss Aversion' Hook: Frame the video around the immediate, silent loss of purchasing power or capital, using high-stakes language like 'secretly making you poorer' or 'slipping away'."
   ],
   "script_directives": [
-    "Maintain a strict duration of 20-22 seconds to force high-density information delivery.",
-    "Eliminate all fluff; start the hook at 0.0s and introduce the core conflict within the first 3 seconds.",
-    "Use high-contrast visual cues (charts or red/green indicators) to emphasize the 'trap' or 'opportunity' mentioned in the hook."
+    "Maintain a strict duration of 20-22 seconds to maximize loop-ability and retention.",
+    "Use high-contrast, urgent visual cues immediately after the hook to validate the 'trap' premise.",
+    "Eliminate academic jargon; replace complex financial terms with direct, punchy consequences that impact the viewer's wallet."
   ],
   "seo_directives": [
-    "Use high-intent, negative-emotion keywords in titles (e.g., 'Trap', 'Loss', 'Stop', 'Secretly') to trigger curiosity.",
-    "Limit hashtags to 3-4 high-relevance tags (e.g., #StockMarketIndia, #PersonalFinance, #InvestingTips) to avoid algorithmic dilution."
+    "Use high-intent, negative-emotion keywords in titles (e.g., 'Trap', 'Stop', 'Loss', 'Exposed') to trigger curiosity clicks.",
+    "Limit hashtags to 3-4 highly relevant finance-specific tags (e.g., #StockMarketIndia, #PersonalFinance, #InvestingTips) to avoid algorithmic dilution."
   ]
 }
