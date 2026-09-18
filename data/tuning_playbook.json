@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-18T17:11:38.076933+00:00",
+  "last_updated": "2026-09-18T17:16:46.230907+00:00",
   "analyzed_videos_count": 25,
   "optimal_runtime_seconds": 25.0,
   "optimal_word_count": 64,
   "top_performing_topics": [
-    "Retail investor traps in common financial instruments (FDs, Nifty dips, Real Estate)",
-    "Contrarian wealth-building strategies (discounted holding companies vs. full-price stocks)",
-    "Macro-economic warnings impacting middle-class purchasing power"
+    "Retail investor traps in common financial instruments (FDs, Nifty dips, real estate)",
+    "Contrarian wealth-building strategies (discounted assets, inflation-beating alternatives)",
+    "High-stakes financial warnings regarding middle-class wealth erosion"
   ],
   "winning_hook_formulas": [
-    "The 'Warning/Urgency' Formula: [Emoji] + [Actionable Stop] + [Specific Financial Pain Point] (e.g., 'Stop buying X before you check Y')",
-    "The 'Hidden Reality' Formula: [Emoji] + [Common Belief] + [Secret Negative Consequence] (e.g., 'Your X is secretly making you poorer every day')"
+    "The 'Urgency-Warning' Formula: [Emoji] + [Direct Command] + [Specific Pain Point/Financial Loss] (e.g., 'Stop doing X before you lose Y')",
+    "The 'Counter-Intuitive Truth' Formula: [Emoji] + [Common Belief] + [Why it is actually a trap] (e.g., 'Why your [Asset] is secretly making you poorer')"
   ],
   "script_directives": [
-    "Keep total duration strictly between 20-24 seconds to maintain high completion rates.",
-    "Eliminate academic jargon; focus on immediate, high-stakes financial consequences (e.g., 'eating your savings' vs 'liquidity surplus').",
-    "Use a 'Problem-Solution' structure where the first 5 seconds establish the threat and the remaining 15 seconds provide a specific, actionable pivot."
+    "Keep total duration strictly between 20-22 seconds to maintain high completion rates.",
+    "Eliminate all jargon; use conversational, aggressive language that prioritizes the 'financial loss' over technical explanations.",
+    "Start the video with a visual or verbal 'pattern interrupt' in the first 2 seconds to prevent scrolling."
   ],
   "seo_directives": [
-    "Use high-intent, negative-sentiment keywords in the title (e.g., 'Trap', 'Stop', 'Loss', 'Discount') to trigger curiosity.",
-    "Limit hashtags to 3-4 highly relevant tags (e.g., #StockMarketIndia, #PersonalFinance, #InvestingTips) to avoid algorithmic dilution."
+    "Use high-intent, search-friendly keywords in the title (e.g., 'Nifty', 'Bank FD', 'Stocks') followed by '#Shorts'.",
+    "Keep captions concise, focusing on a single 'save-worthy' takeaway or a call to action that encourages sharing with a specific peer group."
   ]
 }
