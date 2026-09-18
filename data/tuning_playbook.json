@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-18T08:31:21.676002+00:00",
+  "last_updated": "2026-09-18T08:58:39.834470+00:00",
   "analyzed_videos_count": 24,
   "optimal_runtime_seconds": 25.0,
   "optimal_word_count": 64,
   "top_performing_topics": [
-    "Retail investor traps in market volatility (Nifty/Stocks)",
-    "Wealth erosion through traditional banking products (FDs/Inflation)",
-    "Middle-class affordability crises (Real Estate/Cost of Living)"
+    "Retail investor traps in common financial instruments (FDs, Nifty dips)",
+    "Wealth erosion due to hidden inflation and taxation",
+    "Contrarian investment strategies (buying discounts vs. market hype)"
   ],
   "winning_hook_formulas": [
-    "The 'Counter-Intuitive Warning': Start with an action the viewer is currently doing, label it as a 'trap', and promise a specific, critical piece of missing information.",
-    "The 'Loss Aversion' Hook: Frame the video around the immediate, silent loss of purchasing power or capital, using high-stakes language like 'secretly making you poorer' or 'slipping away'."
+    "The 'Urgency + Warning' formula: [Warning Emoji] Stop [Action] before you [Negative Outcome].",
+    "The 'Hidden Truth' formula: [Provocative Stat/Fact] is secretly [Negative Consequence] your [Asset/Wealth]."
   ],
   "script_directives": [
-    "Maintain a strict duration of 20-22 seconds to maximize loop-ability and retention.",
-    "Use high-contrast, urgent visual cues immediately after the hook to validate the 'trap' premise.",
-    "Eliminate academic jargon; replace complex financial terms with direct, punchy consequences that impact the viewer's wallet."
+    "Keep total duration strictly between 20-22 seconds to maximize loop potential.",
+    "Eliminate all jargon; replace complex financial terms with immediate, relatable consequences (e.g., 'eating your purchasing power').",
+    "Start the narration at 0.0 seconds with a high-energy, confrontational tone to prevent early-scroll drop-offs."
   ],
   "seo_directives": [
-    "Use high-intent, negative-emotion keywords in titles (e.g., 'Trap', 'Stop', 'Loss', 'Exposed') to trigger curiosity clicks.",
-    "Limit hashtags to 3-4 highly relevant finance-specific tags (e.g., #StockMarketIndia, #PersonalFinance, #InvestingTips) to avoid algorithmic dilution."
+    "Use high-intent, search-friendly keywords in the title (e.g., Nifty, FD, Stocks) followed by #Shorts.",
+    "Keep the caption concise, focusing on a single 'pain point' question that encourages comments and saves."
   ]
 }
