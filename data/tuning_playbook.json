@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-17T17:46:10.716927+00:00",
-  "analyzed_videos_count": 20,
-  "optimal_runtime_seconds": 24.0,
-  "optimal_word_count": 62,
+  "last_updated": "2026-09-18T06:04:18.869156+00:00",
+  "analyzed_videos_count": 23,
+  "optimal_runtime_seconds": 24.5,
+  "optimal_word_count": 63,
   "top_performing_topics": [
-    "Market timing and technical traps for retail investors",
-    "Wealth erosion caused by inflation and traditional banking products",
-    "Global market arbitrage and hidden investment discounts"
+    "Contrarian market analysis (debunking common retail investment strategies)",
+    "Wealth erosion awareness (inflation vs. traditional savings instruments)",
+    "Asset valuation and market timing (identifying true value vs. traps)"
   ],
   "winning_hook_formulas": [
-    "The 'Urgency-Warning' Formula: [Emoji] + [Action/Behavior] + [Direct Consequence] (e.g., 'Stop doing X before you lose Y')",
-    "The 'Counter-Intuitive Truth' Formula: [Emoji] + [Common Belief] + [Hidden Negative Reality] (e.g., 'Why your safe investment is actually making you poorer')"
+    "The 'Warning/Stop' Formula: [Negative Action] + [Specific Financial Instrument] + [Immediate Consequence] (e.g., 'Stop buying [X] before you check [Y]')",
+    "The 'Hidden Loss' Formula: [Asset Name] + [Specific Percentage/Number] + [Emotional Impact] (e.g., 'Your [X] is secretly making you poorer every single day')"
   ],
   "script_directives": [
-    "Maintain a strict duration of 20-22 seconds to maximize completion rates and loop potential.",
-    "Eliminate all fluff; start the core value proposition within the first 1.5 seconds.",
-    "Use high-contrast visual cues or text overlays every 3 seconds to reset viewer attention."
+    "Maintain a strict duration of 20-22 seconds to force high-density information delivery.",
+    "Eliminate all fluff; start the hook at 0.0s and introduce the core conflict within the first 3 seconds.",
+    "Use high-contrast visual cues (charts or red/green indicators) to emphasize the 'trap' or 'opportunity' mentioned in the hook."
   ],
   "seo_directives": [
-    "Use high-intent keywords in the title that mirror common search queries like 'Stop', 'Trap', or 'Warning'.",
-    "Limit hashtags to 3-4 highly relevant finance tags to avoid algorithm dilution and maintain professional authority."
+    "Use high-intent, negative-emotion keywords in titles (e.g., 'Trap', 'Loss', 'Stop', 'Secretly') to trigger curiosity.",
+    "Limit hashtags to 3-4 high-relevance tags (e.g., #StockMarketIndia, #PersonalFinance, #InvestingTips) to avoid algorithmic dilution."
   ]
 }

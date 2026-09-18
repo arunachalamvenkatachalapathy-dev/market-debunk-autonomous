@@ -585,7 +585,7 @@
       "instagram": "17877713826546134",
       "facebook": "3422834354562885"
     },
-    "audited": false
+    "audited": true
   },
   {
     "timestamp": "2026-09-16T09:10:20.481103+00:00",
@@ -613,7 +613,7 @@
       "instagram": "18148012237558614",
       "facebook": "1073953485340562"
     },
-    "audited": false
+    "audited": true
   },
   {
     "timestamp": "2026-09-16T13:56:50.497908+00:00",
@@ -641,7 +641,7 @@
       "instagram": "17979081309106937",
       "facebook": "2548022449010586"
     },
-    "audited": false
+    "audited": true
   },
   {
     "timestamp": "2026-09-16T15:51:22.963715+00:00",
@@ -752,6 +752,34 @@
       "youtube": "Zc0XDVhh640",
       "instagram": "18120874042967425",
       "facebook": "1393134869610731"
+    },
+    "audited": false
+  },
+  {
+    "timestamp": "2026-09-18T06:08:14.761905+00:00",
+    "title": "Dividend Stocks Trap: 12% Yield Value Trap #Shorts",
+    "topic": "That '12% high-dividend' stock isn't passive income—it's a mathematical trap hiding massive capital destruction.",
+    "hook": "⚠️ That 12% dividend yield is actually destroying your wealth",
+    "hashtags": [
+      "#MarketTrap",
+      "#BearTrap",
+      "#HighDividend",
+      "#PassiveIncome",
+      "#ValueInvesting",
+      "#IndianStockMarket",
+      "#NiftyAlert",
+      "#NSEIndia"
+    ],
+    "duration_seconds": 25.652245,
+    "urls": {
+      "youtube": "https://www.youtube.com/shorts/FQV5zXPR-0U",
+      "instagram": "https://www.instagram.com/reel/DdawTH6ithx/",
+      "facebook": "https://www.facebook.com/reel/1049179431491027/"
+    },
+    "ids": {
+      "youtube": "FQV5zXPR-0U",
+      "instagram": "18087170177675828",
+      "facebook": "1049179431491027"
     },
     "audited": false
   }
