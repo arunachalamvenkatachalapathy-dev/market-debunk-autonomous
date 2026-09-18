@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-18T16:56:13.225091+00:00",
+  "last_updated": "2026-09-18T17:07:16.960548+00:00",
   "analyzed_videos_count": 25,
   "optimal_runtime_seconds": 25.0,
   "optimal_word_count": 64,
   "top_performing_topics": [
     "Retail investor traps in market volatility (Nifty/Stocks)",
-    "Wealth erosion through traditional banking products (FDs/Insurance)",
-    "Macro-economic barriers to middle-class wealth (Real Estate/Inflation)"
+    "Wealth erosion via traditional banking products (FDs/Insurance)",
+    "Asset class accessibility and affordability (Real Estate/Global Stocks)"
   ],
   "winning_hook_formulas": [
-    "The 'Urgent Warning' Formula: [Negative Emotion/Warning] + [Specific Financial Metric] + [Immediate Threat to Savings]",
-    "The 'Counter-Intuitive Truth' Formula: [Common Financial Action] + [Why it is actually a loss] + [The Hidden Mechanism]"
+    "The 'Urgency/Warning' Formula: [Negative Emotion/Warning] + [Specific Financial Metric/Level] + [Consequence of inaction]",
+    "The 'Counter-Intuitive Truth' Formula: [Common Financial Belief] + [Why it is actually a trap] + [The hidden cost]"
   ],
   "script_directives": [
-    "Keep total duration strictly between 20-22 seconds to maximize completion rates.",
-    "Eliminate preamble; start the hook within the first 0.5 seconds and transition immediately to the 'why' without filler.",
-    "Use high-contrast visual cues or text overlays that match the specific financial numbers mentioned in the narration."
+    "Keep total duration strictly between 20-22 seconds to maximize completion rate.",
+    "Eliminate preamble; start the hook within the first 1.5 seconds using high-contrast visual text overlays.",
+    "Use a 'problem-solution' structure where the first 10 seconds define the threat and the final 10 seconds provide a clear, actionable pivot."
   ],
   "seo_directives": [
-    "Use high-intent, search-driven keywords in the title (e.g., 'Stop', 'Trap', 'Secret', 'Exposed') to trigger algorithm discovery.",
-    "Limit hashtags to 3-4 highly relevant finance tags (e.g., #StockMarketIndia #PersonalFinance #InvestingTips) to avoid diluting the video's niche categorization."
+    "Use high-intent keywords in the title that address specific pain points (e.g., 'Trap', 'Stop', 'Discount').",
+    "Limit hashtags to 3-4 highly relevant tags (e.g., #FinanceIndia, #StockMarketIndia, #InvestingTips) to avoid algorithmic dilution."
   ]
 }
