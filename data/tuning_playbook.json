@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-18T09:04:42.770357+00:00",
-  "analyzed_videos_count": 24,
+  "last_updated": "2026-09-18T16:56:13.225091+00:00",
+  "analyzed_videos_count": 25,
   "optimal_runtime_seconds": 25.0,
   "optimal_word_count": 64,
   "top_performing_topics": [
-    "Retail investor traps in common financial instruments (FDs, Nifty dips)",
-    "Wealth erosion due to inflation vs. traditional savings",
-    "Asset valuation discrepancies (discounted stocks vs. full price)"
+    "Retail investor traps in market volatility (Nifty/Stocks)",
+    "Wealth erosion through traditional banking products (FDs/Insurance)",
+    "Macro-economic barriers to middle-class wealth (Real Estate/Inflation)"
   ],
   "winning_hook_formulas": [
-    "The 'Urgent Warning' formula: [Negative Consequence] + [Specific Financial Instrument] + [Curiosity Gap] (e.g., 'Stop [Action] before you [Negative Outcome] because of [Hidden Factor]')",
-    "The 'Counter-Intuitive Truth' formula: [Common Belief] + [Direct Contradiction] + [Immediate Threat] (e.g., 'Your [Common Investment] is secretly [Negative Outcome] every day')"
+    "The 'Urgent Warning' Formula: [Negative Emotion/Warning] + [Specific Financial Metric] + [Immediate Threat to Savings]",
+    "The 'Counter-Intuitive Truth' Formula: [Common Financial Action] + [Why it is actually a loss] + [The Hidden Mechanism]"
   ],
   "script_directives": [
-    "Maintain a strict duration of 20-22 seconds; avoid complex jargon that stalls momentum.",
-    "Use a 'Problem-Agitation-Solution' structure where the first 5 seconds focus entirely on the financial pain point.",
-    "Keep narration high-energy and direct; remove all filler words and transition sentences to ensure a rapid-fire information density."
+    "Keep total duration strictly between 20-22 seconds to maximize completion rates.",
+    "Eliminate preamble; start the hook within the first 0.5 seconds and transition immediately to the 'why' without filler.",
+    "Use high-contrast visual cues or text overlays that match the specific financial numbers mentioned in the narration."
   ],
   "seo_directives": [
-    "Use high-intent keywords in the title that reflect a 'Stop' or 'Warning' sentiment to trigger curiosity.",
-    "Limit hashtags to 3-4 highly relevant finance tags (e.g., #FinanceTips, #StockMarketIndia, #Investing) to avoid algorithm confusion."
+    "Use high-intent, search-driven keywords in the title (e.g., 'Stop', 'Trap', 'Secret', 'Exposed') to trigger algorithm discovery.",
+    "Limit hashtags to 3-4 highly relevant finance tags (e.g., #StockMarketIndia #PersonalFinance #InvestingTips) to avoid diluting the video's niche categorization."
   ]
 }

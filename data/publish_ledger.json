@@ -697,7 +697,7 @@
       "instagram": "17892289470427297",
       "facebook": "1397210141866803"
     },
-    "audited": false
+    "audited": true
   },
   {
     "timestamp": "2026-09-17T09:01:11.762197+00:00",
@@ -780,6 +780,34 @@
       "youtube": "FQV5zXPR-0U",
       "instagram": "18087170177675828",
       "facebook": "1049179431491027"
+    },
+    "audited": false
+  },
+  {
+    "timestamp": "2026-09-18T17:03:34.061789+00:00",
+    "title": "FASTag Surveillance: Your Driving Data Sold #Shorts",
+    "topic": "Your FASTag is no longer just a toll-payment sticker; it is a mass-surveillance device mapping your consumption patterns to inflate targeted advertising and financial profiling.",
+    "hook": "🚨 Your FASTag is tracking more than tolls—is your data being sold for profit",
+    "hashtags": [
+      "#MoneyMistakes",
+      "#FinanceLiteracy",
+      "#MidCapStocks",
+      "#LongTermInvesting",
+      "#WealthBuilding",
+      "#IndianStockMarket",
+      "#NiftyAlert",
+      "#NSEIndia"
+    ],
+    "duration_seconds": 21.420408000000002,
+    "urls": {
+      "youtube": "https://www.youtube.com/shorts/lMI2Y6YHl64",
+      "instagram": "https://www.instagram.com/reel/Ddb7SpEikYi/",
+      "facebook": "https://www.facebook.com/reel/1130078756156894/"
+    },
+    "ids": {
+      "youtube": "lMI2Y6YHl64",
+      "instagram": "18192566776387727",
+      "facebook": "1130078756156894"
     },
     "audited": false
   }
