@@ -96,7 +96,7 @@ class Settings:
     # Primary: Fish Audio S2.1 Pro with custom human cloned voice
     TTS_PROVIDER: str = _get("TTS_PROVIDER", default="fish_audio") or "fish_audio"
     FISH_AUDIO_API_KEY: str = _get("FISH_AUDIO_API_KEY", default="") or ""
-    FISH_AUDIO_VOICE_ID: str = _get("FISH_AUDIO_VOICE_ID", default="b82d76382a3f40139e76ffbd095da13d") or "b82d76382a3f40139e76ffbd095da13d"
+    FISH_AUDIO_VOICE_ID: str = _get("FISH_AUDIO_VOICE_ID", default="d4db1b7753414bd29b8c7ef60e794a44") or "d4db1b7753414bd29b8c7ef60e794a44"
     FISH_AUDIO_MODEL: str = _get("FISH_AUDIO_MODEL", default="s2.1-pro-free") or "s2.1-pro-free"
     
     # Secondary Fallback: ElevenLabs TTS
