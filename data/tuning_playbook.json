@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-18T17:16:46.230907+00:00",
-  "analyzed_videos_count": 25,
+  "last_updated": "2026-09-19T08:19:09.554616+00:00",
+  "analyzed_videos_count": 26,
   "optimal_runtime_seconds": 25.0,
   "optimal_word_count": 64,
   "top_performing_topics": [
-    "Retail investor traps in common financial instruments (FDs, Nifty dips, real estate)",
-    "Contrarian wealth-building strategies (discounted assets, inflation-beating alternatives)",
-    "High-stakes financial warnings regarding middle-class wealth erosion"
+    "Wealth erosion via inflation (FDs vs. Real Value)",
+    "Retail investor traps in market volatility",
+    "Asset class accessibility (Real estate vs. Stocks)"
   ],
   "winning_hook_formulas": [
-    "The 'Urgency-Warning' Formula: [Emoji] + [Direct Command] + [Specific Pain Point/Financial Loss] (e.g., 'Stop doing X before you lose Y')",
-    "The 'Counter-Intuitive Truth' Formula: [Emoji] + [Common Belief] + [Why it is actually a trap] (e.g., 'Why your [Asset] is secretly making you poorer')"
+    "The 'Hidden Loss' Formula: [Warning Emoji] + [Common Financial Action] + [Negative Consequence/Secret Loss]",
+    "The 'FOMO/Loss Aversion' Formula: [Alarm Emoji] + [Desirable Financial Goal] + [Why it is currently failing/slipping away]"
   ],
   "script_directives": [
-    "Keep total duration strictly between 20-22 seconds to maintain high completion rates.",
-    "Eliminate all jargon; use conversational, aggressive language that prioritizes the 'financial loss' over technical explanations.",
-    "Start the video with a visual or verbal 'pattern interrupt' in the first 2 seconds to prevent scrolling."
+    "Keep total duration strictly under 25 seconds to maintain high completion rates.",
+    "Eliminate all preamble; start the video mid-sentence with the conflict or the 'trap' immediately.",
+    "Use high-contrast visual cues or text overlays every 3 seconds to reset viewer attention."
   ],
   "seo_directives": [
-    "Use high-intent, search-friendly keywords in the title (e.g., 'Nifty', 'Bank FD', 'Stocks') followed by '#Shorts'.",
-    "Keep captions concise, focusing on a single 'save-worthy' takeaway or a call to action that encourages sharing with a specific peer group."
+    "Use titles that frame the topic as a 'Trap' or 'Stop' to trigger immediate curiosity.",
+    "Include 3-5 high-intent hashtags focusing on the specific asset class (e.g., #Nifty, #StockMarketIndia, #PersonalFinance)."
   ]
 }

@@ -725,7 +725,7 @@
       "instagram": "18129969775707150",
       "facebook": "3524743764368146"
     },
-    "audited": false
+    "audited": true
   },
   {
     "timestamp": "2026-09-17T17:12:11.606637+00:00",
@@ -808,6 +808,34 @@
       "youtube": "lMI2Y6YHl64",
       "instagram": "18192566776387727",
       "facebook": "1130078756156894"
+    },
+    "audited": false
+  },
+  {
+    "timestamp": "2026-09-19T08:27:12.464942+00:00",
+    "title": "Target Maturity Funds: Why 6% Yields Fail You #Shorts",
+    "topic": "Target maturity bond funds locked at low yields lose purchasing power when inflation spikes unexpectedly.",
+    "hook": "⚠️ Why your 6% bond return is actually making you poorer every day",
+    "hashtags": [
+      "#MarketDebunk",
+      "#StockMarketMyths",
+      "#NiftyTrading",
+      "#FinanceLiteracy",
+      "#MidCapStocks",
+      "#IndianStockMarket",
+      "#NiftyAlert",
+      "#NSEIndia"
+    ],
+    "duration_seconds": 23.536327,
+    "urls": {
+      "youtube": "https://www.youtube.com/shorts/aExZQLzPuhY",
+      "instagram": "https://www.instagram.com/reel/DddlAe6jXw3/",
+      "facebook": "https://www.facebook.com/reel/1635348981500455/"
+    },
+    "ids": {
+      "youtube": "aExZQLzPuhY",
+      "instagram": "18123343051910819",
+      "facebook": "1635348981500455"
     },
     "audited": false
   }
