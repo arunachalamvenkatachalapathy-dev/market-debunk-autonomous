@@ -59,6 +59,7 @@ test_bebas.woff2
 !assets/audio/bgm/*.webm
 !assets/audio/sfx/*.webm
 !assets/audio/sfx/*.wav
+!assets/audio/sfx/*.mp3
 !assets/audio/*.wav
 
 # Logs & Scratch Text

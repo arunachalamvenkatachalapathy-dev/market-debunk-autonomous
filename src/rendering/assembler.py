@@ -349,16 +349,24 @@ def build_sfx_track(
     audio_dir = settings.ASSETS_DIR / "audio"
     temp_dir = output_path.parent
 
-    # Find SFX assets with multiple fallbacks
-    impact_src = sfx_dir / "impact_hit.wav"
-    if not impact_src.is_file():
-        impact_src = audio_dir / "impact_hit.wav"
+    # Find SFX assets with multiple fallbacks (checking user-provided impact SFX first)
+    local_sfx_dir = Path(r"D:\downloads\1 downloaded\sfx")
+    impact_candidates = [
+        sfx_dir / "universfield-horror-impact-hit-567238.mp3",
+        local_sfx_dir / "universfield-horror-impact-hit-567238.mp3",
+        sfx_dir / "impact_hit.wav",
+        sfx_dir / "impact_hit.mp3",
+        audio_dir / "impact_hit.wav",
+    ]
+    impact_src = next((p for p in impact_candidates if p.is_file()), None)
 
-    whoosh_src = sfx_dir / "whoosh.mp3"
-    if not whoosh_src.is_file():
-        whoosh_src = audio_dir / "whoosh.mp3"
-    if not whoosh_src.is_file():
-        whoosh_src = sfx_dir / "sfx_whoosh.webm"
+    whoosh_candidates = [
+        sfx_dir / "whoosh.mp3",
+        audio_dir / "whoosh.mp3",
+        sfx_dir / "sfx_whoosh.webm",
+        audio_dir / "sfx_whoosh.webm",
+    ]
+    whoosh_src = next((p for p in whoosh_candidates if p.is_file()), None)
 
     ding_src = sfx_dir / "accent_ding.wav"
     if not ding_src.is_file():
@@ -369,8 +377,8 @@ def build_sfx_track(
         pop_src = audio_dir / "pop_accent.wav"
 
     # Load audio buffers (calibrated so speech remains dominant and crisp)
-    impact_bytes = _load_pcm_stereo_48k(impact_src, temp_dir, target_volume=0.60) if impact_src.is_file() else None
-    whoosh_bytes = _load_pcm_stereo_48k(whoosh_src, temp_dir, target_volume=0.45) if whoosh_src.is_file() else None
+    impact_bytes = _load_pcm_stereo_48k(impact_src, temp_dir, target_volume=0.65) if impact_src else None
+    whoosh_bytes = _load_pcm_stereo_48k(whoosh_src, temp_dir, target_volume=0.45) if whoosh_src else None
     ding_bytes = _load_pcm_stereo_48k(ding_src, temp_dir, target_volume=0.50) if ding_src.is_file() else None
     pop_bytes = _load_pcm_stereo_48k(pop_src, temp_dir, target_volume=0.45) if pop_src.is_file() else None
 
@@ -758,10 +766,36 @@ def assemble_video(
         log.warning("Clean concat failed (%s); falling back to direct stream concat", exc)
         concatenate_clips(clip_paths, raw_video_only)
 
-    # Step 2b: Create continuous master voice track and mux with video (SFX abolished per user requirement)
-    log.info("Step 2b/5: Creating unified master voice track (SFX completely abolished) …")
+    # Step 2b: Create continuous master voice track and dynamic SFX track, then mux with video
+    log.info("Step 2b/5: Creating unified master voice track & dynamic SFX track …")
     concatenate_voice_audio(voice_results, master_voice_wav)
-    mux_video_and_audio(raw_video_only, master_voice_wav, raw_video)
+
+    master_sfx_wav = run_dir / "master_sfx.wav"
+    sfx_path = None
+    try:
+        total_voice_duration = get_audio_duration(master_voice_wav)
+        sfx_path = build_sfx_track(voice_results, total_voice_duration, master_sfx_wav)
+    except Exception as exc:
+        log.warning("SFX generation failed (%s); continuing with pure voice track", exc)
+        sfx_path = None
+
+    if sfx_path and sfx_path.is_file():
+        mixed_voice_sfx = run_dir / "voice_sfx_mix.wav"
+        try:
+            _ffmpeg(
+                "-i", str(master_voice_wav),
+                "-i", str(sfx_path),
+                "-filter_complex", "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=0:normalize=0,aformat=sample_fmts=s16:sample_rates=48000:channel_layouts=stereo",
+                "-c:a", "pcm_s16le",
+                str(mixed_voice_sfx),
+                description="mix master voice with sfx track"
+            )
+            mux_video_and_audio(raw_video_only, mixed_voice_sfx, raw_video)
+        except Exception as e:
+            log.warning("Voice/SFX mix failed (%s); falling back to pure voice track", e)
+            mux_video_and_audio(raw_video_only, master_voice_wav, raw_video)
+    else:
+        mux_video_and_audio(raw_video_only, master_voice_wav, raw_video)
 
     # Step 3: Burn subtitles
     log.info("Step 3/5: Burning subtitles …")
