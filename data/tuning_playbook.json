@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-19T16:33:05.270930+00:00",
+  "last_updated": "2026-09-19T16:46:46.173792+00:00",
   "analyzed_videos_count": 27,
   "optimal_runtime_seconds": 25.0,
   "optimal_word_count": 64,
   "top_performing_topics": [
-    "Wealth erosion via inflation (FDs/Savings vs. Purchasing Power)",
-    "Contrarian market entry strategies (Nifty/Stocks support levels)",
-    "Middle-class lifestyle financial traps (Home ownership/Asset pricing)"
+    "Wealth erosion via inflation (FDs vs. Real Value)",
+    "Retail investor traps in market volatility (Nifty/Stocks)",
+    "Real estate and lifestyle affordability crises"
   ],
   "winning_hook_formulas": [
-    "The 'Hidden Loss' Formula: [Warning Emoji] Stop [Action] before [Negative Outcome] happens to your [Money/Assets].",
-    "The 'Truth Bomb' Formula: [Alarm Emoji] Why your [Common Financial Product] is secretly making you poorer every single day."
+    "The 'Hidden Loss' Formula: [Warning Emoji] Stop [Action] before you realize [Specific Financial Loss] is destroying your wealth.",
+    "The 'Counter-Intuitive Truth' Formula: Why your [Common Financial Product/Habit] is secretly making you poorer every day."
   ],
   "script_directives": [
     "Keep total duration strictly under 25 seconds to maintain high completion rates.",
-    "Eliminate complex jargon; replace technical terms with high-stakes emotional consequences (e.g., 'eating your purchasing power' vs 'inflationary pressure').",
-    "Front-load the pain point in the first 3 seconds and provide a specific, actionable 'check' or 'level' as the resolution."
+    "Eliminate complex jargon; focus on the 'pain point' (loss of money) in the first 3 seconds.",
+    "Use high-contrast visual transitions every 3-4 seconds to prevent viewer drop-off."
   ],
   "seo_directives": [
-    "Use high-intent, negative-emotion keywords in the title like 'Trap', 'Stop', 'Loss', or 'Secretly'.",
-    "Limit hashtags to 3-4 highly relevant tags (e.g., #StockMarketIndia #PersonalFinance #InvestingTips) to avoid algorithmic dilution."
+    "Use high-intent, negative-emotion keywords in the title (e.g., 'Trap', 'Loss', 'Stop', 'Secret').",
+    "Limit hashtags to 3-4 high-volume, niche-specific tags (e.g., #StockMarketIndia #PersonalFinance #InvestingTips) to avoid algorithm confusion."
   ]
 }
