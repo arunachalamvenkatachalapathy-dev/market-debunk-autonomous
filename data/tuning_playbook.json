@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-19T08:19:09.554616+00:00",
+  "last_updated": "2026-09-19T08:46:01.855451+00:00",
   "analyzed_videos_count": 26,
   "optimal_runtime_seconds": 25.0,
   "optimal_word_count": 64,
   "top_performing_topics": [
     "Wealth erosion via inflation (FDs vs. Real Value)",
     "Retail investor traps in market volatility",
-    "Asset class accessibility (Real estate vs. Stocks)"
+    "Asset class accessibility (Real estate and global stocks)"
   ],
   "winning_hook_formulas": [
-    "The 'Hidden Loss' Formula: [Warning Emoji] + [Common Financial Action] + [Negative Consequence/Secret Loss]",
-    "The 'FOMO/Loss Aversion' Formula: [Alarm Emoji] + [Desirable Financial Goal] + [Why it is currently failing/slipping away]"
+    "The 'Hidden Loss' Formula: [Warning Emoji] Stop [Action] before you realize [Specific Financial Loss] is making you poorer.",
+    "The 'Counter-Intuitive' Formula: [Alarm Emoji] Why [Common Financial Goal] is actually slipping away because of [Specific Market Reality]."
   ],
   "script_directives": [
     "Keep total duration strictly under 25 seconds to maintain high completion rates.",
-    "Eliminate all preamble; start the video mid-sentence with the conflict or the 'trap' immediately.",
-    "Use high-contrast visual cues or text overlays every 3 seconds to reset viewer attention."
+    "Eliminate preamble; start the video mid-sentence with the consequence of the financial action.",
+    "Use high-contrast visual callouts for numbers (e.g., 6.8%, 30%, 23600) to anchor viewer attention."
   ],
   "seo_directives": [
-    "Use titles that frame the topic as a 'Trap' or 'Stop' to trigger immediate curiosity.",
-    "Include 3-5 high-intent hashtags focusing on the specific asset class (e.g., #Nifty, #StockMarketIndia, #PersonalFinance)."
+    "Use negative sentiment keywords in titles (e.g., Trap, Stop, Loss, Fake) to trigger high-intent clicks.",
+    "Limit hashtags to 3 highly relevant, broad finance tags to avoid algorithm confusion."
   ]
 }
