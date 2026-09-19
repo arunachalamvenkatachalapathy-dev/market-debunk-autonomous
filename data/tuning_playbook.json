@@ -1,25 +1,24 @@
 {
-  "last_updated": "2026-09-19T08:52:51.048372+00:00",
-  "analyzed_videos_count": 26,
+  "last_updated": "2026-09-19T16:22:59.524418+00:00",
+  "analyzed_videos_count": 27,
   "optimal_runtime_seconds": 25.0,
   "optimal_word_count": 64,
   "top_performing_topics": [
-    "hidden charges",
-    "EMI trap",
-    "F&O lot size margin traps",
-    "credit card tricks"
+    "Wealth erosion via inflation/low-yield instruments (FDs)",
+    "Retail investor traps in market volatility (Nifty/Stocks)",
+    "Macro-economic barriers to middle-class financial goals (Housing/Global markets)"
   ],
   "winning_hook_formulas": [
-    "Open with the exact Rupee amount quietly lost: 'Your bank took ₹X without an alert'",
-    "Contradict popular wisdom: 'Why your zero-cost EMI is actually charging 18% GST'"
+    "The 'Hidden Loss' Formula: [Warning Emoji] + [Common Action] + [Painful Consequence] (e.g., 'Stop doing X before you lose Y')",
+    "The 'Status Anxiety' Formula: [Alarm Emoji] + [Relatable Dream] + [Immediate Threat] (e.g., 'Why your goal of X is slipping away because of Y')"
   ],
   "script_directives": [
-    "Keep Scene 1 under 8 words for immediate hook velocity.",
-    "Introduce the financial trap mechanism by Scene 3.",
-    "Always end with a dual CTA: save the video and comment 'GUIDE'."
+    "Keep total duration strictly under 25 seconds to maintain high completion rates.",
+    "Eliminate complex jargon; focus on the 'emotional tax' (fear of loss or missing out) rather than technical mechanics.",
+    "Use a 'Problem-Solution-Action' structure: Start with the threat, explain the hidden mechanism in one sentence, and end with a clear, actionable alternative."
   ],
   "seo_directives": [
-    "Prioritize problem-aware hashtags (#MoneyMistakes, #HiddenFees).",
-    "Ensure caption line 1 matches spoken hook word-for-word."
+    "Use high-intent, negative-sentiment keywords in the title (e.g., 'Trap', 'Stop', 'Loss', 'Secretly') to trigger curiosity.",
+    "Limit hashtags to 3-4 highly relevant finance tags (e.g., #StockMarketIndia #PersonalFinance #InvestingTips) to avoid algorithmic dilution."
   ]
 }

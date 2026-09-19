@@ -753,7 +753,7 @@
       "instagram": "18120874042967425",
       "facebook": "1393134869610731"
     },
-    "audited": false
+    "audited": true
   },
   {
     "timestamp": "2026-09-18T06:08:14.761905+00:00",
@@ -836,6 +836,34 @@
       "youtube": "aExZQLzPuhY",
       "instagram": "18123343051910819",
       "facebook": "1635348981500455"
+    },
+    "audited": false
+  },
+  {
+    "timestamp": "2026-09-19T16:27:53.327619+00:00",
+    "title": "Russian Oil Import: 100% US Tariff Trap #Shorts",
+    "topic": "The illusion of saving ₹2 on cheap Russian petrol masks a brewing 100% US secondary tariff that threatens to crush India's $86.5B export economy and double consumer goods prices.",
+    "hook": "⚠️ That ₹2 petrol discount is hiding a 100% tariff trap for your wallet",
+    "hashtags": [
+      "#WealthCreationIndia",
+      "#SIPInvesting",
+      "#DividendStocks",
+      "#F&O",
+      "#OptionsTrading",
+      "#IndianStockMarket",
+      "#NiftyAlert",
+      "#NSEIndia"
+    ],
+    "duration_seconds": 21.00245,
+    "urls": {
+      "youtube": "https://www.youtube.com/shorts/YZlNwdZ1sz0",
+      "instagram": "https://www.instagram.com/reel/DdecALNilQv/",
+      "facebook": "https://www.facebook.com/reel/915546671636029/"
+    },
+    "ids": {
+      "youtube": "YZlNwdZ1sz0",
+      "instagram": "17949601161289157",
+      "facebook": "915546671636029"
     },
     "audited": false
   }
