@@ -1,24 +1,25 @@
 {
-  "last_updated": "2026-09-19T08:46:01.855451+00:00",
+  "last_updated": "2026-09-19T08:52:51.048372+00:00",
   "analyzed_videos_count": 26,
   "optimal_runtime_seconds": 25.0,
   "optimal_word_count": 64,
   "top_performing_topics": [
-    "Wealth erosion via inflation (FDs vs. Real Value)",
-    "Retail investor traps in market volatility",
-    "Asset class accessibility (Real estate and global stocks)"
+    "hidden charges",
+    "EMI trap",
+    "F&O lot size margin traps",
+    "credit card tricks"
   ],
   "winning_hook_formulas": [
-    "The 'Hidden Loss' Formula: [Warning Emoji] Stop [Action] before you realize [Specific Financial Loss] is making you poorer.",
-    "The 'Counter-Intuitive' Formula: [Alarm Emoji] Why [Common Financial Goal] is actually slipping away because of [Specific Market Reality]."
+    "Open with the exact Rupee amount quietly lost: 'Your bank took ₹X without an alert'",
+    "Contradict popular wisdom: 'Why your zero-cost EMI is actually charging 18% GST'"
   ],
   "script_directives": [
-    "Keep total duration strictly under 25 seconds to maintain high completion rates.",
-    "Eliminate preamble; start the video mid-sentence with the consequence of the financial action.",
-    "Use high-contrast visual callouts for numbers (e.g., 6.8%, 30%, 23600) to anchor viewer attention."
+    "Keep Scene 1 under 8 words for immediate hook velocity.",
+    "Introduce the financial trap mechanism by Scene 3.",
+    "Always end with a dual CTA: save the video and comment 'GUIDE'."
   ],
   "seo_directives": [
-    "Use negative sentiment keywords in titles (e.g., Trap, Stop, Loss, Fake) to trigger high-intent clicks.",
-    "Limit hashtags to 3 highly relevant, broad finance tags to avoid algorithm confusion."
+    "Prioritize problem-aware hashtags (#MoneyMistakes, #HiddenFees).",
+    "Ensure caption line 1 matches spoken hook word-for-word."
   ]
 }
