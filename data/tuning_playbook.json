@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-19T16:22:59.524418+00:00",
+  "last_updated": "2026-09-19T16:33:05.270930+00:00",
   "analyzed_videos_count": 27,
   "optimal_runtime_seconds": 25.0,
   "optimal_word_count": 64,
   "top_performing_topics": [
-    "Wealth erosion via inflation/low-yield instruments (FDs)",
-    "Retail investor traps in market volatility (Nifty/Stocks)",
-    "Macro-economic barriers to middle-class financial goals (Housing/Global markets)"
+    "Wealth erosion via inflation (FDs/Savings vs. Purchasing Power)",
+    "Contrarian market entry strategies (Nifty/Stocks support levels)",
+    "Middle-class lifestyle financial traps (Home ownership/Asset pricing)"
   ],
   "winning_hook_formulas": [
-    "The 'Hidden Loss' Formula: [Warning Emoji] + [Common Action] + [Painful Consequence] (e.g., 'Stop doing X before you lose Y')",
-    "The 'Status Anxiety' Formula: [Alarm Emoji] + [Relatable Dream] + [Immediate Threat] (e.g., 'Why your goal of X is slipping away because of Y')"
+    "The 'Hidden Loss' Formula: [Warning Emoji] Stop [Action] before [Negative Outcome] happens to your [Money/Assets].",
+    "The 'Truth Bomb' Formula: [Alarm Emoji] Why your [Common Financial Product] is secretly making you poorer every single day."
   ],
   "script_directives": [
     "Keep total duration strictly under 25 seconds to maintain high completion rates.",
-    "Eliminate complex jargon; focus on the 'emotional tax' (fear of loss or missing out) rather than technical mechanics.",
-    "Use a 'Problem-Solution-Action' structure: Start with the threat, explain the hidden mechanism in one sentence, and end with a clear, actionable alternative."
+    "Eliminate complex jargon; replace technical terms with high-stakes emotional consequences (e.g., 'eating your purchasing power' vs 'inflationary pressure').",
+    "Front-load the pain point in the first 3 seconds and provide a specific, actionable 'check' or 'level' as the resolution."
   ],
   "seo_directives": [
-    "Use high-intent, negative-sentiment keywords in the title (e.g., 'Trap', 'Stop', 'Loss', 'Secretly') to trigger curiosity.",
-    "Limit hashtags to 3-4 highly relevant finance tags (e.g., #StockMarketIndia #PersonalFinance #InvestingTips) to avoid algorithmic dilution."
+    "Use high-intent, negative-emotion keywords in the title like 'Trap', 'Stop', 'Loss', or 'Secretly'.",
+    "Limit hashtags to 3-4 highly relevant tags (e.g., #StockMarketIndia #PersonalFinance #InvestingTips) to avoid algorithmic dilution."
   ]
 }
