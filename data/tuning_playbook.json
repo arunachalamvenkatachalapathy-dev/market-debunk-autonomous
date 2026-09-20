@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-19T16:51:14.585777+00:00",
-  "analyzed_videos_count": 27,
-  "optimal_runtime_seconds": 25.0,
+  "last_updated": "2026-09-20T08:50:23.349550+00:00",
+  "analyzed_videos_count": 28,
+  "optimal_runtime_seconds": 24.9,
   "optimal_word_count": 64,
   "top_performing_topics": [
-    "Wealth erosion via inflation (FDs/Savings vs. Purchasing Power)",
-    "Retail investor traps (Market timing and FOMO)",
-    "Asset valuation gaps (Discounted stocks vs. Overpriced real estate)"
+    "Inflation-adjusted wealth erosion (FDs vs. Reality)",
+    "Contrarian market timing (Nifty/Stocks vs. Retail sentiment)",
+    "Middle-class lifestyle affordability crises"
   ],
   "winning_hook_formulas": [
-    "The 'Hidden Loss' Formula: [Warning Emoji] + [Common Financial Action] + [Negative Outcome/Loss] (e.g., 'Stop buying Nifty dips before you check this one critical support level')",
-    "The 'Status Anxiety' Formula: [Alarm Emoji] + [Personal Financial Goal] + [Why it is failing] (e.g., 'Why your dream home is slipping away while your savings sit still')"
+    "The 'Hidden Loss' Formula: [Warning Emoji] Your [Common Financial Product] is secretly [Negative Action] your [Money/Future] every [Timeframe].",
+    "The 'Stop Doing X' Formula: [Warning Emoji] Stop [Common Retail Behavior] before you [Extreme Negative Consequence] because of [Specific Data Point/Support Level]."
   ],
   "script_directives": [
-    "Strict 20-24 second duration: Cut all fluff; start the value proposition within the first 1.5 seconds.",
-    "Negative framing: Focus on what the viewer is losing or risking rather than what they could gain.",
-    "High-contrast visuals: Use rapid text overlays that highlight specific numbers or 'trap' keywords to maintain visual engagement."
+    "Strict 20-22 second duration: Cut all fluff to ensure the viewer hits the loop point before they lose interest.",
+    "Immediate conflict: Start the video with the 'enemy' (inflation, taxes, or market traps) in the first 1.5 seconds.",
+    "High-density information: Deliver one actionable insight or 'shock' statistic every 5 seconds to maintain engagement."
   ],
   "seo_directives": [
-    "Use high-intent, contrarian keywords in the title (e.g., 'Trap', 'Stop', 'Secretly', 'Discount').",
-    "Limit hashtags to 3-4 highly relevant finance tags (e.g., #StockMarketIndia #PersonalFinance #InvestingTips) to avoid algorithm dilution."
+    "Use high-intent, contrarian keywords in the title that challenge common retail wisdom (e.g., 'Trap', 'Secretly', 'Stop').",
+    "Limit hashtags to 3-4 high-volume finance tags (e.g., #StockMarketIndia, #PersonalFinance, #Investing) to avoid algorithm dilution."
   ]
 }
