@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-20T16:58:13.503107+00:00",
+  "last_updated": "2026-09-20T17:02:40.698096+00:00",
   "analyzed_videos_count": 29,
   "optimal_runtime_seconds": 24.9,
   "optimal_word_count": 64,
   "top_performing_topics": [
-    "Inflation-adjusted wealth erosion (FDs/Savings)",
-    "Contrarian market analysis (Nifty/Stocks)",
-    "Middle-class lifestyle/asset affordability traps"
+    "Inflation-adjusted wealth erosion (FDs vs. Reality)",
+    "Contrarian market analysis (Nifty/Stocks vs. Retail sentiment)",
+    "Middle-class asset affordability crises"
   ],
   "winning_hook_formulas": [
-    "The 'Hidden Loss' Formula: [Warning Emoji] Your [Common Financial Product] is secretly making you poorer by [Specific Metric/Reason].",
-    "The 'Stop Doing This' Formula: [Warning Emoji] Stop [Common Action] before you [Negative Financial Consequence/Trap]."
+    "The 'Hidden Loss' Formula: [Warning Emoji] Why your [Common Investment] is secretly making you poorer every day.",
+    "The 'Counter-Intuitive' Formula: Stop [Common Action] before you check this [Critical Data Point] to avoid a trap."
   ],
   "script_directives": [
-    "Keep total duration strictly between 20-24 seconds to maximize completion rates.",
-    "Eliminate technical jargon; focus on the immediate 'pain' of losing money rather than complex financial mechanics.",
-    "Use a high-urgency, direct-address tone that challenges the viewer's current financial habits within the first 3 seconds."
+    "Keep total duration strictly under 25 seconds to maintain high completion rates.",
+    "Eliminate preamble; start the hook at 0.0s and immediately follow with a high-stakes 'Why' statement.",
+    "Use high-contrast visual callouts for numbers and percentages to anchor viewer attention during fast-paced narration."
   ],
   "seo_directives": [
-    "Use high-intent, contrarian keywords in titles like 'Trap', 'Secretly', or 'Stop' to trigger curiosity.",
-    "Limit hashtags to 3-4 high-relevance tags (e.g., #FinanceTips, #StockMarketIndia, #MoneyMistakes) to avoid algorithm dilution."
+    "Use high-intent keywords in the title that address specific financial fears (e.g., 'Trap', 'Loss', 'Stop').",
+    "Limit hashtags to 3-4 highly relevant finance tags to avoid algorithm dilution and prioritize search discoverability."
   ]
 }
