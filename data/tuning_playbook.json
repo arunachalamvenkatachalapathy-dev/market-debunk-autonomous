@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-20T09:21:09.167256+00:00",
+  "last_updated": "2026-09-20T16:46:09.590538+00:00",
   "analyzed_videos_count": 29,
   "optimal_runtime_seconds": 24.9,
   "optimal_word_count": 64,
   "top_performing_topics": [
-    "Inflation-adjusted wealth erosion (FDs/Savings vs. Real Value)",
-    "Market timing and technical support levels for retail investors",
-    "Macro-economic barriers to middle-class wealth (Real estate/Global market access)"
+    "Inflation-adjusted wealth erosion (FDs vs. Reality)",
+    "Contrarian market analysis (Nifty/Stocks vs. Retail sentiment)",
+    "Middle-class lifestyle affordability crises"
   ],
   "winning_hook_formulas": [
-    "The 'Hidden Loss' Formula: [Warning Emoji] Why your [Asset Class] is secretly making you poorer every [Timeframe].",
-    "The 'Counter-Intuitive Action' Formula: Stop [Common Financial Habit] before you [Negative Outcome/Financial Trap]."
+    "The 'Hidden Loss' Formula: 'Stop [Action] before you realize [Negative Outcome] is secretly [Costing/Destroying] your [Asset].'",
+    "The 'Counter-Intuitive Warning' Formula: 'Warning: Your [Common Financial Product] is actually [Negative Result] your [Financial Goal].'"
   ],
   "script_directives": [
-    "Keep total duration strictly under 25 seconds to maintain high completion rates.",
-    "Eliminate technical jargon; focus on the immediate 'pain' of losing money rather than complex mechanics.",
-    "Use a high-urgency, direct-address narration style that frames the viewer as being 'in the know' against a systemic trap."
+    "Keep total duration strictly under 22 seconds to force high-density information delivery.",
+    "Eliminate all preamble; start the video mid-sentence or with a high-stakes visual trigger.",
+    "Use a 'Problem-Agitation-Solution' structure where the solution is a single, actionable mental shift rather than a complex strategy."
   ],
   "seo_directives": [
-    "Use high-intent, contrarian keywords in the title that challenge common financial wisdom (e.g., 'Trap', 'Stop', 'Secretly').",
-    "Include exactly 3-4 hyper-relevant niche hashtags (e.g., #StockMarketIndia #PersonalFinance #InvestingTips) to avoid algorithm dilution."
+    "Use high-intent keywords in the title that challenge common retail wisdom (e.g., 'Trap', 'Secretly', 'Stop').",
+    "Limit hashtags to 3-4 high-volume tags that target the specific financial sub-niche rather than generic 'finance' tags."
   ]
 }
