@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-20T09:15:03.486854+00:00",
+  "last_updated": "2026-09-20T09:21:09.167256+00:00",
   "analyzed_videos_count": 29,
   "optimal_runtime_seconds": 24.9,
   "optimal_word_count": 64,
   "top_performing_topics": [
-    "Inflation-adjusted wealth erosion (FDs vs. Purchasing Power)",
-    "Contrarian market analysis (Nifty/Stocks vs. Retail Sentiment)",
-    "Middle-class asset affordability crises (Housing/Wealth Gaps)"
+    "Inflation-adjusted wealth erosion (FDs/Savings vs. Real Value)",
+    "Market timing and technical support levels for retail investors",
+    "Macro-economic barriers to middle-class wealth (Real estate/Global market access)"
   ],
   "winning_hook_formulas": [
-    "The 'Hidden Loss' Formula: [Warning Emoji] Your [Common Financial Product] is secretly [Negative Action] your money every [Timeframe].",
-    "The 'Counter-Intuitive' Formula: Stop [Common Action] before you [Extreme Negative Outcome] because of [Specific Data Point/Support Level]."
+    "The 'Hidden Loss' Formula: [Warning Emoji] Why your [Asset Class] is secretly making you poorer every [Timeframe].",
+    "The 'Counter-Intuitive Action' Formula: Stop [Common Financial Habit] before you [Negative Outcome/Financial Trap]."
   ],
   "script_directives": [
-    "Strict 20-22 second duration: Cut all fluff; start the value proposition within the first 1.5 seconds.",
-    "High-contrast visual pacing: Switch visual assets or text overlays every 2-3 seconds to maintain cognitive engagement.",
-    "Direct address: Use 'You' and 'Your' exclusively to frame the content as a personal financial threat rather than general advice."
+    "Keep total duration strictly under 25 seconds to maintain high completion rates.",
+    "Eliminate technical jargon; focus on the immediate 'pain' of losing money rather than complex mechanics.",
+    "Use a high-urgency, direct-address narration style that frames the viewer as being 'in the know' against a systemic trap."
   ],
   "seo_directives": [
-    "Use high-intent, contrarian keywords in the title (e.g., 'Trap', 'Secret', 'Stop') to trigger curiosity-based clicks.",
-    "Limit hashtags to 3-4 high-volume, niche-specific tags (e.g., #StockMarketIndia #PersonalFinance #WealthBuilding) to avoid algorithm dilution."
+    "Use high-intent, contrarian keywords in the title that challenge common financial wisdom (e.g., 'Trap', 'Stop', 'Secretly').",
+    "Include exactly 3-4 hyper-relevant niche hashtags (e.g., #StockMarketIndia #PersonalFinance #InvestingTips) to avoid algorithm dilution."
   ]
 }
