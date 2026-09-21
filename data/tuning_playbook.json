@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-21T10:02:54.034126+00:00",
+  "last_updated": "2026-09-21T10:53:05.500287+00:00",
   "analyzed_videos_count": 31,
   "optimal_runtime_seconds": 25.0,
   "optimal_word_count": 64,
   "top_performing_topics": [
     "Market timing and technical support levels for retail investors",
-    "Inflation-adjusted wealth erosion and the hidden costs of 'safe' investments",
-    "Macro-economic barriers to middle-class wealth building"
+    "Inflation-adjusted wealth erosion and the 'hidden cost' of traditional savings",
+    "Macro-economic barriers to middle-class wealth accumulation"
   ],
   "winning_hook_formulas": [
-    "The 'Urgency + Negative Consequence' formula: [Warning Emoji] Stop [Action] before you [Financial Loss/Pain Point].",
-    "The 'Counter-Intuitive Truth' formula: [Fact/Stat] is secretly making you [Negative Outcome] every day."
+    "The 'Urgency-Warning' Formula: [Warning Emoji] Stop [Action] before you [Negative Consequence/Loss]",
+    "The 'Hidden Truth' Formula: [Negative Emotion/Financial Loss] is secretly [Action] your [Asset/Purchasing Power] every day"
   ],
   "script_directives": [
-    "Keep total duration strictly under 25 seconds to maintain high completion rates.",
-    "Eliminate all fluff; start the hook at 0.0s and deliver the core value proposition within the first 5 seconds.",
-    "Use high-contrast, fast-paced visual cuts every 2-3 seconds to prevent viewer drop-off."
+    "Keep total duration strictly between 20-22 seconds to maximize completion rate",
+    "Eliminate all preamble; start the first sentence with a high-stakes conflict or a specific financial threat",
+    "Use rapid-fire visual transitions every 3-4 seconds to prevent cognitive drop-off"
   ],
   "seo_directives": [
-    "Use high-intent, search-driven keywords in the title followed by the #Shorts tag.",
-    "Keep captions concise and focused on a single actionable takeaway to encourage 'saves' for later reference."
+    "Use high-intent keywords in the title that address a specific 'pain point' rather than a broad topic",
+    "Limit hashtags to 3-4 highly relevant finance tags to avoid diluting the algorithm's content categorization"
   ]
 }
