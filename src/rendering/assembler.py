@@ -349,16 +349,18 @@ def build_sfx_track(
     audio_dir = settings.ASSETS_DIR / "audio"
     temp_dir = output_path.parent
 
-    # Find SFX assets with multiple fallbacks (checking user-provided impact SFX first)
+    # Find SFX assets with multiple fallbacks (checking user-provided opening SFX first)
+    local_opening_dir = Path(r"D:\downloads\1 downloaded\a1\opening")
     local_sfx_dir = Path(r"D:\downloads\1 downloaded\sfx")
-    impact_candidates = [
-        sfx_dir / "universfield-horror-impact-hit-567238.mp3",
-        local_sfx_dir / "universfield-horror-impact-hit-567238.mp3",
+    opening_candidates = [
+        sfx_dir / "mixkit-ui-zoom-in-long-sound-2621.wav",
+        local_opening_dir / "mixkit-ui-zoom-in-long-sound-2621.wav",
+        sfx_dir / "opening_sfx.wav",
+        sfx_dir / "opening_hit.wav",
         sfx_dir / "impact_hit.wav",
-        sfx_dir / "impact_hit.mp3",
-        audio_dir / "impact_hit.wav",
+        audio_dir / "opening_sfx.wav",
     ]
-    impact_src = next((p for p in impact_candidates if p.is_file()), None)
+    opening_src = next((p for p in opening_candidates if p.is_file()), None)
 
     whoosh_candidates = [
         sfx_dir / "whoosh.mp3",
@@ -377,12 +379,12 @@ def build_sfx_track(
         pop_src = audio_dir / "pop_accent.wav"
 
     # Load audio buffers (calibrated so speech remains dominant and crisp)
-    impact_bytes = _load_pcm_stereo_48k(impact_src, temp_dir, target_volume=0.65) if impact_src else None
+    opening_bytes = _load_pcm_stereo_48k(opening_src, temp_dir, target_volume=1.0) if opening_src else None
     whoosh_bytes = _load_pcm_stereo_48k(whoosh_src, temp_dir, target_volume=0.45) if whoosh_src else None
     ding_bytes = _load_pcm_stereo_48k(ding_src, temp_dir, target_volume=0.50) if ding_src.is_file() else None
     pop_bytes = _load_pcm_stereo_48k(pop_src, temp_dir, target_volume=0.45) if pop_src.is_file() else None
 
-    if not any([impact_bytes, whoosh_bytes, ding_bytes, pop_bytes]):
+    if not any([opening_bytes, whoosh_bytes, ding_bytes, pop_bytes]):
         log.warning("No SFX assets found in %s or %s — skipping SFX track", sfx_dir, audio_dir)
         return None
 
@@ -391,10 +393,10 @@ def build_sfx_track(
         total_bytes = int(total_duration * bytes_per_sec) + bytes_per_sec
         sfx_buffer = bytearray(total_bytes)
 
-        # 1. Scene 1 Hook Impact Hit at t = 0.0s
-        if impact_bytes:
-            _mix_pcm_into_buffer(sfx_buffer, impact_bytes, start_sec=0.0, bytes_per_sec=bytes_per_sec)
-            log.info("  ↳ SFX: Added Scene 1 hook impact hit at 0.00s")
+        # 1. Scene 1 Hook Opening SFX at t = 0.0s
+        if opening_bytes:
+            _mix_pcm_into_buffer(sfx_buffer, opening_bytes, start_sec=0.0, bytes_per_sec=bytes_per_sec)
+            log.info("  ↳ SFX: Added Scene 1 hook opening SFX at 0.00s")
 
         sorted_voices = sorted(voice_results, key=lambda r: r["scene_id"])
         num_scenes = len(sorted_voices)
