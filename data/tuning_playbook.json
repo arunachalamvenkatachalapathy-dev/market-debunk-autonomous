@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-21T09:19:02.947507+00:00",
+  "last_updated": "2026-09-21T09:52:40.389727+00:00",
   "analyzed_videos_count": 31,
   "optimal_runtime_seconds": 25.0,
   "optimal_word_count": 64,
   "top_performing_topics": [
     "Market timing and technical support levels for retail investors",
-    "Inflation-adjusted wealth erosion and the failure of traditional savings",
-    "Hidden arbitrage or valuation discrepancies in stocks and assets"
+    "Inflation-adjusted wealth erosion and financial 'traps' in common assets",
+    "Macro-economic barriers to middle-class wealth building"
   ],
   "winning_hook_formulas": [
-    "The 'Urgent Warning' formula: [Negative Emoji] Stop [Action] before you [Negative Outcome/Financial Loss]",
-    "The 'Counter-Intuitive Reality' formula: [Shocking Stat/Fact] is secretly making you [Negative State/Poorer] every [Timeframe]"
+    "The 'Urgency-Warning' Formula: [Emoji] Stop [Action] before you [Negative Outcome/Financial Loss]",
+    "The 'Hidden Truth' Formula: [Emoji] Why your [Common Financial Habit] is secretly [Negative Consequence/Making you poorer]"
   ],
   "script_directives": [
-    "Keep total duration strictly under 22 seconds to maximize loop potential and retention metrics.",
-    "Eliminate all preamble and filler; start the hook within the first 0.5 seconds of the video.",
-    "Use high-contrast, fast-paced visual transitions every 3-4 seconds to prevent viewer drop-off."
+    "Maintain a strict duration of 20-22 seconds to maximize loop-ability and retention.",
+    "Eliminate all preamble; start the hook within the first 0.5 seconds and transition immediately to the core conflict.",
+    "Use high-contrast, negative-to-positive framing: identify a common mistake, explain the 'trap' in one sentence, and provide a singular, actionable fix."
   ],
   "seo_directives": [
-    "Use high-intent, search-driven keywords in the first 5 words of the title to capture algorithmic interest.",
-    "Limit hashtags to 3-4 highly relevant finance-specific tags to prevent audience dilution."
+    "Use titles that frame the content as a 'warning' or 'insider secret' rather than an educational tutorial.",
+    "Limit hashtags to 3 highly specific tags (e.g., #StockMarketIndia, #PersonalFinance, #InvestingTips) to avoid algorithmic dilution."
   ]
 }
