@@ -837,7 +837,7 @@
       "instagram": "18123343051910819",
       "facebook": "1635348981500455"
     },
-    "audited": false
+    "audited": true
   },
   {
     "timestamp": "2026-09-19T16:27:53.327619+00:00",
@@ -865,7 +865,7 @@
       "instagram": "17949601161289157",
       "facebook": "915546671636029"
     },
-    "audited": false
+    "audited": true
   },
   {
     "timestamp": "2026-09-20T08:56:23.022697+00:00",
@@ -920,6 +920,34 @@
       "youtube": "6c3ZqwRX3NA",
       "instagram": "18017228357732307",
       "facebook": "1073285828748309"
+    },
+    "audited": false
+  },
+  {
+    "timestamp": "2026-09-21T09:27:27.834707+00:00",
+    "title": "Low PE Ratio Trap: Fake Profit Exposed #Shorts",
+    "topic": "P/E ratio without checking cash flows allows manipulative accounting to disguise deeply overvalued companies as cheap.",
+    "hook": "⚠️ Why that low P/E stock might actually be a massive accounting trap",
+    "hashtags": [
+      "#MarketDebunk",
+      "#StockMarketMyths",
+      "#SwingTrading",
+      "#MutualFundsSahi",
+      "#NiftyTrading",
+      "#IndianStockMarket",
+      "#NiftyAlert",
+      "#NSEIndia"
+    ],
+    "duration_seconds": 23.823674000000004,
+    "urls": {
+      "youtube": "https://www.youtube.com/shorts/ODJnBW6Fe9w",
+      "instagram": "https://www.instagram.com/reel/Ddi1f8XFaLt/",
+      "facebook": "https://www.facebook.com/reel/1316001423804240/"
+    },
+    "ids": {
+      "youtube": "ODJnBW6Fe9w",
+      "instagram": "18178276969436696",
+      "facebook": "1316001423804240"
     },
     "audited": false
   }

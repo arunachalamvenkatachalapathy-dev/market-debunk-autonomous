@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-20T17:02:40.698096+00:00",
-  "analyzed_videos_count": 29,
-  "optimal_runtime_seconds": 24.9,
+  "last_updated": "2026-09-21T09:19:02.947507+00:00",
+  "analyzed_videos_count": 31,
+  "optimal_runtime_seconds": 25.0,
   "optimal_word_count": 64,
   "top_performing_topics": [
-    "Inflation-adjusted wealth erosion (FDs vs. Reality)",
-    "Contrarian market analysis (Nifty/Stocks vs. Retail sentiment)",
-    "Middle-class asset affordability crises"
+    "Market timing and technical support levels for retail investors",
+    "Inflation-adjusted wealth erosion and the failure of traditional savings",
+    "Hidden arbitrage or valuation discrepancies in stocks and assets"
   ],
   "winning_hook_formulas": [
-    "The 'Hidden Loss' Formula: [Warning Emoji] Why your [Common Investment] is secretly making you poorer every day.",
-    "The 'Counter-Intuitive' Formula: Stop [Common Action] before you check this [Critical Data Point] to avoid a trap."
+    "The 'Urgent Warning' formula: [Negative Emoji] Stop [Action] before you [Negative Outcome/Financial Loss]",
+    "The 'Counter-Intuitive Reality' formula: [Shocking Stat/Fact] is secretly making you [Negative State/Poorer] every [Timeframe]"
   ],
   "script_directives": [
-    "Keep total duration strictly under 25 seconds to maintain high completion rates.",
-    "Eliminate preamble; start the hook at 0.0s and immediately follow with a high-stakes 'Why' statement.",
-    "Use high-contrast visual callouts for numbers and percentages to anchor viewer attention during fast-paced narration."
+    "Keep total duration strictly under 22 seconds to maximize loop potential and retention metrics.",
+    "Eliminate all preamble and filler; start the hook within the first 0.5 seconds of the video.",
+    "Use high-contrast, fast-paced visual transitions every 3-4 seconds to prevent viewer drop-off."
   ],
   "seo_directives": [
-    "Use high-intent keywords in the title that address specific financial fears (e.g., 'Trap', 'Loss', 'Stop').",
-    "Limit hashtags to 3-4 highly relevant finance tags to avoid algorithm dilution and prioritize search discoverability."
+    "Use high-intent, search-driven keywords in the first 5 words of the title to capture algorithmic interest.",
+    "Limit hashtags to 3-4 highly relevant finance-specific tags to prevent audience dilution."
   ]
 }
