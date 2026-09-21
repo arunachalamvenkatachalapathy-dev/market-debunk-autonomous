@@ -1,25 +1,24 @@
 {
-  "last_updated": "2026-09-21T18:37:40.947593+00:00",
+  "last_updated": "2026-09-21T18:45:22.363352+00:00",
   "analyzed_videos_count": 31,
   "optimal_runtime_seconds": 25.0,
   "optimal_word_count": 64,
   "top_performing_topics": [
-    "hidden charges",
-    "EMI trap",
-    "F&O lot size margin traps",
-    "credit card tricks"
+    "Market timing and technical support levels for retail investors",
+    "Inflation-adjusted wealth erosion and the hidden costs of 'safe' investments",
+    "Macro-economic barriers to middle-class wealth accumulation"
   ],
   "winning_hook_formulas": [
-    "Open with the exact Rupee amount quietly lost: 'Your bank took ₹X without an alert'",
-    "Contradict popular wisdom: 'Why your zero-cost EMI is actually charging 18% GST'"
+    "The 'Urgency-Warning' Formula: [Emoji] Stop [Action] before you [Negative Outcome related to money loss]",
+    "The 'Hidden Reality' Formula: [Emoji] Your [Common Financial Product] is secretly [Negative Action] your [Wealth/Purchasing Power]"
   ],
   "script_directives": [
-    "Keep Scene 1 under 8 words for immediate hook velocity.",
-    "Introduce the financial trap mechanism by Scene 3.",
-    "Always end with a dual CTA: save the video and comment 'GUIDE'."
+    "Keep total duration under 25 seconds to maintain high completion rates.",
+    "Eliminate preamble; start the video mid-sentence with the hook and immediately follow with the 'why' to prevent drop-offs.",
+    "Use high-contrast visual cues (charts or red/green indicators) every 3 seconds to reset viewer attention."
   ],
   "seo_directives": [
-    "Prioritize problem-aware hashtags (#MoneyMistakes, #HiddenFees).",
-    "Ensure caption line 1 matches spoken hook word-for-word."
+    "Use high-intent, contrarian keywords in the title that challenge common financial myths.",
+    "Limit hashtags to 3-4 highly relevant tags (e.g., #FinanceTips, #StockMarketIndia, #Investing) to avoid algorithmic dilution."
   ]
 }
