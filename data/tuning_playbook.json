@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-21T09:52:40.389727+00:00",
+  "last_updated": "2026-09-21T10:02:54.034126+00:00",
   "analyzed_videos_count": 31,
   "optimal_runtime_seconds": 25.0,
   "optimal_word_count": 64,
   "top_performing_topics": [
     "Market timing and technical support levels for retail investors",
-    "Inflation-adjusted wealth erosion and financial 'traps' in common assets",
+    "Inflation-adjusted wealth erosion and the hidden costs of 'safe' investments",
     "Macro-economic barriers to middle-class wealth building"
   ],
   "winning_hook_formulas": [
-    "The 'Urgency-Warning' Formula: [Emoji] Stop [Action] before you [Negative Outcome/Financial Loss]",
-    "The 'Hidden Truth' Formula: [Emoji] Why your [Common Financial Habit] is secretly [Negative Consequence/Making you poorer]"
+    "The 'Urgency + Negative Consequence' formula: [Warning Emoji] Stop [Action] before you [Financial Loss/Pain Point].",
+    "The 'Counter-Intuitive Truth' formula: [Fact/Stat] is secretly making you [Negative Outcome] every day."
   ],
   "script_directives": [
-    "Maintain a strict duration of 20-22 seconds to maximize loop-ability and retention.",
-    "Eliminate all preamble; start the hook within the first 0.5 seconds and transition immediately to the core conflict.",
-    "Use high-contrast, negative-to-positive framing: identify a common mistake, explain the 'trap' in one sentence, and provide a singular, actionable fix."
+    "Keep total duration strictly under 25 seconds to maintain high completion rates.",
+    "Eliminate all fluff; start the hook at 0.0s and deliver the core value proposition within the first 5 seconds.",
+    "Use high-contrast, fast-paced visual cuts every 2-3 seconds to prevent viewer drop-off."
   ],
   "seo_directives": [
-    "Use titles that frame the content as a 'warning' or 'insider secret' rather than an educational tutorial.",
-    "Limit hashtags to 3 highly specific tags (e.g., #StockMarketIndia, #PersonalFinance, #InvestingTips) to avoid algorithmic dilution."
+    "Use high-intent, search-driven keywords in the title followed by the #Shorts tag.",
+    "Keep captions concise and focused on a single actionable takeaway to encourage 'saves' for later reference."
   ]
 }
