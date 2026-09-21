@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-21T15:16:28.150355+00:00",
+  "last_updated": "2026-09-21T15:31:17.862730+00:00",
   "analyzed_videos_count": 31,
   "optimal_runtime_seconds": 25.0,
   "optimal_word_count": 64,
   "top_performing_topics": [
     "Market timing and technical support levels for retail investors",
-    "Inflation-adjusted wealth erosion and the hidden costs of 'safe' investments",
-    "Macro-economic barriers to middle-class wealth building"
+    "Inflation-adjusted wealth erosion vs. traditional savings",
+    "Strategic asset valuation (finding discounts in blue-chip or holding companies)"
   ],
   "winning_hook_formulas": [
-    "The 'Urgency-Warning' Formula: [Emoji] Stop [Action] before you [Negative Outcome/Financial Loss]",
-    "The 'Counter-Intuitive Truth' Formula: [Emoji] Your [Common Financial Habit] is secretly [Negative Result] every single day"
+    "The 'Hidden Danger' Formula: [Warning Emoji] Stop [Action] before you [Negative Consequence/Loss]",
+    "The 'Counter-Intuitive Truth' Formula: Why your [Common Financial Product] is secretly [Negative Outcome] every day"
   ],
   "script_directives": [
-    "Keep total duration strictly between 20-24 seconds to prevent drop-offs.",
-    "Eliminate preamble; start the hook within the first 1.5 seconds and transition immediately to the 'why'.",
-    "Use high-contrast, fast-paced visual callouts for numbers and keywords to maintain visual engagement."
+    "Keep total duration strictly under 25 seconds to maintain high completion rates.",
+    "Eliminate all preamble and filler; start the hook within the first 0.5 seconds of the video.",
+    "Use high-contrast visual callouts for numbers and keywords to anchor viewer attention during rapid-fire narration."
   ],
   "seo_directives": [
-    "Use high-intent keywords in the title that address specific financial pain points rather than broad educational topics.",
-    "Limit hashtags to 3-4 highly relevant tags (e.g., #FinanceTips #StockMarketIndia #Investing) to avoid algorithmic dilution."
+    "Use high-intent, search-driven keywords in the title (e.g., 'Nifty', 'Stocks', 'FD') rather than clickbait-only phrasing.",
+    "Limit hashtags to 3-4 highly relevant finance tags (e.g., #StockMarketIndia, #PersonalFinance, #Investing) to avoid algorithm confusion."
   ]
 }
