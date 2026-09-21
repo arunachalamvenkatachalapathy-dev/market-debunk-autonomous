@@ -43,10 +43,7 @@ def _get_authenticated_service():
         refresh_token=settings.YT_REFRESH_TOKEN,
         token_uri="https://oauth2.googleapis.com/token",
         client_id=settings.YT_CLIENT_ID,
-        scopes=[
-            "https://www.googleapis.com/auth/youtube.upload",
-            "https://www.googleapis.com/auth/youtube.force-ssl",
-        ],
+        client_secret=settings.YT_CLIENT_SECRET,
     )
     service = build("youtube", "v3", credentials=creds, cache_discovery=False)
     return service
