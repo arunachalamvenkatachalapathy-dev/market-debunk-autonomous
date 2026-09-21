@@ -491,10 +491,11 @@ def _download_transcript_ytdlp(video_id: str, cookies_path: Optional[str] = None
             result = subprocess.run(
                 [
                     sys.executable, "-m", "yt_dlp",
+                    "--write-sub",
                     "--write-auto-sub",
-                    "--sub-lang", "ta,hi,en",
+                    "--sub-lang", "ta,en,en-IN,hi,all",
                     "--skip-download",
-                    "--sub-format", "vtt",
+                    "--sub-format", "vtt/srt/best",
                     "-o", f"{tmpdir}/%(id)s",
                 ]
                 + (["--cookies", cookies_path] if cookies_path else [])
@@ -503,8 +504,8 @@ def _download_transcript_ytdlp(video_id: str, cookies_path: Optional[str] = None
                 text=True,
                 timeout=60,
             )
-            # Find any .vtt file
-            vtt_files = list(Path(tmpdir).glob("*.vtt"))
+            # Find any .vtt or .srt file
+            vtt_files = list(Path(tmpdir).glob("*.vtt")) + list(Path(tmpdir).glob("*.srt"))
             if vtt_files:
                 raw = vtt_files[0].read_text(encoding="utf-8")
                 # Strip VTT formatting

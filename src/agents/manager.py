@@ -25,6 +25,7 @@ from src.utils.master_package import export_master_package
 
 # Import agents
 from src.agents import topic_agent, script_agent, voice_agent, visual_agent, evaluator, quality_gate
+from src.agents.rewriter_agent import EnglishScriptRewriterAgent
 from src.agents.distribution_seo_agent import DistributionSEOAgent
 from src.rendering import subtitles, assembler
 from src.publishing import youtube_uploader, telegram_notifier, instagram_publisher, facebook_publisher
@@ -132,10 +133,15 @@ def run_pipeline():
                     sys.exit(0)
             log.info("Topic passed uniqueness check.")
 
-        # ── Phase 2: Script Generation ────────────────────────────────────
+        # ── Phase 2: Script Generation (with Script Doctor) ───────────────
         with PhaseTimer("Phase 2: Script Generation"):
+            rewriter = EnglishScriptRewriterAgent()
             script = script_agent.generate_script(thesis, channel, story_seed=story_seed)
             script_dict = script_agent.script_to_dict(script)
+
+            # Engage English Script Doctor to guarantee 5-7 word hook, eliminate citations,
+            # enforce unique visual prompts, and attach seamless curiosity loop connector.
+            script_dict = rewriter.auto_repair_script(script_dict, topic=thesis)
 
             is_dup, score, match = evaluator.is_duplicate(script_dict["title"], threshold=0.78)
             if is_dup:

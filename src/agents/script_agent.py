@@ -535,8 +535,15 @@ Before answering, internally check that:
                     data = _extract_json(repaired_raw)
                     script = ScriptPayload(**data)
                 except Exception as val_repair_err:
-                    log.warning("Validation repair pass failed: %s", val_repair_err)
-                    continue
+                    log.warning("Validation repair pass failed: %s; invoking Script Doctor deterministic repair...", val_repair_err)
+                    try:
+                        from src.agents.rewriter_agent import EnglishScriptRewriterAgent
+                        repaired_data = EnglishScriptRewriterAgent().auto_repair_script(data, failure_reason=str(val_error), topic=thesis)
+                        script = ScriptPayload(**repaired_data)
+                        log.info("✓ Script successfully rescued by Script Doctor deterministic auto-repair.")
+                    except Exception as auto_err:
+                        log.warning("Script Doctor deterministic rescue failed: %s", auto_err)
+                        continue
 
             total_words = sum(len(s.narration.split()) for s in script.scenes)
             log.info(
