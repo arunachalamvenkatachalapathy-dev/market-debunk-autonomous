@@ -1034,5 +1034,33 @@
       "facebook": "1846491826698463"
     },
     "audited": false
+  },
+  {
+    "timestamp": "2026-09-21T18:44:14.068326+00:00",
+    "title": "P2P Lending Risks: 12% Return Trap Exposed #Shorts",
+    "topic": "Peer-to-peer lending platforms promise 12% returns while masking high default rates and strict RBI recovery constraints.",
+    "hook": "⚠️ That 12% P2P return is a trap you aren't seeing yet",
+    "hashtags": [
+      "#NiftyAlert",
+      "#NSEIndia",
+      "#IntradayTrading",
+      "#SmartMoneyIndia",
+      "#SensexAlert",
+      "#IndianStockMarket",
+      "#MoneyTips",
+      "#RichMindset"
+    ],
+    "duration_seconds": 23.327346999999996,
+    "urls": {
+      "youtube": "https://www.youtube.com/shorts/6Uxad0TwZs0",
+      "instagram": "https://www.instagram.com/reel/Ddj1MWtiHnH/",
+      "facebook": "https://www.facebook.com/reel/2304355343646787/"
+    },
+    "ids": {
+      "youtube": "6Uxad0TwZs0",
+      "instagram": "18070995374581762",
+      "facebook": "2304355343646787"
+    },
+    "audited": false
   }
 ]
