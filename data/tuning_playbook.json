@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-21T18:54:14.373612+00:00",
+  "last_updated": "2026-09-21T18:56:02.582293+00:00",
   "analyzed_videos_count": 31,
   "optimal_runtime_seconds": 25.0,
   "optimal_word_count": 64,
   "top_performing_topics": [
-    "Market timing and technical support levels for retail investors",
-    "Inflation-adjusted wealth erosion vs. traditional savings",
-    "Hidden valuation gaps in blue-chip stocks and holding companies"
+    "Market timing and technical support levels",
+    "Inflation-adjusted wealth erosion",
+    "Institutional vs. retail investment arbitrage"
   ],
   "winning_hook_formulas": [
-    "The 'Urgency-Warning' Formula: [Emoji] Stop [Common Action] before you [Negative Financial Consequence]",
-    "The 'Counter-Intuitive Truth' Formula: [Emoji] Why your [Common Financial Asset] is secretly [Negative Outcome] every single day"
+    "The 'Hidden Loss' Formula: [Warning Emoji] Stop [Action] before you [Negative Outcome] because of [Hidden Factor].",
+    "The 'Status Quo Reversal' Formula: [Action] is actually [Negative Result]—here is why your [Common Financial Tool] is failing you."
   ],
   "script_directives": [
-    "Strict duration control: Keep total length under 22 seconds to ensure high loop-ability.",
-    "Eliminate preamble: Start the hook at 0.00s and immediately transition to the 'why' within the first 5 seconds.",
-    "High-density information: Use one visual or text overlay per 3 seconds to maintain cognitive engagement."
+    "Keep total duration strictly under 22 seconds to maximize completion rates.",
+    "Use high-contrast visual cues (charts or red/green text) at the 3-second mark to anchor the hook.",
+    "Eliminate all jargon; replace complex financial terms with immediate 'pocket-book' consequences."
   ],
   "seo_directives": [
-    "Use high-intent keywords in the title that address specific 'pain points' (e.g., Nifty, FD, Stocks, Inflation).",
-    "Limit hashtags to 3-4 highly relevant tags (e.g., #FinanceShorts #StockMarketIndia #InvestingTips) to avoid algorithm dilution."
+    "Use titles that frame the video as a 'warning' or 'critical check' rather than a 'tutorial'.",
+    "Include exactly one high-volume niche tag (#Nifty, #Stocks, #PersonalFinance) followed by #Shorts."
   ]
 }
