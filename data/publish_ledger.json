@@ -893,7 +893,7 @@
       "instagram": "18177247459428472",
       "facebook": "1426399529388698"
     },
-    "audited": false
+    "audited": true
   },
   {
     "timestamp": "2026-09-20T16:55:28.251220+00:00",
@@ -1060,6 +1060,34 @@
       "youtube": "6Uxad0TwZs0",
       "instagram": "18070995374581762",
       "facebook": "2304355343646787"
+    },
+    "audited": false
+  },
+  {
+    "timestamp": "2026-09-22T09:06:30.609466+00:00",
+    "title": "LPG Subsidy: Aadhaar e-KYC Deadline Loss #Shorts",
+    "topic": "Oil marketing companies use complex Aadhaar biometric e-KYC deadlines to silently forfeit LPG subsidies for millions of unsuspecting households.",
+    "hook": "⚠️ The real reason Marketing Companies Complex is destroying retail investors",
+    "hashtags": [
+      "#MoneyMistakes",
+      "#FinanceLiteracy",
+      "#PassiveIncome",
+      "#MarketDebunk",
+      "#MultibaggerStocks",
+      "#IndianStockMarket",
+      "#NiftyAlert",
+      "#NSEIndia"
+    ],
+    "duration_seconds": 28.133878,
+    "urls": {
+      "youtube": "https://www.youtube.com/shorts/sAzKveHMqsM",
+      "instagram": "https://www.instagram.com/reel/DdlX5BVkeBb/",
+      "facebook": "https://www.facebook.com/reel/1566716124751913/"
+    },
+    "ids": {
+      "youtube": "sAzKveHMqsM",
+      "instagram": "18167366791461229",
+      "facebook": "1566716124751913"
     },
     "audited": false
   }

@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-21T18:56:02.582293+00:00",
-  "analyzed_videos_count": 31,
+  "last_updated": "2026-09-22T08:49:51.352562+00:00",
+  "analyzed_videos_count": 32,
   "optimal_runtime_seconds": 25.0,
   "optimal_word_count": 64,
   "top_performing_topics": [
-    "Market timing and technical support levels",
-    "Inflation-adjusted wealth erosion",
-    "Institutional vs. retail investment arbitrage"
+    "Market timing and retail investor traps",
+    "Wealth erosion through inflation and hidden costs",
+    "Macro-financial barriers to middle-class aspirations"
   ],
   "winning_hook_formulas": [
-    "The 'Hidden Loss' Formula: [Warning Emoji] Stop [Action] before you [Negative Outcome] because of [Hidden Factor].",
-    "The 'Status Quo Reversal' Formula: [Action] is actually [Negative Result]—here is why your [Common Financial Tool] is failing you."
+    "The 'Urgency-Warning' Formula: [Emoji] Stop [Action] before you [Negative Outcome/Loss]",
+    "The 'Hidden Truth' Formula: [Emoji] Why your [Common Financial Asset] is secretly [Negative Verb] your [Wealth/Purchasing Power]"
   ],
   "script_directives": [
-    "Keep total duration strictly under 22 seconds to maximize completion rates.",
-    "Use high-contrast visual cues (charts or red/green text) at the 3-second mark to anchor the hook.",
-    "Eliminate all jargon; replace complex financial terms with immediate 'pocket-book' consequences."
+    "Strictly cap duration between 20-24 seconds; anything over 30 seconds causes immediate drop-off.",
+    "Eliminate preamble; start the hook at 0:00 and deliver the 'value-bomb' within the first 3 seconds.",
+    "Use high-contrast, negative-connotation language (e.g., 'trap', 'bleeding', 'scam', 'slipping away') to trigger immediate emotional engagement."
   ],
   "seo_directives": [
-    "Use titles that frame the video as a 'warning' or 'critical check' rather than a 'tutorial'.",
-    "Include exactly one high-volume niche tag (#Nifty, #Stocks, #PersonalFinance) followed by #Shorts."
+    "Include the '#Shorts' tag in the title to signal platform distribution algorithms.",
+    "Use specific, high-intent keywords in the caption that mirror the hook's pain point to capture search traffic."
   ]
 }
