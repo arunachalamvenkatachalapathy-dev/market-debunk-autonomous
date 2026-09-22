@@ -1,24 +1,25 @@
 {
-  "last_updated": "2026-09-22T08:49:51.352562+00:00",
-  "analyzed_videos_count": 32,
+  "last_updated": "2026-09-22T09:16:45.924022+00:00",
+  "analyzed_videos_count": 33,
   "optimal_runtime_seconds": 25.0,
   "optimal_word_count": 64,
   "top_performing_topics": [
-    "Market timing and retail investor traps",
-    "Wealth erosion through inflation and hidden costs",
-    "Macro-financial barriers to middle-class aspirations"
+    "hidden charges",
+    "EMI trap",
+    "F&O lot size margin traps",
+    "credit card tricks"
   ],
   "winning_hook_formulas": [
-    "The 'Urgency-Warning' Formula: [Emoji] Stop [Action] before you [Negative Outcome/Loss]",
-    "The 'Hidden Truth' Formula: [Emoji] Why your [Common Financial Asset] is secretly [Negative Verb] your [Wealth/Purchasing Power]"
+    "Open with the exact Rupee amount quietly lost: 'Your bank took ₹X without an alert'",
+    "Contradict popular wisdom: 'Why your zero-cost EMI is actually charging 18% GST'"
   ],
   "script_directives": [
-    "Strictly cap duration between 20-24 seconds; anything over 30 seconds causes immediate drop-off.",
-    "Eliminate preamble; start the hook at 0:00 and deliver the 'value-bomb' within the first 3 seconds.",
-    "Use high-contrast, negative-connotation language (e.g., 'trap', 'bleeding', 'scam', 'slipping away') to trigger immediate emotional engagement."
+    "Keep Scene 1 under 8 words for immediate hook velocity.",
+    "Introduce the financial trap mechanism by Scene 3.",
+    "Always end with a dual CTA: save the video and comment 'GUIDE'."
   ],
   "seo_directives": [
-    "Include the '#Shorts' tag in the title to signal platform distribution algorithms.",
-    "Use specific, high-intent keywords in the caption that mirror the hook's pain point to capture search traffic."
+    "Prioritize problem-aware hashtags (#MoneyMistakes, #HiddenFees).",
+    "Ensure caption line 1 matches spoken hook word-for-word."
   ]
 }
