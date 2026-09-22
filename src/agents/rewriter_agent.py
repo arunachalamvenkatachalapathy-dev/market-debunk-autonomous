@@ -215,8 +215,8 @@ class EnglishScriptRewriterAgent:
         # 2. Strip Citation Language and Banned Templates first
         scenes = self._fix_citations(scenes)
 
-        # 3. Fix Scene 1 Hook Length (Guaranteed 5-7 words)
-        scenes = self._fix_hook(scenes)
+        # 3. Fix Scene 1 Hook (enforce question format, specificity, 6–11 words)
+        scenes = self._fix_hook(scenes, topic=topic)
 
         # 4. Fix Duplicate Visual Prompts
         scenes = self._fix_prompts(scenes)
@@ -238,36 +238,118 @@ class EnglishScriptRewriterAgent:
         log.info("🛠️ ScriptDoctor: Deterministic auto-repair applied to English script.")
         return script
 
-    def _fix_hook(self, scenes: List[Dict[str, Any]], max_words: int = 7) -> List[Dict[str, Any]]:
-        """Ensure Scene 1 hook is 5 to 7 words and ends with punchy punctuation."""
+    def _fix_hook(
+        self,
+        scenes: List[Dict[str, Any]],
+        max_words: int = 11,
+        topic: str = "",
+    ) -> List[Dict[str, Any]]:
+        """
+        Ensure Scene 1 hook is:
+        1. A direct question ending in "?"
+        2. 6–11 words
+        3. Contains "you" or "your"
+        4. Specific to the topic (not generic)
+        """
         if not scenes:
             return scenes
 
         first_scene = scenes[0]
         narration = first_scene.get("narration", "").strip()
+
         if not narration:
-            first_scene["narration"] = "Your bank is secretly stealing your money!"
+            first_scene["narration"] = self._make_question_from_topic(topic)
             return scenes
 
-        # Split at first major clause delimiter
-        first_clause = re.split(r"[.?!—\n]", narration)[0].strip()
+        # Extract the first sentence/clause as the hook
+        first_clause = re.split(r"[.!—\n]", narration)[0].strip()
         words = first_clause.split()
 
+        # Enforce word count: 6–11 words
         if len(words) > max_words:
-            truncated_words = words[:max_words]
-            cleaned_hook = " ".join(truncated_words)
-            if any(q in cleaned_hook.lower() for q in ["why", "how", "what", "is", "are", "who"]):
-                cleaned_hook = cleaned_hook.rstrip("?,!.") + "?"
-            else:
-                cleaned_hook = cleaned_hook.rstrip("?,!.") + "!"
-            first_scene["narration"] = cleaned_hook
-            log.info("  ↳ ScriptDoctor: Clamped hook to %d words: '%s'", len(cleaned_hook.split()), cleaned_hook)
-        elif len(words) < 5:
-            first_scene["narration"] = f"Warning: {narration.rstrip('.!')} right now!"
-        else:
-            first_scene["narration"] = first_clause if first_clause.endswith(("!", "?", ".")) else first_clause + "!"
+            first_clause = " ".join(words[:max_words]).rstrip("?,!.")
+        elif len(words) < 6:
+            first_scene["narration"] = self._make_question_from_topic(topic)
+            log.info("  ↳ ScriptDoctor: Hook too short (%d words); replaced with topic-specific question.", len(words))
+            return scenes
 
+        # Enforce question format
+        if not first_clause.endswith("?"):
+            first_clause = self._convert_to_question(first_clause, topic)
+
+        # Enforce "you"/"your" presence
+        if "you" not in first_clause.lower() and "your" not in first_clause.lower():
+            first_clause = first_clause.rstrip("?") + " — is this hurting your money?"
+
+        # Reject and replace generic questions
+        if self._is_generic_question(first_clause):
+            replacement = self._make_question_from_topic(topic)
+            log.info(
+                "  ↳ ScriptDoctor: Generic question '%s' replaced with topic-specific: '%s'",
+                first_clause[:50], replacement[:60],
+            )
+            first_scene["narration"] = replacement
+            return scenes
+
+        first_scene["narration"] = first_clause
+        log.info("  ↳ ScriptDoctor: Scene 1 question hook finalised: '%s'", first_clause)
         return scenes
+
+    def _convert_to_question(self, statement: str, topic: str = "") -> str:
+        """Convert a declarative statement to a personal-implication question."""
+        statement = statement.rstrip("!.")
+        lower = statement.lower()
+
+        question_starters = {"is", "are", "do", "did", "does", "was", "were", "why", "how", "what", "can", "could"}
+        first_word = lower.split()[0] if lower.split() else ""
+
+        if first_word in question_starters:
+            return statement + "?"
+
+        if lower.startswith("your "):
+            return "Is " + lower + "?"
+
+        if lower.startswith("stop "):
+            rest = statement[5:]
+            return f"Are you still {rest.lower()}?"
+
+        # Fallback to topic-specific question
+        return self._make_question_from_topic(topic)
+
+    def _is_generic_question(self, question: str) -> bool:
+        """Return True if the question is too generic to be useful."""
+        GENERIC_PATTERNS = [
+            "did you know",
+            "have you ever",
+            "are you aware",
+            "do you want",
+            "have you heard",
+        ]
+        lower = question.lower()
+        return any(p in lower for p in GENERIC_PATTERNS)
+
+    def _make_question_from_topic(self, topic: str = "") -> str:
+        """
+        Generate a topic-specific fallback question from the topic string.
+        Maps 25+ financial trap categories to pre-validated question templates.
+        """
+        from src.agents.question_agent import TOPIC_QUESTION_MAP
+        topic_lower = topic.lower()
+
+        # Find best match by longest matching keyword
+        matched = []
+        for keyword, question in TOPIC_QUESTION_MAP.items():
+            if keyword in topic_lower:
+                matched.append((len(keyword), question))
+        if matched:
+            matched.sort(key=lambda x: x[0], reverse=True)
+            return matched[0][1]
+
+        # Last resort — still specific-sounding
+        words = [w for w in topic.split() if len(w) > 4]
+        subject = words[0].lower() if words else "investment"
+        return f"Is your {subject} secretly working against your money right now?"
+
 
     def _fix_citations(self, scenes: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Remove journalistic citations and passive hedging."""

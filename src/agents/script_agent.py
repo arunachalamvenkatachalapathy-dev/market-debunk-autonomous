@@ -155,6 +155,51 @@ class ScriptPayload(BaseModel):
             )
         return self
 
+    @model_validator(mode="after")
+    def enforce_question_hook(self):
+        """
+        Scene 1 MUST be a personal-implication question ending with '?'.
+        Silent auto-fix — does NOT raise ValueError or burn a model retry.
+        This is the final safety net after QuestionCraftingAgent + rewriter.
+        """
+        scene1 = self.scenes[0]
+        narration = scene1.narration.strip()
+
+        if not narration.endswith("?"):
+            stripped = narration.rstrip("!.")
+            first_word = stripped.split()[0].lower() if stripped.split() else ""
+            question_starters = {
+                "is", "are", "do", "did", "does", "was", "were",
+                "why", "how", "what", "can", "could", "would", "has", "have"
+            }
+
+            if first_word in question_starters:
+                # Already structured as question — just add ?
+                scene1.narration = stripped + "?"
+            elif stripped.lower().startswith("your "):
+                # "Your bank charges X" → "Is your bank charging X?"
+                scene1.narration = "Is " + stripped[0].lower() + stripped[1:] + "?"
+            else:
+                # Last resort — functional fallback
+                scene1.narration = stripped + " — is this hurting your money right now?"
+
+            log.info(
+                "✓ enforce_question_hook: Auto-converted Scene 1 to question: '%s'",
+                scene1.narration,
+            )
+
+        # Ensure "you"/"your" is present in the question
+        if "you" not in scene1.narration.lower() and "your" not in scene1.narration.lower():
+            q = scene1.narration.rstrip("?")
+            scene1.narration = q + " — is this happening to you?"
+            log.info(
+                "✓ enforce_question_hook: Injected 'you' into Scene 1 question: '%s'",
+                scene1.narration,
+            )
+
+        return self
+
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 #  System Prompt — 12-Scene Cinematic Format
@@ -180,15 +225,37 @@ TARGET RUNTIME: 22–26 seconds total. 50–70 narration words across all 6 scen
 THE 6-SCENE CONVERSATIONAL RETENTION ARC
 ──────────────────────────────────────────────────────────────────────────────
 
-Scene 1 — THE FAST HOOK (0–4s):
-  • Stop the scroll immediately with a high-urgency loss, trap, or shocking financial fact in under 10 words.
-  • BANNED CALMING HOOKS: "Relax", "Don't worry", "Take a breath", "Let me explain", "Did you know".
-  • Must hit with an immediate loss metric, warning, or visceral pattern interrupt in the very first 3 seconds.
-  • Examples:
-    - "Your bank is quietly hoping you never check this deduction."
-    - "Stop splitting your transfers — that viral fee news is fake."
-    - "This hidden fine-print rule is draining thousands from your account."
-  • broll_keyword: high-impact financial action ("candlestick crash", "red trading screen", "bank alert screen").
+Scene 1 — THE QUESTION HOOK (0–4s):
+  ════════════════════════════════════════════════════════
+  MANDATORY: Scene 1 narration MUST be a direct question ending with "?".
+  The question personally implicates the viewer in THEIR OWN financial situation RIGHT NOW.
+  It must name the EXACT financial product or mechanism being exposed — never generic.
+  Word count: 6–11 words. Must contain "you" or "your".
+
+  HOOK TYPE MENU (one is selected per video by the Channel Director):
+    • LOSS_IMPLICATION    → "Is your [product] silently [verb]-ing your [amount/returns]?"
+    • COMPETENCE_CHALLENGE → "Do you actually know what your [product] charges you?"
+    • MYTH_BUST           → "Did you really think [product/action] was [false belief]?"
+    • AUTHORITY_CHALLENGE  → "Is your [advisor/agent/bank] hiding [specific thing] from you?"
+    • OUTCOME_GAP         → "Why is your [product] giving you less than [benchmark] promised?"
+
+  BANNED OPENERS — instant rejection if Scene 1 uses any of these:
+    ✗ "Did you know" — awareness framing, not personal implication
+    ✗ "Have you heard" — passive discovery, not anxiety
+    ✗ "Let me tell you" — lecture opener
+    ✗ "Here's what" — informational statement
+    ✗ Any declarative statement that ends with "!" or "." as Scene 1
+
+  GOOD vs BAD EXAMPLES:
+    ✗ BAD: "Your bank is secretly charging you hidden fees!"  (statement, not question)
+    ✓ GOOD: "Is your bank silently deducting charges you never approved?"
+    ✗ BAD: "Did you know zero-cost EMI has an 18% GST?"  (banned "Did you know" opener)
+    ✓ GOOD: "Did you really think zero-cost EMI costs you nothing at all?"
+    ✗ BAD: "Mutual fund expense ratios are eating your returns."  (statement)
+    ✓ GOOD: "Is your mutual fund distributor hiding a 1% trail commission from you?"
+
+  broll_keyword: high-tension financial alert ("bank alert screen", "red trading screen", "candlestick crash").
+
 
 Scene 2 — THE RUMOR vs REALITY (4–8s):
   • Immediately explain what people are panicking about in plain English.
@@ -251,7 +318,7 @@ OUTPUT FORMAT — Return ONLY valid JSON, nothing else, no markdown fences:
   "scenes": [
     {
       "scene_id": 1,
-      "narration": "Present-tense hook narration addressed to YOU. 9-13 words. Flows into scene 2.",
+      "narration": "Direct personal question hook (ends with ?). 6-11 words. Names the EXACT financial product/trap. Contains 'you' or 'your'. Example: 'Is your SIP silently eating 2% of your returns every year?'",
       "visual_prompt": "Extreme macro close-up of a stock market candlestick chart plummeting off a cliff with sharp red drop lines, glowing trading desk monitors blurred in the background, split amber-teal light, photoreal cinematic, full-bleed 9:16",
       "broll_keyword": "stock chart drop",
       "duration_hint": 4.0
@@ -465,9 +532,12 @@ def generate_script(
     channel_name: str,
     story_seed: Optional[dict] = None,
     target_scenes: int = 6,
+    question_hook: str = "",
 ) -> ScriptPayload:
     """
     Generate a Fast-Hook cinematic story script under 30 seconds (target 6 scenes, 55-75 words).
+    question_hook: Pre-crafted specific question from QuestionCraftingAgent. If provided,
+                   injected as mandatory Scene 1 narration seed into the LLM prompt.
     """
     log.info("Generating Fast-Hook (%d scenes, < 30s) script | thesis: '%s'", target_scenes, thesis)
 
@@ -491,6 +561,19 @@ Safe Visual Evidence Object: {story_seed.get('visual_evidence', '')}
     except Exception as fe:
         log.warning("Feedback intelligence injection note: %s", fe)
 
+    # Build Scene 1 hook instruction — use pre-crafted question if available
+    if question_hook:
+        scene1_hook_instruction = (
+            f"- CRITICAL: Scene 1 narration MUST be EXACTLY this pre-crafted question (do not paraphrase or alter it): "
+            f"\"{question_hook}\""
+        )
+    else:
+        scene1_hook_instruction = (
+            "- scene 1 is a direct personal QUESTION (ends with ?) that makes the viewer anxious about "
+            "their own financial situation. It must name the specific product being exposed. "
+            "Example: 'Is your SIP silently eating 2% of your returns every year?'"
+        )
+
     user_prompt = f"""Core financial thesis: "{thesis}"
 {seed_context}
 Now generate the complete {target_scenes}-scene Fast-Hook cinematic short-story script (< 30s runtime, 55-75 words total) as JSON.
@@ -498,7 +581,7 @@ Remember: Exactly {target_scenes} scenes.
 
 Before answering, internally check that:
 - the title has no #Shorts tag and is max 50 chars;
-- scene 1 has an urgent, scroll-stopping viral hook (0-3s) that speaks directly to the viewer;
+- {scene1_hook_instruction};
 - the narrations tell a single, continuous, suspenseful spoken story with natural connective flow ("and", "so", "until", "because", "that's when"), NEVER a list of facts;
 - scene 1 visual_prompt opens cold on dramatic evidence (crashing red candlestick chart, trading screen, bank alert);
 - scenes 2-{target_scenes-1} describe contextual B-roll objects, screens, or documents with broll_keyword (NO people);

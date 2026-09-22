@@ -136,7 +136,28 @@ def run_pipeline():
         # ── Phase 2: Script Generation (with Script Doctor) ───────────────
         with PhaseTimer("Phase 2: Script Generation"):
             rewriter = EnglishScriptRewriterAgent()
-            script = script_agent.generate_script(thesis, channel, story_seed=story_seed)
+
+            # ── Phase 1.75: Question Crafting (Anti-Repetition Hook) ──────
+            question_hook = ""
+            try:
+                from src.agents.question_agent import QuestionCraftingAgent
+                hook_type = getattr(strategic_brief, "hook_type", "LOSS_IMPLICATION") if strategic_brief else "LOSS_IMPLICATION"
+                topic_keywords = story_seed.get("concept_name", "") if isinstance(story_seed, dict) else ""
+                question_hook = QuestionCraftingAgent().craft_question(
+                    thesis=thesis,
+                    hook_type=hook_type,
+                    topic_keywords=topic_keywords,
+                )
+                log.info("✓ QuestionCraftingAgent: Hook crafted → '%s'", question_hook)
+            except Exception as q_err:
+                log.warning(
+                    "QuestionCraftingAgent notice (%s); rewriter + Pydantic validator will enforce question format as fallback.",
+                    q_err,
+                )
+
+            script = script_agent.generate_script(
+                thesis, channel, story_seed=story_seed, question_hook=question_hook
+            )
             script_dict = script_agent.script_to_dict(script)
 
             # Engage English Script Doctor to guarantee 5-7 word hook, eliminate citations,

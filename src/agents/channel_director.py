@@ -55,6 +55,13 @@ class StrategicBrief(BaseModel):
         default="HARD_NUMBER_SHOCK",
         description="Opening visual/verbal hook style (e.g. HARD_NUMBER_SHOCK, CONFRONTATIONAL_TRUTH, EXPOSING_HYPOCRISY)."
     )
+    hook_type: str = Field(
+        default="LOSS_IMPLICATION",
+        description=(
+            "The exact question hook type for Scene 1, used by QuestionCraftingAgent. "
+            "One of: LOSS_IMPLICATION | COMPETENCE_CHALLENGE | MYTH_BUST | AUTHORITY_CHALLENGE | OUTCOME_GAP."
+        )
+    )
     key_statistic: str = Field(
         default="",
         description="The pivotal number, percentage, or currency figure anchoring the debunk."
@@ -267,6 +274,12 @@ DIRECTOR INSTRUCTIONS:
 3. State the exact numeric calculation or statistic (e.g. "₹15,00,000 lost in 25 years", "18% GST on interest", "6% penalty").
 4. Provide an engaging pinned comment that asks a controversial question or offers a checklist for commenting "GUIDE".
 5. Provide a specific 'tamil_adaptation_directive' describing how the Tamil companion should localize the concept with popular Tanglish terms (e.g. "Direct vs Regular Fund", "CIBIL Score Gaali", "Zero Cost EMI Aabathu").
+6. Select the exact 'hook_type' for Scene 1 from EXACTLY one of these options:
+   - LOSS_IMPLICATION   → Use when the video exposes a hidden fee, silent deduction, or ongoing financial leak affecting the viewer NOW.
+   - COMPETENCE_CHALLENGE → Use when the video tests whether the viewer actually understands their own financial product.
+   - MYTH_BUST          → Use when the video corrects a widespread false belief about a product or regulation.
+   - AUTHORITY_CHALLENGE → Use when the video exposes misconduct by an advisor, distributor, or bank representative.
+   - OUTCOME_GAP        → Use when the video reveals a product is underperforming its promised returns or benchmarks.
 
 OUTPUT FORMAT:
 Respond ONLY with a valid JSON object matching this schema:
@@ -275,6 +288,7 @@ Respond ONLY with a valid JSON object matching this schema:
   "strategic_angle": "The cynical, hard-hitting breakdown angle exposing the hidden mechanism",
   "format_type": "STANDALONE",
   "hook_style": "HARD_NUMBER_SHOCK",
+  "hook_type": "LOSS_IMPLICATION",
   "key_statistic": "35% wealth loss / ₹15,00,000",
   "target_emotion": "Shock and immediate urge to check personal accounts",
   "pinned_comment_text": "Did your bank or broker push you into this? Drop your thoughts below, or comment 'GUIDE' for our step-by-step checklist! 💬👇",
@@ -282,6 +296,7 @@ Respond ONLY with a valid JSON object matching this schema:
   "source_signal": "Audience pain-point & market trend"
 }}
 """
+
 
         brief_dict = self._call_llm_for_brief(prompt)
         if not brief_dict:
