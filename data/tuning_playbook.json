@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-22T17:40:36.998506+00:00",
+  "last_updated": "2026-09-22T18:26:23.080061+00:00",
   "analyzed_videos_count": 33,
   "optimal_runtime_seconds": 25.0,
   "optimal_word_count": 64,
   "top_performing_topics": [
     "Market timing and technical support levels",
-    "Wealth erosion via inflation and hidden costs",
-    "Contrarian investment strategies for retail investors"
+    "Wealth erosion via inflation and hidden financial traps",
+    "Macro-economic barriers to middle-class wealth building"
   ],
   "winning_hook_formulas": [
-    "The 'Urgency-Threat' formula: [Warning Emoji] + [Action/Behavior] + [Consequence] (e.g., 'Stop doing X before you lose Y')",
-    "The 'Counter-Intuitive' formula: [Pain Point] + [Hidden Truth] (e.g., 'Why your [Asset] is secretly making you poorer')"
+    "The 'Urgency-Warning' Formula: [Emoji] Stop [Action] before you [Negative Consequence/Loss]",
+    "The 'Counter-Intuitive Truth' Formula: [Emoji] Why your [Common Financial Practice] is secretly [Negative Outcome]"
   ],
   "script_directives": [
-    "Keep total duration strictly under 25 seconds; drop-off increases significantly after the 30-second mark.",
-    "Eliminate all preamble and fluff; start the hook within the first 0.5 seconds of the video.",
-    "Use high-contrast visual callouts or text overlays for every financial figure mentioned to maintain viewer focus."
+    "Keep total duration strictly under 25 seconds to maintain high completion rates.",
+    "Eliminate all fluff; start the value proposition within the first 1.5 seconds.",
+    "Use high-contrast visual cues (e.g., red text overlays) to emphasize financial loss or danger."
   ],
   "seo_directives": [
-    "Use high-intent, search-driven keywords in the title (e.g., 'Nifty', 'Stocks', 'FD') followed by '#Shorts'.",
-    "Limit hashtags to 3-4 highly relevant tags (e.g., #FinanceIndia, #StockMarket, #Investing) to avoid algorithmic dilution."
+    "Use high-intent keywords in the title that address specific financial pain points (e.g., 'Nifty', 'FD', 'Stocks').",
+    "Keep hashtags limited to 3-4 highly relevant, high-volume finance tags to avoid algorithm dilution."
   ]
 }
