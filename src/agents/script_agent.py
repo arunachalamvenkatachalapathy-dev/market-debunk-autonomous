@@ -106,23 +106,23 @@ class ScriptPayload(BaseModel):
     @model_validator(mode="after")
     def enforce_spoken_comment_cta(self):
         """
-        Guarantees that final scene voiceover explicitly speaks the comment CTA aloud.
-        Ensures Google TTS voices 'Comment GUIDE below' or save/share trigger and subtitles display it.
+        Guarantees that final scene voiceover contains a rapid retention CTA.
+        Accepts fast 2-3 word subliminal sign-offs to maintain pacing.
         """
         last_scene = self.scenes[-1]
         narration = last_scene.narration.strip()
         has_cta = any(
             phrase in narration.lower()
-            for phrase in ["comment 'guide'", "comment guide", "comment below", "save this", "share this", "share with"]
+            for phrase in ["save this", "share this", "don't get trapped", "stay alert", "comment", "subscribe"]
         )
         if not has_cta:
-            cta_phrase = "Share with a friend and comment 'GUIDE' below."
+            cta_phrase = "Save this."
             sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", narration) if s.strip()]
             if len(sentences) > 1 and len(narration.split()) > 8:
                 last_scene.narration = f"{sentences[0]} {cta_phrase}"
             else:
-                last_scene.narration = f"{narration.rstrip('.')} — {cta_phrase}"
-            log.info("✓ Auto-enforced spoken CTA in final scene narration: '%s'", last_scene.narration)
+                last_scene.narration = f"{narration.rstrip('.')} \u2014 {cta_phrase}"
+            log.info("\u2713 Auto-enforced rapid spoken CTA in final scene narration: '%s'", last_scene.narration)
         return self
 
     @model_validator(mode="after")
@@ -257,31 +257,19 @@ Scene 1 — THE QUESTION HOOK (0–4s):
   broll_keyword: high-tension financial alert ("bank alert screen", "red trading screen", "candlestick crash").
 
 
-Scene 2 — THE RUMOR vs REALITY (4–8s):
-  • Immediately explain what people are panicking about in plain English.
-  • Example: "People think every transfer over two thousand rupees gets taxed. That's completely false."
+Scene 2 & 3 — THE ANXIETY & SETUP (4–12s):
+  • Agitate the hook's pain point using relatable, conversational proof.
+  • Example: "You think your money is safely growing, but inflation is quietly eating it alive every single day."
 
-Scene 3 — THE HARD FACT (8–12s):
-  • Clear, indisputable rule or number in plain spoken terms.
-  • Example: "By law, bank-to-bank UPI transfers are permanently free for consumers."
+Scene 4 & 5 — THE REVELATION & PROOF (12–21s):
+  • The twist or hidden mechanism exposed clearly.
+  • Example: "While you earn 6 percent, the bank lends your exact same money out for 14 percent, keeping the massive profit."
 
-Scene 4 — THE REAL TRICK (12–17s):
-  • Expose what payment apps or brokers are ACTUALLY doing behind your back.
-  • Example: "Apps like Paytm only charge a small platform fee on bills and recharges — never on normal UPI."
-
-Scene 5 — THE SMART MOVE (17–21s):
-  • Direct tactical advice for the viewer.
-  • Example: "So keep your payments normal, and never pay an extra convenience charge."
-
-Scene 6 — THE FUTURE-PROMISE CONVERSION CTA (21–25s):
-  • Must hit a 2-part high-conversion trigger: SAVE TRIGGER + FUTURE-PROMISE REASON TO FOLLOW.
-  • Why Save: Give immediate utility (save for reference before next bank visit / transaction).
-  • Why Follow: Give explicit future value (what they get by following: expose hidden traps daily).
-  • Examples:
-    - "Save this before your next bank transaction, and follow Market Debunk to expose hidden traps daily."
-    - "Save this reel so you don't get trapped, and follow us for real financial truth every day."
-    - "Save this proof right now, and follow Market Debunk before you sign any policy."
-  • BANNED: Bare "follow for more", bare "comment guide", or asking for likes without giving a future payoff.
+Scene 6 — THE CLIMAX & DROP (21–25s):
+  • The punchy resolution and rapid subliminal sign-off.
+  • Must be EXTREMELY short (2-3 words) to loop perfectly back into Scene 1.
+  • Examples: "Save this.", "Don't get trapped.", "Stay alert."
+  • BANNED: Long sentences, "Share with a friend", or asking for likes.
 
 ──────────────────────────────────────────────────────────────────────────────
 NARRATION RULES (RAW, NATURAL SPOKEN CADENCE)
@@ -295,8 +283,8 @@ NARRATION RULES (RAW, NATURAL SPOKEN CADENCE)
 ──────────────────────────────────────────────────────────────────────────────
 VISUAL PROMPT GUIDELINES
 ──────────────────────────────────────────────────────────────────────────────
-Scene 1 visual_prompt: tangible finance evidence — plummeting chart, trading screen, ticker board, alert notification. NO HUMAN FACES.
-Scenes 2–5 visual_prompts: concrete objects, documents, screens, or environments. NO PEOPLE.
+Scene 1 visual_prompt: tangible finance evidence — plummeting chart, trading screen, ticker board, alert notification.
+Scenes 2–5 visual_prompts: Human emotion and character framing MUST BE INCLUDED. Show relatable people (e.g., "stressed investor staring at laptop", "smirking banker in a suit", "frustrated consumer looking at phone").
 Scene 6 visual_prompt: Arjun (host) in dark teal room OR a macro financial defense checklist.
 
 Every visual_prompt must:

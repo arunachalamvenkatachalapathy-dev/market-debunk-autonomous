@@ -268,15 +268,16 @@ class AnalyticsSensor:
                     items = res.json().get("items", [])
                     if items:
                         stats = items[0].get("statistics", {})
-                        metrics = {
+                        return {
                             "views": int(stats.get("viewCount", 0)),
                             "likes": int(stats.get("likeCount", 0)),
                             "comments": int(stats.get("commentCount", 0)),
+                            "shares": 0  # Not provided in base statistics
                         }
-                        log.info("✓ YouTube statistics for %s: %s", clean_id, metrics)
-                        return metrics
-            except Exception as exc:
-                log.debug("YouTube statistics API key request failed: %s", exc)
+                else:
+                    log.error("YouTube API failed with status %s: %s", res.status_code, res.text)
+            except Exception as e:
+                log.error("YouTube metrics fetch error: %s", e)
 
         # Fallback to OAuth credentials if available
         refresh_token = getattr(settings, "YT_REFRESH_TOKEN", "") or os.environ.get("YT_REFRESH_TOKEN", "")
