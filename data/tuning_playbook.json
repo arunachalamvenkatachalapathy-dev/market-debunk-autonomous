@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-22T09:47:17.598552+00:00",
+  "last_updated": "2026-09-22T17:40:36.998506+00:00",
   "analyzed_videos_count": 33,
   "optimal_runtime_seconds": 25.0,
   "optimal_word_count": 64,
   "top_performing_topics": [
-    "Market timing and technical analysis (Nifty/Support levels)",
-    "Wealth erosion/Inflation traps (FDs/Purchasing power)",
-    "Contrarian investment strategies (Discounted assets/Hidden value)"
+    "Market timing and technical support levels",
+    "Wealth erosion via inflation and hidden costs",
+    "Contrarian investment strategies for retail investors"
   ],
   "winning_hook_formulas": [
-    "The 'Urgency + Warning' Formula: [Emoji] Stop [Action] before you [Negative Outcome/Loss]",
-    "The 'Hidden Truth' Formula: [Emoji] Your [Common Financial Product] is secretly [Negative Action] your [Asset/Wealth]"
+    "The 'Urgency-Threat' formula: [Warning Emoji] + [Action/Behavior] + [Consequence] (e.g., 'Stop doing X before you lose Y')",
+    "The 'Counter-Intuitive' formula: [Pain Point] + [Hidden Truth] (e.g., 'Why your [Asset] is secretly making you poorer')"
   ],
   "script_directives": [
-    "Keep total duration strictly under 25 seconds; every second beyond 25 causes exponential drop-off.",
-    "Eliminate all preamble; start the hook at 0.0s and immediately follow with a high-stakes 'Why' statement.",
-    "Use high-contrast visual cues or text overlays every 3 seconds to maintain cognitive engagement."
+    "Keep total duration strictly under 25 seconds; drop-off increases significantly after the 30-second mark.",
+    "Eliminate all preamble and fluff; start the hook within the first 0.5 seconds of the video.",
+    "Use high-contrast visual callouts or text overlays for every financial figure mentioned to maintain viewer focus."
   ],
   "seo_directives": [
-    "Use high-intent, search-driven keywords in the title (e.g., 'Nifty', 'Stocks', 'FD', 'Inflation') followed by #Shorts.",
-    "Keep the caption concise, focusing on a single 'Save-worthy' takeaway or actionable tip to boost shareability."
+    "Use high-intent, search-driven keywords in the title (e.g., 'Nifty', 'Stocks', 'FD') followed by '#Shorts'.",
+    "Limit hashtags to 3-4 highly relevant tags (e.g., #FinanceIndia, #StockMarket, #Investing) to avoid algorithmic dilution."
   ]
 }
