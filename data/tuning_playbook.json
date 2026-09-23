@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-22T18:26:23.080061+00:00",
-  "analyzed_videos_count": 33,
-  "optimal_runtime_seconds": 25.0,
-  "optimal_word_count": 64,
+  "last_updated": "2026-09-23T08:51:01.135831+00:00",
+  "analyzed_videos_count": 37,
+  "optimal_runtime_seconds": 26.2,
+  "optimal_word_count": 67,
   "top_performing_topics": [
     "Market timing and technical support levels",
-    "Wealth erosion via inflation and hidden financial traps",
-    "Macro-economic barriers to middle-class wealth building"
+    "Inflation-adjusted wealth erosion",
+    "Asset valuation and discount opportunities"
   ],
   "winning_hook_formulas": [
-    "The 'Urgency-Warning' Formula: [Emoji] Stop [Action] before you [Negative Consequence/Loss]",
-    "The 'Counter-Intuitive Truth' Formula: [Emoji] Why your [Common Financial Practice] is secretly [Negative Outcome]"
+    "The 'Stop Doing X' Warning: Start with a negative action that is common, followed by a specific, high-stakes consequence (e.g., 'Stop buying X before you check Y').",
+    "The 'Hidden Loss' Reveal: Highlight a common financial behavior and frame it as a 'secret' mechanism that is actively draining the viewer's net worth."
   ],
   "script_directives": [
     "Keep total duration strictly under 25 seconds to maintain high completion rates.",
-    "Eliminate all fluff; start the value proposition within the first 1.5 seconds.",
-    "Use high-contrast visual cues (e.g., red text overlays) to emphasize financial loss or danger."
+    "Eliminate preamble; start the hook at 0:00 and deliver the primary insight within the first 5 seconds.",
+    "Use a high-intensity, urgent tone that focuses on 'protecting' the viewer's capital rather than just 'teaching' them."
   ],
   "seo_directives": [
-    "Use high-intent keywords in the title that address specific financial pain points (e.g., 'Nifty', 'FD', 'Stocks').",
-    "Keep hashtags limited to 3-4 highly relevant, high-volume finance tags to avoid algorithm dilution."
+    "Use titles that explicitly mention a specific financial pain point or a 'trap' to trigger curiosity.",
+    "Include high-intent keywords in the first line of the caption to improve search discoverability within the finance niche."
   ]
 }

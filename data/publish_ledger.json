@@ -949,7 +949,7 @@
       "instagram": "18178276969436696",
       "facebook": "1316001423804240"
     },
-    "audited": false
+    "audited": true
   },
   {
     "timestamp": "2026-09-21T10:57:46.401364+00:00",
@@ -977,7 +977,7 @@
       "instagram": "17887070376617582",
       "facebook": "956741753485463"
     },
-    "audited": false
+    "audited": true
   },
   {
     "timestamp": "2026-09-21T15:23:19.260298+00:00",
@@ -1005,7 +1005,7 @@
       "instagram": "18009593691002947",
       "facebook": "1611023737073966"
     },
-    "audited": false
+    "audited": true
   },
   {
     "timestamp": "2026-09-21T15:35:57.774122+00:00",
@@ -1033,7 +1033,7 @@
       "instagram": "17910924618495867",
       "facebook": "1846491826698463"
     },
-    "audited": false
+    "audited": true
   },
   {
     "timestamp": "2026-09-21T18:44:14.068326+00:00",
@@ -1172,6 +1172,34 @@
       "youtube": "HAGFSStXjR0",
       "instagram": "18016515335929359",
       "facebook": "1482942770336460"
+    },
+    "audited": false
+  },
+  {
+    "timestamp": "2026-09-23T08:56:57.958086+00:00",
+    "title": "CIBIL Score Drop: Loan App Hard Inquiry #Shorts",
+    "topic": "Checking your credit score on third-party loan aggregator apps triggers multiple hard inquiries that drop your CIBIL score.",
+    "hook": "⚠️ Stop checking your CIBIL score on these apps before it’s too late",
+    "hashtags": [
+      "#MarketDebunk",
+      "#StockMarketMyths",
+      "#LongTermInvesting",
+      "#IntradayTrading",
+      "#FinanceLiteracy",
+      "#IndianStockMarket",
+      "#NiftyAlert",
+      "#NSEIndia"
+    ],
+    "duration_seconds": 25.234285,
+    "urls": {
+      "youtube": "https://www.youtube.com/shorts/SLfUKXRrqOY",
+      "instagram": "https://www.instagram.com/reel/Ddn7lkmG7jO/",
+      "facebook": "https://www.facebook.com/reel/1607015467623942/"
+    },
+    "ids": {
+      "youtube": "SLfUKXRrqOY",
+      "instagram": "18108202832595174",
+      "facebook": "1607015467623942"
     },
     "audited": false
   }
