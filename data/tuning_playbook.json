@@ -1,24 +1,25 @@
 {
-  "last_updated": "2026-09-23T17:57:34.510796+00:00",
+  "last_updated": "2026-09-23T17:59:53.912558+00:00",
   "analyzed_videos_count": 38,
   "optimal_runtime_seconds": 26.4,
   "optimal_word_count": 68,
   "top_performing_topics": [
-    "Market timing and technical support levels for retail investors",
-    "Wealth erosion due to inflation and rising cost of living",
-    "Hidden value opportunities vs. mainstream investment traps"
+    "hidden charges",
+    "EMI trap",
+    "F&O lot size margin traps",
+    "credit card tricks"
   ],
   "winning_hook_formulas": [
-    "The 'Urgency-Warning' formula: [Emoji] Stop [Action] before you [Negative Consequence]",
-    "The 'Financial Reality' formula: [Emoji] Why your [Asset/Savings] is secretly [Negative Outcome]"
+    "Open with the exact Rupee amount quietly lost: 'Your bank took ₹X without an alert'",
+    "Contradict popular wisdom: 'Why your zero-cost EMI is actually charging 18% GST'"
   ],
   "script_directives": [
-    "Keep total duration strictly between 20-24 seconds to prevent viewer drop-off.",
-    "Eliminate preamble; start the hook within the first 1.5 seconds and maintain a high-energy, rapid-fire delivery.",
-    "Focus on a single, high-impact 'pain point' per video rather than complex, multi-layered explanations."
+    "Keep Scene 1 under 8 words for immediate hook velocity.",
+    "Introduce the financial trap mechanism by Scene 3.",
+    "Always end with a dual CTA: save the video and comment 'GUIDE'."
   ],
   "seo_directives": [
-    "Use high-intent, contrarian keywords in the title that challenge common retail investor assumptions.",
-    "Include exactly one broad industry hashtag (#Finance) and one specific, high-volume niche hashtag (#Shorts or #Investing) to optimize algorithm categorization."
+    "Prioritize problem-aware hashtags (#MoneyMistakes, #HiddenFees).",
+    "Ensure caption line 1 matches spoken hook word-for-word."
   ]
 }
