@@ -22,31 +22,44 @@ log = get_logger(__name__, phase="custom_publish")
 
 VIDEO_PATH = Path("assets/custom_video.mp4")
 
-YT_TITLE = "Ordered biryani at 1am\u2026 the app ghosted ME \ud83d\udc80 #shorts"
-YT_DESCRIPTION = """\u20b9458 for one biryani at 1am? Nope. I ordered on Beggy - the food app where nothing ever arrives and your money stays in your account. Then I ghosted my friend with a fake order \ud83d\ude02
+
+def _clean_str(text: str) -> str:
+    """Safely decode any UTF-16 surrogate pairs into real UTF-8 characters."""
+    try:
+        return text.encode("utf-16", "surrogatepass").decode("utf-16")
+    except Exception:
+        return text
+
+
+YT_TITLE = _clean_str("Ordered biryani at 1am\u2026 the app ghosted ME \ud83d\udc80 #shorts")
+YT_DESCRIPTION = _clean_str("""\u20b9458 for one biryani at 1am? Nope. I ordered on Beggy - the food app where nothing ever arrives and your money stays in your account. Then I ghosted my friend with a fake order \ud83d\ude02
 
 Try it (free, no login): beggy.vercel.app
 
-#shorts #beggy #latenightcravings #biryani #savemoney #indianmemes #studentlife"""
+#shorts #beggy #latenightcravings #biryani #savemoney #indianmemes #studentlife""")
 
-IG_CAPTION = """ordered biryani at 1am. paid \u20b90. the rider is still coming. \ud83d\udef5
+IG_CAPTION = _clean_str("""ordered biryani at 1am. paid \u20b90. the rider is still coming. \ud83d\udef5
 
 beggy - fake food, real money. ghost your friends \ud83d\udc7b
 link in bio \u2192 beggy.vercel.app
 
-#beggy #latenightcravings #biryani #savemoney #indianmemes #reelsindia #studentlife #foodmemes"""
+#beggy #latenightcravings #biryani #savemoney #indianmemes #reelsindia #studentlife #foodmemes""")
 
-FB_CAPTION = """1am. Biryani craving. \u20b9458 bill. \ud83d\ude10
+FB_CAPTION = _clean_str("""1am. Biryani craving. \u20b9458 bill. \ud83d\ude10
 So I ordered on Beggy instead - the rider never comes, and the \u20b9458 stays in my account.
 Then I sent a fake order to my friend. He's still waiting \ud83d\ude02
 
 Ghost your friends \ud83d\udc49 beggy.vercel.app
 
-#beggy #latenightcravings #biryani #savemoney"""
+#beggy #latenightcravings #biryani #savemoney""")
 
 
 def upload_youtube_short(video_path: Path, title: str, description: str) -> Optional[str]:
     """Upload directly to YouTube Shorts with exact title and description."""
+    if os.environ.get("SKIP_YOUTUBE", "false").lower() == "true":
+        log.info("YouTube upload skipped (SKIP_YOUTUBE=true). Video already live at https://www.youtube.com/shorts/nXo7Ld1aup4")
+        return "https://www.youtube.com/shorts/nXo7Ld1aup4"
+
     if not all([settings.YT_CLIENT_ID, settings.YT_CLIENT_SECRET, settings.YT_REFRESH_TOKEN]):
         log.warning("YouTube OAuth credentials missing \u2014 YouTube upload skipped")
         return None
@@ -72,7 +85,7 @@ def upload_youtube_short(video_path: Path, title: str, description: str) -> Opti
                 "title": title[:100],
                 "description": description[:5000],
                 "tags": tags,
-                "categoryId": "22",  # People & Blogs
+                "categoryId": "22",
                 "defaultLanguage": "en",
             },
             "status": {
@@ -126,12 +139,14 @@ def upload_instagram_reel(video_path: Path, caption: str) -> Optional[str]:
         return None
 
     base_url = f"https://graph.facebook.com/{settings.INSTAGRAM_GRAPH_VERSION}"
+    clean_caption = _clean_str(caption)[:2200]
+
     try:
         log.info("Initiating direct Meta resumable upload session for Instagram Reel...")
         create_payload = {
             "media_type": "REELS",
             "upload_type": "resumable",
-            "caption": caption[:2200],
+            "caption": clean_caption,
             "access_token": token,
         }
         init_res = requests.post(f"{base_url}/{user_id}/media", data=create_payload, timeout=30)
@@ -214,6 +229,8 @@ def upload_facebook_reel(video_path: Path, caption: str) -> Optional[str]:
         return None
 
     base_url = f"https://graph.facebook.com/{settings.INSTAGRAM_GRAPH_VERSION}"
+    clean_caption = _clean_str(caption)[:2200]
+
     try:
         acc_res = requests.get(f"{base_url}/me/accounts?access_token={token}", timeout=10).json()
         if "data" in acc_res:
@@ -261,7 +278,7 @@ def upload_facebook_reel(video_path: Path, caption: str) -> Optional[str]:
                 "upload_phase": "finish",
                 "video_id": video_id,
                 "video_state": "PUBLISHED",
-                "description": caption[:2200],
+                "description": clean_caption,
                 "access_token": token,
             },
             timeout=30,
@@ -290,7 +307,7 @@ def main():
     log.info("Starting Multi-Platform Publication for '%s'...", VIDEO_PATH)
     results = {}
 
-    # 1. YouTube Shorts
+    # 1. YouTube Shorts (Set SKIP_YOUTUBE=true if already uploaded)
     results["youtube"] = upload_youtube_short(VIDEO_PATH, YT_TITLE, YT_DESCRIPTION)
 
     # 2. Instagram Reels

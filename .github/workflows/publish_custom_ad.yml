@@ -33,6 +33,7 @@ jobs:
           YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
           ENABLE_YT_UPLOAD: "true"
           ALLOW_PUBLICATION: "true"
+          SKIP_YOUTUBE: "true"
           ENABLE_INSTAGRAM: "true"
           INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN || secrets.META_ACCESS_TOKEN }}
           INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
