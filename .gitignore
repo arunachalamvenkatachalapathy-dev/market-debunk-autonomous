@@ -89,3 +89,4 @@ rss_out.txt
 .vscode/
 .DS_Store
 Thumbs.db
+!assets/custom_video.mp4
