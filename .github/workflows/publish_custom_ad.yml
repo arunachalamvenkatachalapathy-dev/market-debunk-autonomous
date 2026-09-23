@@ -26,14 +26,13 @@ jobs:
       - name: Install Dependencies
         run: uv pip install --system -r requirements.txt
 
-      - name: Publish Video to All Platforms
+      - name: Update Description and Pinned Comments
         env:
           YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
           YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
           YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
           ENABLE_YT_UPLOAD: "true"
           ALLOW_PUBLICATION: "true"
-          SKIP_YOUTUBE: "true"
           ENABLE_INSTAGRAM: "true"
           INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN || secrets.META_ACCESS_TOKEN }}
           INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
@@ -41,4 +40,4 @@ jobs:
           FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
           FACEBOOK_ACCESS_TOKEN: ${{ secrets.FACEBOOK_ACCESS_TOKEN || secrets.INSTAGRAM_ACCESS_TOKEN || secrets.META_ACCESS_TOKEN }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN || secrets.GH_TOKEN || github.token }}
-        run: python -m src.publishing.publish_custom_ad
+        run: python -m src.publishing.add_pinned_cta
