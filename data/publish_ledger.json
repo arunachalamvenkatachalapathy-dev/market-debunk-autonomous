@@ -1061,7 +1061,7 @@
       "instagram": "18070995374581762",
       "facebook": "2304355343646787"
     },
-    "audited": false
+    "audited": true
   },
   {
     "timestamp": "2026-09-22T09:06:30.609466+00:00",
@@ -1200,6 +1200,34 @@
       "youtube": "SLfUKXRrqOY",
       "instagram": "18108202832595174",
       "facebook": "1607015467623942"
+    },
+    "audited": false
+  },
+  {
+    "timestamp": "2026-09-23T17:55:08.001978+00:00",
+    "title": "Stock Market Beginners: Bank Strike Trap #Shorts",
+    "topic": "Banks are forcing a working Sunday just to trap you in a massive three-day service blackout right after.",
+    "hook": "🔥 Banks Forcing Working: the dirty secret nobody in finance talks about",
+    "hashtags": [
+      "#MarketTrap",
+      "#BearTrap",
+      "#SmallCapStocks",
+      "#StockMarketMyths",
+      "#LongTermInvesting",
+      "#IndianStockMarket",
+      "#NiftyAlert",
+      "#NSEIndia"
+    ],
+    "duration_seconds": 24.816325,
+    "urls": {
+      "youtube": "https://www.youtube.com/shorts/tJjk1CEI9rg",
+      "instagram": "https://www.instagram.com/reel/Ddo5LFWklUv/",
+      "facebook": "https://www.facebook.com/reel/1031273409912005/"
+    },
+    "ids": {
+      "youtube": "tJjk1CEI9rg",
+      "instagram": "18340726750250496",
+      "facebook": "1031273409912005"
     },
     "audited": false
   }
