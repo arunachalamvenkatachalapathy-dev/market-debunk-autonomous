@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-24T09:15:36.919049+00:00",
+  "last_updated": "2026-09-24T09:23:24.662632+00:00",
   "analyzed_videos_count": 40,
   "optimal_runtime_seconds": 26.8,
   "optimal_word_count": 69,
   "top_performing_topics": [
     "Market timing and technical support levels for retail investors",
     "Macro-economic wealth erosion (inflation vs. traditional savings)",
-    "Contrarian investment strategies (buying at discounts/avoiding traps)"
+    "Contrarian investment strategies (buying at discounts/avoiding herd mentality)"
   ],
   "winning_hook_formulas": [
-    "The 'Stop Doing X' Warning: Start with a strong negative imperative followed by a specific, actionable 'check' or 'level' (e.g., 'Stop buying X before you check Y').",
-    "The 'Hidden Loss' Reveal: Highlight a common financial product (FDs, Home ownership) and frame it as a silent, active threat to their purchasing power."
+    "The 'Urgency-Warning' Formula: [Emoji] Stop [Action] before you [Negative Consequence/Financial Loss]",
+    "The 'Hidden Reality' Formula: [Emoji] Why your [Common Financial Asset] is secretly [Negative Outcome] every single day"
   ],
   "script_directives": [
-    "Keep total duration strictly under 25 seconds; every second beyond 25 increases drop-off risk significantly.",
-    "Eliminate complex jargon; replace bureaucratic explanations with direct, punchy sentences that focus on the 'cost' to the viewer's wallet.",
-    "Maintain a high-intensity, urgent narrative pace with no filler; every sentence must either present a problem or provide a high-value insight."
+    "Keep total duration strictly under 25 seconds to maintain high completion rates.",
+    "Eliminate preamble; start the video mid-sentence with the core conflict or warning.",
+    "Use high-contrast visual cues (charts or red text) to emphasize the 'loss' or 'trap' mentioned in the hook."
   ],
   "seo_directives": [
-    "Use high-intent, search-driven keywords in the title (e.g., 'Nifty', 'Stocks', 'FD', 'Home') rather than clickbait-heavy or overly complex jargon.",
-    "Keep hashtags limited to 3-4 highly relevant tags (e.g., #Finance #Investing #StockMarket #MoneyTips) to ensure the algorithm categorizes the content accurately."
+    "Use high-intent keywords in the title that address specific financial pain points (e.g., 'Nifty', 'Stocks', 'FD', 'Savings').",
+    "Limit hashtags to 3-4 highly relevant tags that categorize the specific financial sub-niche to aid algorithm discovery."
   ]
 }
