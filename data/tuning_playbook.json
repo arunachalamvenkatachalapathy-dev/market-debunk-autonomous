@@ -1,24 +1,25 @@
 {
-  "last_updated": "2026-09-24T09:23:24.662632+00:00",
-  "analyzed_videos_count": 40,
-  "optimal_runtime_seconds": 26.8,
-  "optimal_word_count": 69,
+  "last_updated": "2026-09-24T17:51:01.525755+00:00",
+  "analyzed_videos_count": 42,
+  "optimal_runtime_seconds": 27.1,
+  "optimal_word_count": 70,
   "top_performing_topics": [
-    "Market timing and technical support levels for retail investors",
-    "Macro-economic wealth erosion (inflation vs. traditional savings)",
-    "Contrarian investment strategies (buying at discounts/avoiding herd mentality)"
+    "hidden charges",
+    "EMI trap",
+    "F&O lot size margin traps",
+    "credit card tricks"
   ],
   "winning_hook_formulas": [
-    "The 'Urgency-Warning' Formula: [Emoji] Stop [Action] before you [Negative Consequence/Financial Loss]",
-    "The 'Hidden Reality' Formula: [Emoji] Why your [Common Financial Asset] is secretly [Negative Outcome] every single day"
+    "Open with the exact Rupee amount quietly lost: 'Your bank took ₹X without an alert'",
+    "Contradict popular wisdom: 'Why your zero-cost EMI is actually charging 18% GST'"
   ],
   "script_directives": [
-    "Keep total duration strictly under 25 seconds to maintain high completion rates.",
-    "Eliminate preamble; start the video mid-sentence with the core conflict or warning.",
-    "Use high-contrast visual cues (charts or red text) to emphasize the 'loss' or 'trap' mentioned in the hook."
+    "Keep Scene 1 under 8 words for immediate hook velocity.",
+    "Introduce the financial trap mechanism by Scene 3.",
+    "Always end with a dual CTA: save the video and comment 'GUIDE'."
   ],
   "seo_directives": [
-    "Use high-intent keywords in the title that address specific financial pain points (e.g., 'Nifty', 'Stocks', 'FD', 'Savings').",
-    "Limit hashtags to 3-4 highly relevant tags that categorize the specific financial sub-niche to aid algorithm discovery."
+    "Prioritize problem-aware hashtags (#MoneyMistakes, #HiddenFees).",
+    "Ensure caption line 1 matches spoken hook word-for-word."
   ]
 }
