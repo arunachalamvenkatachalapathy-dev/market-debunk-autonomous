@@ -1,25 +1,24 @@
 {
-  "last_updated": "2026-09-24T17:59:44.072502+00:00",
-  "analyzed_videos_count": 42,
+  "last_updated": "2026-09-25T09:07:06.371645+00:00",
+  "analyzed_videos_count": 43,
   "optimal_runtime_seconds": 27.1,
   "optimal_word_count": 70,
   "top_performing_topics": [
-    "hidden charges",
-    "EMI trap",
-    "F&O lot size margin traps",
-    "credit card tricks"
+    "Market timing and technical support levels for retail investors",
+    "Macro-economic wealth erosion (inflation vs. traditional savings)",
+    "Contrarian investment strategies (buying undervalued assets)"
   ],
   "winning_hook_formulas": [
-    "Open with the exact Rupee amount quietly lost: 'Your bank took ₹X without an alert'",
-    "Contradict popular wisdom: 'Why your zero-cost EMI is actually charging 18% GST'"
+    "The 'Warning/Stop' Formula: [Emoji] Stop [Action] before you [Negative Outcome/Financial Loss].",
+    "The 'Hidden Truth' Formula: [Emoji] Why your [Common Financial Product] is secretly [Negative Verb] your [Wealth/Savings]."
   ],
   "script_directives": [
-    "Keep Scene 1 under 8 words for immediate hook velocity.",
-    "Introduce the financial trap mechanism by Scene 3.",
-    "Always end with a dual CTA: save the video and comment 'GUIDE'."
+    "Keep total duration strictly between 20-22 seconds to maximize completion rates.",
+    "Eliminate all jargon; use high-impact, aggressive verbs like 'trap', 'incinerate', 'leverage', and 'steal'.",
+    "Front-load the pain point in the first 3 seconds and provide a specific, actionable 'check this' or 'avoid this' pivot immediately after."
   ],
   "seo_directives": [
-    "Prioritize problem-aware hashtags (#MoneyMistakes, #HiddenFees).",
-    "Ensure caption line 1 matches spoken hook word-for-word."
+    "Use high-intent keywords in the title that address specific financial products (e.g., Nifty, FD, Stocks) rather than abstract concepts.",
+    "Limit hashtags to 3 highly relevant tags (e.g., #FinanceTips #Investing #StockMarket) to avoid algorithm confusion."
   ]
 }
