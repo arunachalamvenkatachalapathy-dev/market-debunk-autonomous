@@ -1,24 +1,25 @@
 {
-  "last_updated": "2026-09-25T17:59:26.488702+00:00",
+  "last_updated": "2026-09-25T18:04:06.602892+00:00",
   "analyzed_videos_count": 44,
   "optimal_runtime_seconds": 27.5,
   "optimal_word_count": 71,
   "top_performing_topics": [
-    "Market timing and support level analysis for retail investors",
-    "Macro-economic wealth erosion (inflation vs. traditional savings)",
-    "Contrarian investment strategies (buying assets at discount)"
+    "hidden charges",
+    "EMI trap",
+    "F&O lot size margin traps",
+    "credit card tricks"
   ],
   "winning_hook_formulas": [
-    "The 'Stop Doing X' Warning: Start with an imperative command that addresses a common, painful financial mistake (e.g., 'Stop buying Nifty dips...').",
-    "The 'Hidden Loss' Reveal: Highlight a specific, relatable financial product (FDs, Home Loans) and frame it as a secret wealth-killer (e.g., 'Your bank's X is secretly making you poorer...')."
+    "Open with the exact Rupee amount quietly lost: 'Your bank took ₹X without an alert'",
+    "Contradict popular wisdom: 'Why your zero-cost EMI is actually charging 18% GST'"
   ],
   "script_directives": [
-    "Keep total duration strictly between 20-22 seconds to maximize loop potential.",
-    "Eliminate preamble; start the hook at 0.0s and deliver the core insight within the first 5 seconds.",
-    "Use high-contrast visual cues (red/green charts or bold text overlays) every 3 seconds to reset viewer attention."
+    "Keep Scene 1 under 8 words for immediate hook velocity.",
+    "Introduce the financial trap mechanism by Scene 3.",
+    "Always end with a dual CTA: save the video and comment 'GUIDE'."
   ],
   "seo_directives": [
-    "Use high-intent keywords in the title related to specific asset classes (Nifty, Stocks, FD) rather than generic financial advice.",
-    "Limit hashtags to 3-4 high-volume, relevant tags (e.g., #StockMarketIndia #PersonalFinance #InvestingTips) to avoid algorithm dilution."
+    "Prioritize problem-aware hashtags (#MoneyMistakes, #HiddenFees).",
+    "Ensure caption line 1 matches spoken hook word-for-word."
   ]
 }
