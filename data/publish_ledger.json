@@ -1229,7 +1229,7 @@
       "instagram": "18340726750250496",
       "facebook": "1031273409912005"
     },
-    "audited": false
+    "audited": true
   },
   {
     "timestamp": "2026-09-24T08:50:04.624128+00:00",
@@ -1312,6 +1312,34 @@
       "youtube": "Mp2ytvMN4VQ",
       "instagram": "18111726632004582",
       "facebook": "1551499913447125"
+    },
+    "audited": false
+  },
+  {
+    "timestamp": "2026-09-25T17:58:19.465671+00:00",
+    "title": "Bank Account Fees: The Hidden SMS Drain #Shorts",
+    "topic": "Banks quietly deduct quarterly SMS alert fees and debit card annual maintenance charges from your minimum balance savings account.",
+    "hook": "💰 Banks are secretly draining your savings account balance every quarter",
+    "hashtags": [
+      "#MarketDebunk",
+      "#StockMarketMyths",
+      "#MutualFundsSahi",
+      "#SwingTrading",
+      "#LongTermInvesting",
+      "#IndianStockMarket",
+      "#NiftyAlert",
+      "#NSEIndia"
+    ],
+    "duration_seconds": 24.163266,
+    "urls": {
+      "youtube": "https://www.youtube.com/shorts/15k45umXZQY",
+      "instagram": "https://www.instagram.com/reel/DduDIbHE0Yy/",
+      "facebook": "https://www.facebook.com/reel/1351359751390146/"
+    },
+    "ids": {
+      "youtube": "15k45umXZQY",
+      "instagram": "18115746784957976",
+      "facebook": "1351359751390146"
     },
     "audited": false
   }
