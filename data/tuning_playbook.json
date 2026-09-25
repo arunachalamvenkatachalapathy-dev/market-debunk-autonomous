@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-25T17:54:02.110031+00:00",
+  "last_updated": "2026-09-25T17:59:26.488702+00:00",
   "analyzed_videos_count": 44,
   "optimal_runtime_seconds": 27.5,
   "optimal_word_count": 71,
   "top_performing_topics": [
-    "Market timing and technical support levels for retail traders",
+    "Market timing and support level analysis for retail investors",
     "Macro-economic wealth erosion (inflation vs. traditional savings)",
-    "Contrarian investment strategies (buying undervalued assets vs. popular trends)"
+    "Contrarian investment strategies (buying assets at discount)"
   ],
   "winning_hook_formulas": [
-    "The 'Stop Doing X' Formula: Start with a strong warning against a common action followed by a specific, actionable data point (e.g., 'Stop buying Nifty dips before you check this one critical support level').",
-    "The 'Hidden Loss' Formula: Highlight a popular financial product and immediately reframe it as a source of loss (e.g., 'Your bank’s 6.8% FD is secretly making you poorer every single day')."
+    "The 'Stop Doing X' Warning: Start with an imperative command that addresses a common, painful financial mistake (e.g., 'Stop buying Nifty dips...').",
+    "The 'Hidden Loss' Reveal: Highlight a specific, relatable financial product (FDs, Home Loans) and frame it as a secret wealth-killer (e.g., 'Your bank's X is secretly making you poorer...')."
   ],
   "script_directives": [
-    "Keep total duration under 22 seconds to maximize loop potential and retention.",
-    "Eliminate academic jargon; use high-stakes, urgent language that frames financial decisions as immediate survival or loss.",
-    "Open with a visual or verbal 'pattern interrupt' that directly challenges the viewer's current financial behavior."
+    "Keep total duration strictly between 20-22 seconds to maximize loop potential.",
+    "Eliminate preamble; start the hook at 0.0s and deliver the core insight within the first 5 seconds.",
+    "Use high-contrast visual cues (red/green charts or bold text overlays) every 3 seconds to reset viewer attention."
   ],
   "seo_directives": [
-    "Use titles that focus on 'Loss Aversion' (e.g., Trap, Secret, Losing, Dying) rather than 'News Debunking' or complex product analysis.",
-    "Include high-intent keywords in the first line of the caption to trigger algorithmic categorization, followed by a maximum of 3 broad finance-related hashtags."
+    "Use high-intent keywords in the title related to specific asset classes (Nifty, Stocks, FD) rather than generic financial advice.",
+    "Limit hashtags to 3-4 high-volume, relevant tags (e.g., #StockMarketIndia #PersonalFinance #InvestingTips) to avoid algorithm dilution."
   ]
 }
