@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-26T17:22:54.268307+00:00",
+  "last_updated": "2026-09-26T17:24:54.666948+00:00",
   "analyzed_videos_count": 46,
   "optimal_runtime_seconds": 27.8,
   "optimal_word_count": 71,
   "top_performing_topics": [
     "Market timing and technical support levels for retail investors",
-    "Macro-economic wealth erosion (Inflation vs. Savings/FDs)",
-    "Asset valuation and entry-point optimization (Buying at a discount)"
+    "Macro-economic lifestyle barriers (Real estate affordability)",
+    "Contrarian investment strategies (Discounted value investing vs. mainstream assets)"
   ],
   "winning_hook_formulas": [
-    "The 'Stop/Warning' Formula: [Negative Action] + [Specific Financial Metric/Level] + [Consequence] (e.g., 'Stop buying Nifty dips before you check this 23600 level')",
-    "The 'Hidden Loss' Formula: [Common Investment] + [Emotional/Financial Pain Point] + [Urgency] (e.g., 'Your bank's 6.8% FD is secretly making you poorer every day')"
+    "The 'Stop/Warning' Command: Start with a negative imperative + specific financial pain point (e.g., 'Stop [Action] before you [Specific Consequence]').",
+    "The 'Hidden Reality' Reveal: Contrast a common financial belief with a 'secret' threat to purchasing power (e.g., 'Your [Common Asset] is secretly [Negative Action] every day')."
   ],
   "script_directives": [
-    "Keep total duration strictly between 20-22 seconds to maintain high completion rates.",
-    "Eliminate jargon-heavy explanations; replace complex financial mechanics with 'Wealth Erosion' or 'Purchasing Power' narratives.",
-    "Front-load the 'Why' in the first 3 seconds and provide a singular, actionable 'What to do instead' in the final 5 seconds."
+    "Keep total duration strictly under 22 seconds to maintain high completion rates.",
+    "Eliminate jargon; replace complex financial terms with direct, punchy emotional consequences like 'wealth incinerator' or 'purchasing power theft'.",
+    "Front-load the 'Why' in the first 3 seconds; avoid preamble or introductions to prevent immediate drop-offs."
   ],
   "seo_directives": [
-    "Use high-intent, negative-emotion keywords in the title (e.g., Trap, Warning, Stop, Losing) to trigger curiosity.",
-    "Limit hashtags to 3 highly relevant tags (e.g., #StockMarketIndia #PersonalFinance #Investing) to keep the caption clean and algorithm-friendly."
+    "Use high-intent keywords in the title that address specific financial anxieties (e.g., 'Nifty', 'FD', 'Stocks', 'Home').",
+    "Limit hashtags to 3-4 highly relevant tags that focus on the specific asset class rather than generic finance terms."
   ]
 }
