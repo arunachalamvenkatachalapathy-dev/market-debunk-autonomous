@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-26T08:50:37.046600+00:00",
+  "last_updated": "2026-09-26T09:18:17.617156+00:00",
   "analyzed_videos_count": 45,
   "optimal_runtime_seconds": 27.5,
   "optimal_word_count": 71,
   "top_performing_topics": [
-    "Retail investment pitfalls (market timing and support levels)",
+    "Market timing and technical support levels for retail investors",
     "Macro-economic wealth erosion (inflation vs. traditional savings)",
-    "Middle-class asset affordability and wealth-gap anxiety"
+    "Contrarian investment strategies (buying undervalued assets vs. popular trends)"
   ],
   "winning_hook_formulas": [
-    "The 'Stop/Warning' Imperative: Start with a negative action command followed by a specific, high-stakes consequence (e.g., 'Stop buying [Asset] before you check [Specific Metric]').",
-    "The 'Hidden Loss' Reveal: Highlight a common, trusted financial instrument and frame it as a 'secret' mechanism that is actively destroying the viewer's purchasing power."
+    "The 'Stop Doing X' Warning: Start with an urgent imperative that challenges a common financial habit before revealing a specific, actionable risk.",
+    "The 'Hidden Loss' Reveal: Highlight a specific, relatable financial product (FDs, homes) and contrast its perceived safety with a harsh, quantified reality (inflation, purchasing power)."
   ],
   "script_directives": [
-    "Maintain a strict 20-22 second duration to maximize completion rates; cut all filler words and introductory pleasantries.",
-    "Use 'High-Contrast' pacing: Start with a visual or verbal shock, immediately follow with a data-backed 'Why', and end with a single, actionable takeaway.",
-    "Focus on 'Relatable Pain': Use language that validates the viewer's struggle with inflation or market volatility rather than lecturing them on complex theory."
+    "Keep total duration strictly under 22 seconds to maintain high completion rates.",
+    "Use a 'Problem-Agitation-Solution' structure where the agitation is a specific, quantifiable financial threat.",
+    "Eliminate all jargon and filler; every sentence must introduce a new, high-stakes piece of information to prevent drop-offs."
   ],
   "seo_directives": [
-    "Use high-intent, search-driven keywords in the title (e.g., 'Nifty', 'Bank FD', 'Stocks') combined with a 'trap' or 'warning' sentiment.",
-    "Limit hashtags to 3-4 highly relevant, broad-reach tags (e.g., #StockMarketIndia, #PersonalFinance, #Investing) to avoid algorithmic dilution."
+    "Use high-intent, searchable keywords in the title (e.g., 'Nifty', 'Stocks', 'FD') rather than vague clickbait.",
+    "Limit hashtags to 3 highly relevant tags (e.g., #StockMarketIndia #PersonalFinance #Investing) to keep the focus on the content value."
   ]
 }
