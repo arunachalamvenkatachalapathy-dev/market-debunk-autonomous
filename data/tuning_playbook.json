@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-26T17:14:18.570690+00:00",
+  "last_updated": "2026-09-26T17:22:54.268307+00:00",
   "analyzed_videos_count": 46,
   "optimal_runtime_seconds": 27.8,
   "optimal_word_count": 71,
   "top_performing_topics": [
-    "Market timing and technical support levels",
-    "Real estate affordability and middle-class wealth erosion",
-    "Inflation-adjusted returns vs. traditional banking products"
+    "Market timing and technical support levels for retail investors",
+    "Macro-economic wealth erosion (Inflation vs. Savings/FDs)",
+    "Asset valuation and entry-point optimization (Buying at a discount)"
   ],
   "winning_hook_formulas": [
-    "The 'Stop Doing X' Formula: [Warning Emoji] Stop [Common Action] before you [Negative Consequence/Critical Check].",
-    "The 'Hidden Loss' Formula: [Alarm Emoji] Why your [Common Financial Asset] is secretly making you poorer every day."
+    "The 'Stop/Warning' Formula: [Negative Action] + [Specific Financial Metric/Level] + [Consequence] (e.g., 'Stop buying Nifty dips before you check this 23600 level')",
+    "The 'Hidden Loss' Formula: [Common Investment] + [Emotional/Financial Pain Point] + [Urgency] (e.g., 'Your bank's 6.8% FD is secretly making you poorer every day')"
   ],
   "script_directives": [
-    "Keep total duration strictly under 22 seconds to maintain high completion rates.",
-    "Eliminate jargon; focus on the immediate 'pain' of losing purchasing power rather than technical complexity.",
-    "Use a high-contrast, urgent opening statement that directly challenges a common belief held by the average Indian retail investor."
+    "Keep total duration strictly between 20-22 seconds to maintain high completion rates.",
+    "Eliminate jargon-heavy explanations; replace complex financial mechanics with 'Wealth Erosion' or 'Purchasing Power' narratives.",
+    "Front-load the 'Why' in the first 3 seconds and provide a singular, actionable 'What to do instead' in the final 5 seconds."
   ],
   "seo_directives": [
-    "Use high-intent keywords in the title that address specific financial fears (e.g., 'Trap', 'Loss', 'Stop').",
-    "Limit hashtags to 3-4 highly relevant tags like #PersonalFinance, #StockMarketIndia, and #MoneyTips to avoid algorithm dilution."
+    "Use high-intent, negative-emotion keywords in the title (e.g., Trap, Warning, Stop, Losing) to trigger curiosity.",
+    "Limit hashtags to 3 highly relevant tags (e.g., #StockMarketIndia #PersonalFinance #Investing) to keep the caption clean and algorithm-friendly."
   ]
 }
