@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-26T17:03:24.183333+00:00",
+  "last_updated": "2026-09-26T17:14:18.570690+00:00",
   "analyzed_videos_count": 46,
   "optimal_runtime_seconds": 27.8,
   "optimal_word_count": 71,
   "top_performing_topics": [
-    "Market timing and technical support levels for retail investors",
+    "Market timing and technical support levels",
     "Real estate affordability and middle-class wealth erosion",
-    "Inflation-adjusted returns vs. traditional bank products"
+    "Inflation-adjusted returns vs. traditional banking products"
   ],
   "winning_hook_formulas": [
-    "The 'Stop Doing X' Formula: [Warning Emoji] Stop [Action] before you [Negative Consequence/Critical Check]",
-    "The 'Hidden Loss' Formula: [Alarm Emoji] Why your [Common Financial Asset] is secretly making you poorer every single day"
+    "The 'Stop Doing X' Formula: [Warning Emoji] Stop [Common Action] before you [Negative Consequence/Critical Check].",
+    "The 'Hidden Loss' Formula: [Alarm Emoji] Why your [Common Financial Asset] is secretly making you poorer every day."
   ],
   "script_directives": [
-    "Keep total duration strictly under 22 seconds to maximize loop potential.",
-    "Eliminate complex jargon; focus on immediate, relatable pain points like inflation or missed opportunities.",
-    "Use a high-urgency, direct-address tone that frames the viewer's current behavior as a 'trap' they need to escape."
+    "Keep total duration strictly under 22 seconds to maintain high completion rates.",
+    "Eliminate jargon; focus on the immediate 'pain' of losing purchasing power rather than technical complexity.",
+    "Use a high-contrast, urgent opening statement that directly challenges a common belief held by the average Indian retail investor."
   ],
   "seo_directives": [
-    "Use high-intent keywords in the title that address specific financial fears (e.g., 'Nifty', 'Bank FD', 'Home Prices').",
-    "Include only 3-4 high-relevance hashtags (e.g., #StockMarketIndia #PersonalFinance #InvestingTips) to avoid algorithmic dilution."
+    "Use high-intent keywords in the title that address specific financial fears (e.g., 'Trap', 'Loss', 'Stop').",
+    "Limit hashtags to 3-4 highly relevant tags like #PersonalFinance, #StockMarketIndia, and #MoneyTips to avoid algorithm dilution."
   ]
 }
