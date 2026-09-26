@@ -1285,7 +1285,7 @@
       "instagram": "17903549274351948",
       "facebook": "2034812367153378"
     },
-    "audited": false
+    "audited": true
   },
   {
     "timestamp": "2026-09-25T09:12:00.886552+00:00",
@@ -1368,6 +1368,34 @@
       "youtube": "YlNrPjPGUMc",
       "instagram": "17905144596574400",
       "facebook": "2008120706566762"
+    },
+    "audited": false
+  },
+  {
+    "timestamp": "2026-09-26T17:07:19.872090+00:00",
+    "title": "Sovereign Gold Bonds: 8-Year Tax Trap Exposed #Shorts",
+    "topic": "Sovereign Gold Bonds offer tax exemptions only at maturity, while secondary market exits incur full capital gains.",
+    "hook": "⚠️ Selling your SGBs early? You’re losing money to hidden taxes",
+    "hashtags": [
+      "#GoldInvesting",
+      "#SovereignGoldBond",
+      "#MoneyMistakes",
+      "#IntradayTrading",
+      "#MidCapStocks",
+      "#IndianStockMarket",
+      "#NiftyAlert",
+      "#NSEIndia"
+    ],
+    "duration_seconds": 26.592653,
+    "urls": {
+      "youtube": "https://www.youtube.com/shorts/18CvieggXfk",
+      "instagram": "https://www.instagram.com/reel/DdwiGaBiejb/",
+      "facebook": "https://www.facebook.com/reel/2266447334131693/"
+    },
+    "ids": {
+      "youtube": "18CvieggXfk",
+      "instagram": "18445005757125573",
+      "facebook": "2266447334131693"
     },
     "audited": false
   }

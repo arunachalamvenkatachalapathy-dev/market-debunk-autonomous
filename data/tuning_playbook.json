@@ -1,24 +1,24 @@
 {
-  "last_updated": "2026-09-26T09:25:08.523514+00:00",
-  "analyzed_videos_count": 45,
-  "optimal_runtime_seconds": 27.5,
+  "last_updated": "2026-09-26T17:03:24.183333+00:00",
+  "analyzed_videos_count": 46,
+  "optimal_runtime_seconds": 27.8,
   "optimal_word_count": 71,
   "top_performing_topics": [
     "Market timing and technical support levels for retail investors",
-    "Macro-economic wealth erosion (Inflation vs. FD/Savings)",
-    "Asset valuation and 'discount' buying opportunities"
+    "Real estate affordability and middle-class wealth erosion",
+    "Inflation-adjusted returns vs. traditional bank products"
   ],
   "winning_hook_formulas": [
-    "The 'Stop Doing X' Warning: Start with a negative imperative that challenges a common financial behavior (e.g., 'Stop buying X before you check Y').",
-    "The 'Hidden Loss' Reveal: Highlight a specific, relatable financial vehicle and frame it as a 'secret' or 'trap' that is actively shrinking their purchasing power."
+    "The 'Stop Doing X' Formula: [Warning Emoji] Stop [Action] before you [Negative Consequence/Critical Check]",
+    "The 'Hidden Loss' Formula: [Alarm Emoji] Why your [Common Financial Asset] is secretly making you poorer every single day"
   ],
   "script_directives": [
-    "Keep total duration strictly under 22 seconds to maintain high completion rates.",
-    "Eliminate preamble; start the hook within the first 0.5 seconds and move to the 'why' by second 5.",
-    "Use high-contrast visual overlays (charts or bold text) to support every claim, ensuring the visual changes at least every 3 seconds to prevent drop-offs."
+    "Keep total duration strictly under 22 seconds to maximize loop potential.",
+    "Eliminate complex jargon; focus on immediate, relatable pain points like inflation or missed opportunities.",
+    "Use a high-urgency, direct-address tone that frames the viewer's current behavior as a 'trap' they need to escape."
   ],
   "seo_directives": [
-    "Use high-intent, search-driven keywords in the title (Nifty, Stocks, FD, Inflation) rather than vague clickbait.",
-    "Limit hashtags to 3-4 highly relevant tags (e.g., #FinanceTips #StockMarketIndia #Investing) to avoid algorithmic dilution."
+    "Use high-intent keywords in the title that address specific financial fears (e.g., 'Nifty', 'Bank FD', 'Home Prices').",
+    "Include only 3-4 high-relevance hashtags (e.g., #StockMarketIndia #PersonalFinance #InvestingTips) to avoid algorithmic dilution."
   ]
 }
