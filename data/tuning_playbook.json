@@ -1,25 +1,24 @@
 {
-  "last_updated": "2026-09-25T18:06:35.334421+00:00",
-  "analyzed_videos_count": 44,
+  "last_updated": "2026-09-26T08:50:37.046600+00:00",
+  "analyzed_videos_count": 45,
   "optimal_runtime_seconds": 27.5,
   "optimal_word_count": 71,
   "top_performing_topics": [
-    "hidden charges",
-    "EMI trap",
-    "F&O lot size margin traps",
-    "credit card tricks"
+    "Retail investment pitfalls (market timing and support levels)",
+    "Macro-economic wealth erosion (inflation vs. traditional savings)",
+    "Middle-class asset affordability and wealth-gap anxiety"
   ],
   "winning_hook_formulas": [
-    "Open with the exact Rupee amount quietly lost: 'Your bank took ₹X without an alert'",
-    "Contradict popular wisdom: 'Why your zero-cost EMI is actually charging 18% GST'"
+    "The 'Stop/Warning' Imperative: Start with a negative action command followed by a specific, high-stakes consequence (e.g., 'Stop buying [Asset] before you check [Specific Metric]').",
+    "The 'Hidden Loss' Reveal: Highlight a common, trusted financial instrument and frame it as a 'secret' mechanism that is actively destroying the viewer's purchasing power."
   ],
   "script_directives": [
-    "Keep Scene 1 under 8 words for immediate hook velocity.",
-    "Introduce the financial trap mechanism by Scene 3.",
-    "Always end with a dual CTA: save the video and comment 'GUIDE'."
+    "Maintain a strict 20-22 second duration to maximize completion rates; cut all filler words and introductory pleasantries.",
+    "Use 'High-Contrast' pacing: Start with a visual or verbal shock, immediately follow with a data-backed 'Why', and end with a single, actionable takeaway.",
+    "Focus on 'Relatable Pain': Use language that validates the viewer's struggle with inflation or market volatility rather than lecturing them on complex theory."
   ],
   "seo_directives": [
-    "Prioritize problem-aware hashtags (#MoneyMistakes, #HiddenFees).",
-    "Ensure caption line 1 matches spoken hook word-for-word."
+    "Use high-intent, search-driven keywords in the title (e.g., 'Nifty', 'Bank FD', 'Stocks') combined with a 'trap' or 'warning' sentiment.",
+    "Limit hashtags to 3-4 highly relevant, broad-reach tags (e.g., #StockMarketIndia, #PersonalFinance, #Investing) to avoid algorithmic dilution."
   ]
 }

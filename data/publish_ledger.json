@@ -1257,7 +1257,7 @@
       "instagram": "17914952124265848",
       "facebook": "1077217198634936"
     },
-    "audited": false
+    "audited": true
   },
   {
     "timestamp": "2026-09-24T17:55:47.182111+00:00",
@@ -1340,6 +1340,34 @@
       "youtube": "15k45umXZQY",
       "instagram": "18115746784957976",
       "facebook": "1351359751390146"
+    },
+    "audited": false
+  },
+  {
+    "timestamp": "2026-09-26T08:54:44.317508+00:00",
+    "title": "SME IPO Listing: 40% Dump Risk Exposed #Shorts",
+    "topic": "Buying small-cap IPOs on grey market premium hype frequently leads to massive listing day dumps by institutional anchors.",
+    "hook": "🚨 Why your \"100% GMP\" SME IPO is actually a trap set for retail investors",
+    "hashtags": [
+      "#IPO2026",
+      "#IPOAlert",
+      "#LongTermInvesting",
+      "#InvestingTruths",
+      "#MultibaggerStocks",
+      "#IndianStockMarket",
+      "#NiftyAlert",
+      "#NSEIndia"
+    ],
+    "duration_seconds": 26.827754,
+    "urls": {
+      "youtube": "https://www.youtube.com/shorts/YlNrPjPGUMc",
+      "instagram": "https://www.instagram.com/reel/Ddvpta8CA9S/",
+      "facebook": "https://www.facebook.com/reel/2008120706566762/"
+    },
+    "ids": {
+      "youtube": "YlNrPjPGUMc",
+      "instagram": "17905144596574400",
+      "facebook": "2008120706566762"
     },
     "audited": false
   }
