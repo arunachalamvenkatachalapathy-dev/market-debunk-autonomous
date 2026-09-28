@@ -1,4 +1,5 @@
 import json
+import os
 import re
 from typing import Optional
 
@@ -154,7 +155,7 @@ class ScriptPayload(BaseModel):
         total_words = sum(len(scene.narration.split()) for scene in self.scenes)
         # Fast-Hook Short (< 30s): 50-80 words ideal for 6-scene format (~22-26s).
         # We do NOT slice off words from sentences; sentences must remain grammatically complete.
-        lo, hi = ((150, 340) if _story_mode() else (45, 95))
+        lo, hi = ((120, 340) if _story_mode() else (45, 95))
         if not lo <= total_words <= hi:
             raise ValueError(
                 f"Script must contain {lo}-{hi} narration words; got {total_words}."
@@ -583,9 +584,9 @@ def _extract_json(text: str) -> dict:
 # ──────────────────────────────────────────────────────────────────────────────
 
 _MODELS_PRIORITY = [
-    "gemini-3.7-flash",
-    "gemini-3.6-flash",
-    "gemini-3.1-flash-lite",
+    "gemini-2.5-flash",
+    "gemini-2.0-flash",
+    "gemini-2.0-flash-lite",
     "gemini-flash-lite-latest",
 ]
 
@@ -842,7 +843,7 @@ Safe Visual Evidence Object: {story_seed.get('visual_evidence', '')}
         her = getattr(settings, "HER_NAME", "She") or "She"
         user_prompt = f"""Core financial thesis: "{thesis}"
 {seed_context}{forbidden_block}
-Now generate the complete {target_scenes}-scene TWO-CHARACTER dialogue script (60-85 seconds, 150-200 words total, hard max 90) as JSON.
+Now generate the complete {target_scenes}-scene TWO-CHARACTER dialogue script (60-85 seconds, 130-190 words total) as JSON.
 Remember: exactly {target_scenes} scenes, every scene has speaker "ARUN" or "HER".
 
 Before answering, internally check that:
@@ -857,7 +858,7 @@ Before answering, internally check that:
     elif _story_mode():
         user_prompt = f"""Core financial thesis: "{thesis}"
 {seed_context}{forbidden_block}
-Now generate the complete {target_scenes}-scene Arun story script (60-85 seconds, 150-200 words total, hard max 90) as JSON.
+Now generate the complete {target_scenes}-scene Arun story script (60-85 seconds, 130-190 words total) as JSON.
 Remember: exactly {target_scenes} scenes.
 
 Before answering, internally check that:
