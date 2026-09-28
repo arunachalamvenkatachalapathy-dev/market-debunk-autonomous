@@ -52,7 +52,7 @@ for b in $(cat beats.txt); do
   else
     Z="min(zoom+0.00045,1.055)"; X="iw/2-(iw/zoom/2)"; Y="ih/2-(ih/zoom/2)"
   fi
-  ffmpeg -nostdin -y -v error -loop 1 -framerate 30 -i img/$b.png \
+  ffmpeg -nostdin -y -v error -loop 1 -framerate 30 -i img/$b.jpg \
     -filter_complex "[0:v]scale=2160:3840:force_original_aspect_ratio=increase,crop=2160:3840,zoompan=z='$Z':x='$X':y='$Y':d=$FRAMES:s=1080x1920:fps=30,subtitles=subs/$b.ass[v]" \
     -map "[v]" -t "$d" -c:v libx264 -preset veryfast -crf 20 -pix_fmt yuv420p sc/$b.mp4
   echo "scene $b done"
@@ -65,11 +65,11 @@ ffmpeg -nostdin -y -v error -i vcat.mp4 -i logo.png -filter_complex \
 DUR=$(ffprobe -v error -show_entries format=duration -of csv=p=0 vcat.mp4)
 FADEOUT=$(python3 -c "print($DUR-3)")
 ffmpeg -nostdin -y -v error -f concat -safe 0 -i audio_list.txt -c:a aac -b:a 128k aonly.m4a
-ffmpeg -nostdin -y -v error -i aonly.m4a -stream_loop -1 -i bgm.mp3 -filter_complex \
+ffmpeg -nostdin -y -v error -i aonly.m4a -stream_loop -1 -i bgm_small.mp3 -filter_complex \
  "[1:a]atrim=0:$DUR,acompressor=threshold=0.25:ratio=6:attack=15:release=250:makeup=1,volume=0.14,afade=t=in:d=1.2,afade=t=out:st=$FADEOUT:d=3[bgm];[bgm]aformat=sample_rates=44100:channel_layouts=stereo[bgmf];[0:a]aformat=sample_rates=44100:channel_layouts=stereo[vc];[bgmf][vc]sidechaincompress=threshold=0.012:ratio=14:attack=30:release=350:makeup=1[bgmd];[0:a][bgmd]amix=inputs=2:duration=first:normalize=0[a]" \
  -map "[a]" -vn -c:a aac -b:a 96k afinal.m4a
 ffmpeg -nostdin -y -v error -i vv.mp4 -i afinal.m4a -map 0:v -map 1:a -c:v copy -c:a copy -shortest ../out/final.mp4
 FIRST=$(head -1 beats.txt)
-cp img/$FIRST.png ../out/thumbnail.png
+cp img/$FIRST.jpg ../out/thumbnail.jpg
 ffprobe -v error -show_entries format=duration,size -of csv=p=0 ../out/final.mp4
 echo RENDER_JOB_DONE
