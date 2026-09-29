@@ -4,13 +4,8 @@ Generates one storybook illustration per scene for the "Arun Stories" format,
 replacing generic stock B-roll with a consistent hand-painted world.
 
 Provider policy (per owner decision, 2026-09-27):
-  Gemini image models with the locked character sheet as a reference image are
-  the ONLY acceptable illustration source (best character consistency; key
-  rotation across the existing Gemini keys). Pollinations/stock substitutions
-  were rejected on quality grounds and must never reach a published video.
-  On quota exhaustion or provider failure this agent raises
-  StoryImageUnavailable, failing the run closed so it retries on the next
-  scheduled trigger after quota reset instead of shipping off-model frames.
+  The built-in generator supplies reviewed images externally through
+  STORY_IMAGES_INBOX. Missing images halt the run. No image API or stock fallback.
 """
 from __future__ import annotations
 
@@ -131,7 +126,7 @@ def _try_gemini_image(prompt: str, sheet_b64: Optional[str], output_path: Path) 
 
 
 class StoryImageUnavailable(RuntimeError):
-    """Raised when no acceptable (Gemini + character sheet) image can be produced."""
+    """Raised when a reviewed agent-rendered image is missing."""
 
 
 _RETRY_ROUNDS = 3
@@ -141,8 +136,7 @@ _RETRY_SLEEP_SECONDS = 20
 def generate_scene_image(scene: dict, output_dir: Path) -> Optional[Path]:
     """Generate one storybook illustration for a scene.
 
-    Fail-closed: raises StoryImageUnavailable when Gemini cannot deliver, so the
-    run halts instead of falling back to off-model substitutes.
+    Fail-closed: raises StoryImageUnavailable without a full reviewed scene pack.
     """
     scene_id = scene.get("scene_id", 0)
     output_dir.mkdir(parents=True, exist_ok=True)
