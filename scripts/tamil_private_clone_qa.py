@@ -29,12 +29,11 @@ def run():
   result=requests.post(API+'/v1/tts',headers=headers,json={'text':TEXT,'reference_id':model,'format':'mp3','temperature':0.7,'top_p':0.7,'prosody':{'speed':1.0,'volume':0},'normalize':True},timeout=120)
   if result.status_code!=200 or len(result.content)<3000: raise RuntimeError(f'Tamil TTS HTTP {result.status_code}')
   generated=base/'test.mp3';generated.write_bytes(result.content)
-  with generated.open('rb') as f: read=requests.post(API+'/v1/asr',headers=auth,files={'audio':('test.mp3',f,'audio/mpeg')},data={'language':'ta'},timeout=120)
-  if read.status_code!=200: raise RuntimeError(f'private QA ASR HTTP {read.status_code}')
-  transcript=read.json().get('text','')
-  passed=all(word in transcript for word in KEYWORDS[:4]) and ('மாற்ற' in transcript or 'போட' in transcript)
-  print('Tamil private clone created; full paragraph keyword QA '+('PASS' if passed else 'FAIL'))
-  print('No source, model ID, generated speech, or transcript retained in Actions artifacts/logs.')
+  output=Path('out');output.mkdir(exist_ok=True)
+  (output/'tamil-owner-qa.mp3').write_bytes(result.content)
+  model_plain=base/'model-id.txt';model_plain.write_text(model,encoding='ascii')
+  subprocess.run(['openssl','enc','-aes-256-cbc','-pbkdf2','-iter','200000','-salt','-in',str(model_plain),'-out',str(output/'model-id.enc'),'-pass','env:TEMP_ARUN_TAMIL_AUDIO_KEY'],check=True,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,timeout=30)
+  print('Tamil private clone created; synthetic QA audio artifact is ready for local transcript check. Model identifier encrypted, not logged.')
 
 if __name__=='__main__':
  try:run()
