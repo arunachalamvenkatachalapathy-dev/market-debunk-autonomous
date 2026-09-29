@@ -128,3 +128,26 @@ jobs:
           path: out/day_001_m_en.mp3
           retention-days: 7
           if-no-files-found: error
+
+  tamil-male-alternatives:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check 'requests>=2.31,<3'
+      - name: Compare two Tamil-labelled male references privately
+        env:
+          FISH_AUDIO_API_KEY: ${{ secrets.FISH_AUDIO_API_KEY }}
+        run: |
+          test -n "$FISH_AUDIO_API_KEY" || exit 1
+          python scripts/generate_fish_review.py --text-file review_scripts/tamil-elite-test.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/tamil-makkal-test.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/tamil-elite-test.txt --reference-id 324f49797a924f60a3004950b40d0f0e --output out/tamil-south-male-test.mp3
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tamil-male-alternative-qa
+          path: out/tamil-*-test.mp3
+          retention-days: 7
+          if-no-files-found: error
