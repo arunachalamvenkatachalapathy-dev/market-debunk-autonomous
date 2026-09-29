@@ -4,13 +4,8 @@ Generates one storybook illustration per scene for the "Arun Stories" format,
 replacing generic stock B-roll with a consistent hand-painted world.
 
 Provider policy (per owner decision, 2026-09-27):
-  Gemini image models with the locked character sheet as a reference image are
-  the ONLY acceptable illustration source (best character consistency; key
-  rotation across the existing Gemini keys). Pollinations/stock substitutions
-  were rejected on quality grounds and must never reach a published video.
-  On quota exhaustion or provider failure this agent raises
-  StoryImageUnavailable, failing the run closed so it retries on the next
-  scheduled trigger after quota reset instead of shipping off-model frames.
+  The built-in generator supplies reviewed images externally through
+  STORY_IMAGES_INBOX. Missing images halt the run. No image API or stock fallback.
 """
 from __future__ import annotations
 
@@ -131,7 +126,7 @@ def _try_gemini_image(prompt: str, sheet_b64: Optional[str], output_path: Path) 
 
 
 class StoryImageUnavailable(RuntimeError):
-    """Raised when no acceptable (Gemini + character sheet) image can be produced."""
+    """Raised when a reviewed agent-rendered image is missing."""
 
 
 _RETRY_ROUNDS = 3
@@ -141,8 +136,7 @@ _RETRY_SLEEP_SECONDS = 20
 def generate_scene_image(scene: dict, output_dir: Path) -> Optional[Path]:
     """Generate one storybook illustration for a scene.
 
-    Fail-closed: raises StoryImageUnavailable when Gemini cannot deliver, so the
-    run halts instead of falling back to off-model substitutes.
+    Fail-closed: raises StoryImageUnavailable without a full reviewed scene pack.
     """
     scene_id = scene.get("scene_id", 0)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -162,36 +156,9 @@ def generate_scene_image(scene: dict, output_dir: Path) -> Optional[Path]:
             f"Scene {scene_id}: externally supplied image missing or too small at {supplied}"
         )
 
-    # PRIMARY IMAGE PATH (owner instruction 2026-09-28, verbatim: "Use your inbuilt image
-    # generation should be primary"): Instinct's agent-side rendering supplies ALL
-    # scene/character images. When no inbox is configured the run halts here - Gemini image
-    # models are never called unless the owner explicitly re-enables them
-    # (GEMINI_IMAGE_FALLBACK=true; the 14-day images-provided mandate reviews after 2026-10-11).
-    if (os.environ.get("GEMINI_IMAGE_FALLBACK") or "").strip().lower() != "true":
-        raise StoryImageUnavailable(
-            f"Scene {scene_id}: STORY_IMAGES_INBOX is not set - agent-rendered images are the "
-            "PRIMARY image path (owner instruction 2026-09-28). Provide the scene pack via the "
-            "inbox, or set GEMINI_IMAGE_FALLBACK=true to explicitly re-enable Gemini image generation."
-        )
-
-    sheet_b64 = None
-    if CHARACTER_SHEET_PATH.exists() and CHARACTER_SHEET_PATH.stat().st_size > 10000:
-        sheet_b64 = base64.b64encode(CHARACTER_SHEET_PATH.read_bytes()).decode("ascii")
-    else:
-        log.warning("Character sheet missing at %s - using written character bible", CHARACTER_SHEET_PATH)
-
-    prompt = _build_prompt(scene, has_sheet=bool(sheet_b64))
-
-    for attempt in range(1, _RETRY_ROUNDS + 1):
-        if _try_gemini_image(prompt, sheet_b64, output_path):
-            log.info("Scene %s story image via Gemini (%d bytes)", scene_id, output_path.stat().st_size)
-            return output_path
-        if attempt < _RETRY_ROUNDS:
-            log.info("Scene %s Gemini attempt %d/%d failed; retrying in %ds",
-                     scene_id, attempt, _RETRY_ROUNDS, _RETRY_SLEEP_SECONDS)
-            time.sleep(_RETRY_SLEEP_SECONDS)
+    # Built-in agent rendering is the only allowed source. The runner cannot invoke
+    # the private image generator; an approved scene inbox must be supplied.
     raise StoryImageUnavailable(
-        f"Scene {scene_id}: Gemini image generation unavailable on all keys/models "
-        f"after {_RETRY_ROUNDS} attempts. Halting run (fail-closed); the next scheduled "
-        f"run retries after quota reset. Off-model substitutes are disabled by owner decision."
+        f"Scene {scene_id}: STORY_IMAGES_INBOX is not set. Provide all reviewed "
+        "agent-rendered images; no Gemini, stock, or off-model substitute is allowed."
     )

@@ -1,0 +1,35 @@
+name: Fish S2.1 Pro Free review voice (manual only)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  review-voice:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install HTTP client
+        run: python -m pip install --disable-pip-version-check 'requests>=2.31,<3'
+      - name: Synthesize private review narration via developer API
+        env:
+          FISH_AUDIO_API_KEY: ${{ secrets.FISH_AUDIO_API_KEY }}
+        run: |
+          test -n "$FISH_AUDIO_API_KEY" || { echo 'Missing FISH_AUDIO_API_KEY repository secret'; exit 1; }
+          python scripts/generate_fish_review.py \
+            --text-file review_scripts/ed1-solo-dcc.txt \
+            --output out/ed1-solo-dcc-elite.mp3
+          ffprobe -v error -show_entries format=duration -of default=nw=1 out/ed1-solo-dcc-elite.mp3
+      - name: Save review audio, never publish
+        uses: actions/upload-artifact@v4
+        with:
+          name: ed1-solo-dcc-elite-review-audio
+          path: out/ed1-solo-dcc-elite.mp3
+          retention-days: 7
+          if-no-files-found: error

@@ -820,26 +820,14 @@ def assemble_video(
     log.info("Step 4/5: Adding brand protection mark …")
     overlay_brand_mark(subtitled_video, branded_video)
 
-    # Step 5: Mix BGM
-    import random
-    if not bgm_path or not Path(bgm_path).is_file():
-        bgm_dir = settings.ASSETS_DIR / "bgm"
-        available_bgm = [
-            track for track in bgm_dir.glob("*.mp3")
-            if track.stat().st_size >= settings.BGM_MIN_BYTES
-        ]
-        bgm = random.choice(available_bgm) if available_bgm else settings.BGM_PATH
-    else:
-        bgm = bgm_path
-    log.info(
-        "Step 5/5: Mixing BGM (%s at %.1f dB) and normalising loudness …",
-        bgm.name,
-        settings.BGM_VOLUME_DB,
-    )
-    try:
+    # Step 5: Mix only an explicitly supplied owner-approved track.
+    # Pending owner BGM means voice-only review; never randomize from assets.
+    if bgm_path:
+        bgm = Path(bgm_path)
+        if not bgm.is_file():
+            raise FileNotFoundError(f"Owner BGM file is missing: {bgm}")
         mix_bgm_with_retries(branded_video, bgm, final_video)
-    except Exception as exc:
-        log.error("BGM mix failed after retries; finalizing without BGM as emergency artifact: %s", exc)
+    else:
         finalize_without_bgm(branded_video, final_video)
 
     # Duration safety guard: Ensure final duration does not exceed settings.MAX_VIDEO_DURATION

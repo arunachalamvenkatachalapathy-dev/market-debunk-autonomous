@@ -420,18 +420,16 @@ def run_pipeline():
             ass_path = run_dir / "subtitles.ass"
             subtitles.generate_ass_file(voice_results, ass_path, hook_title=script_dict.get("title", ""))
             
-            # Select random BGM track from the premium folder
-            bgm_dir = Path("assets/bgm")
-            bgm_path = None
-            if bgm_dir.exists():
-                tracks = [
-                    track for track in bgm_dir.glob("*.mp3")
-                    if track.stat().st_size >= settings.BGM_MIN_BYTES
-                ]
-                if tracks:
-                    bgm_path = random.choice(tracks)
-                    log.info(f"Selected BGM track: {bgm_path.name}")
-            
+            # Owner is supplying the music. Never choose a stock/default track.
+            # Unset means a voice-only review render, not permission to improvise BGM.
+            from os import environ
+            # Selected by owner on 2026-09-29 for YouTube review. Cross-platform
+            # music rights are not established, so require explicit opt-in.
+            bgm_file = environ.get("OWNER_BGM_PATH", "").strip()
+            bgm_path = Path(bgm_file) if bgm_file else None
+            if bgm_path and not bgm_path.is_file():
+                raise FileNotFoundError(f"OWNER_BGM_PATH is missing: {bgm_path}")
+
             final_video = assembler.assemble_video(
                 voice_results=voice_results,
                 visual_results=visual_results,
