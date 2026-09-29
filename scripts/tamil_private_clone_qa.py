@@ -39,5 +39,5 @@ def run():
 if __name__=='__main__':
  try:run()
  except Exception as exc:
-  print('Tamil private clone QA blocked: '+str(exc).split('\n',1)[0][:120],file=sys.stderr)
+  print('Tamil private clone QA blocked: '+(str(exc) if isinstance(exc,RuntimeError) else type(exc).__name__),file=sys.stderr)
   sys.exit(1)
