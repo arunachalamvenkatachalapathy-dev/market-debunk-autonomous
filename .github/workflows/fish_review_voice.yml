@@ -50,9 +50,7 @@ jobs:
         run: |
           test -n "$FISH_AUDIO_API_KEY" || { echo 'Missing Fish key'; exit 1; }
           python scripts/generate_fish_review.py --text-file review_scripts/tamil-pronunciation-probe.txt --output out/tamil-elite-probe.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/tamil-pronunciation-probe.txt --reference-id 933563129e564b19a115bedd57b7406a --output out/tamil-sarah-probe.mp3
           python scripts/generate_fish_review.py --text-file review_scripts/tamil-pronunciation-probe.txt --reference-id 31792949c082466bab25d6f3327ac216 --output out/tamil-sneha-probe.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/tamil-pronunciation-probe.txt --reference-id 324f49797a924f60a3004950b40d0f0e --output out/tamil-south-indian-male-probe.mp3
       - uses: actions/upload-artifact@v4
         with:
           name: tamil-elite-and-sarah-pronunciation-probes
