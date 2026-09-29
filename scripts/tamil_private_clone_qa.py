@@ -13,11 +13,11 @@ def run():
  if not key: raise RuntimeError('credential missing')
  with tempfile.TemporaryDirectory(prefix='tamil-private-') as tmp:
   base=Path(tmp)
-  subprocess.run(['yt-dlp','-q','--no-warnings','--no-progress','-f','bestaudio','-o',str(base/'source.%(ext)s'),SOURCE],check=True,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,timeout=150)
-  sources=[p for p in base.glob('source.*') if p.is_file()]
-  if len(sources)!=1: raise RuntimeError('public source download unavailable')
   speech=base/'speech.mp3'
-  subprocess.run(['ffmpeg','-nostdin','-y','-v','error','-ss','40','-t','100','-i',str(sources[0]),'-ac','1','-ar','44100','-b:a','128k',str(speech)],check=True,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,timeout=40)
+  cipher=Path('review_scripts/private_cipher/arun-tamil-100s.enc')
+  passphrase=os.environ.get('TEMP_ARUN_TAMIL_AUDIO_KEY','')
+  if not passphrase or not cipher.exists(): raise RuntimeError('encrypted owner audio unavailable')
+  subprocess.run(['openssl','enc','-d','-aes-256-cbc','-pbkdf2','-iter','200000','-in',str(cipher),'-out',str(speech),'-pass','env:TEMP_ARUN_TAMIL_AUDIO_KEY'],check=True,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,timeout=30)
   if speech.stat().st_size<100000: raise RuntimeError('audio extraction invalid')
   auth={'Authorization':'Bearer '+key}
   with speech.open('rb') as f:

@@ -324,6 +324,7 @@ jobs:
       - name: Create private voice from owner's public source, run in-job Tamil paragraph check
         env:
           FISH_AUDIO_API_KEY: ${{ secrets.FISH_AUDIO_API_KEY }}
+          TEMP_ARUN_TAMIL_AUDIO_KEY: ${{ secrets.TEMP_ARUN_TAMIL_AUDIO_KEY }}
         run: |
           test -n "$FISH_AUDIO_API_KEY" || exit 1
           python scripts/tamil_private_clone_qa.py
