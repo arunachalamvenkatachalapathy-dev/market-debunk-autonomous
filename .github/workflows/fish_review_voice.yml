@@ -8,6 +8,7 @@ permissions:
 
 jobs:
   review-voice:
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -35,6 +36,7 @@ jobs:
           if-no-files-found: error
 
   tamil-probes:
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -59,6 +61,7 @@ jobs:
           if-no-files-found: error
 
   tamil-native-probes:
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -82,6 +85,7 @@ jobs:
           if-no-files-found: error
 
   tamil-full-script-qa:
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -108,6 +112,7 @@ jobs:
           if-no-files-found: error
 
   day-001-en-review:
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -130,6 +135,7 @@ jobs:
           if-no-files-found: error
 
   tamil-male-alternatives:
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -153,6 +159,7 @@ jobs:
           if-no-files-found: error
 
   tamil-south-full-qa:
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -176,6 +183,7 @@ jobs:
           if-no-files-found: error
 
   day-001-e-en-review:
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -199,6 +207,7 @@ jobs:
           if-no-files-found: error
 
   day-001-e-en-lines:
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -222,6 +231,7 @@ jobs:
           if-no-files-found: error
 
   day-002-m-en-review:
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -244,6 +254,7 @@ jobs:
           if-no-files-found: error
 
   day-002-e-en-lines:
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -267,6 +278,7 @@ jobs:
           if-no-files-found: error
 
   day-003-m-en-review:
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -289,6 +301,7 @@ jobs:
           if-no-files-found: error
 
   day-003-e-en-lines:
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -312,6 +325,7 @@ jobs:
           if-no-files-found: error
 
   day-004-m-en-review:
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -335,6 +349,7 @@ jobs:
 
 
   day-004-e-en-lines:
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -358,6 +373,7 @@ jobs:
           if-no-files-found: error
 
   tamil-makkal-full-qa:
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -381,6 +397,7 @@ jobs:
           if-no-files-found: error
 
   day-005-m-en-review:
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -403,6 +420,7 @@ jobs:
           if-no-files-found: error
 
   tamil-makkal-repair-qa:
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -425,6 +443,7 @@ jobs:
           if-no-files-found: error
 
   day-005-e-en-lines:
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -448,6 +467,7 @@ jobs:
           if-no-files-found: error
 
   tamil-brand-phonetic-qa:
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -470,6 +490,7 @@ jobs:
           if-no-files-found: error
 
   day-001-m-tamil-native-qa:
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -492,6 +513,7 @@ jobs:
           if-no-files-found: error
 
   day-001-e-tanglish-qa:
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -515,6 +537,7 @@ jobs:
           if-no-files-found: error
 
   day-001-e-tanglish-repair:
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -538,6 +561,7 @@ jobs:
           if-no-files-found: error
 
   day-006-m-en-gdp-review:
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -560,6 +584,7 @@ jobs:
           if-no-files-found: error
 
   day-006-m-tanglish-gdp-review:
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -582,6 +607,7 @@ jobs:
           if-no-files-found: error
 
   day-006-e-en-kite-review:
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -605,6 +631,7 @@ jobs:
           if-no-files-found: error
 
   day-006-m-tanglish-gdp-repair:
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -627,6 +654,7 @@ jobs:
           if-no-files-found: error
 
   day-006-m-tanglish-gdp-clarity:
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -649,6 +677,7 @@ jobs:
           if-no-files-found: error
 
   day-002-m-tanglish-property-review:
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -671,6 +700,7 @@ jobs:
           if-no-files-found: error
 
   day-002-e-tanglish-silver-review:
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -694,6 +724,7 @@ jobs:
           if-no-files-found: error
 
   day-002-e-tanglish-silver-repair:
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
@@ -713,5 +744,29 @@ jobs:
         with:
           name: day-002-e-tanglish-silver-repair
           path: out/day_002_e_ta_line*.mp3
+          retention-days: 2
+          if-no-files-found: error
+
+  property-repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check 'requests>=2.31,<3'
+      - name: Repair three property narration parts
+        env:
+          FISH_AUDIO_API_KEY: ${{ secrets.FISH_AUDIO_API_KEY }}
+        run: |
+          test -n "$FISH_AUDIO_API_KEY" || exit 1
+          for n in 2 3 4; do
+            python scripts/generate_fish_review.py --text-file "review_scripts/day_002_m_ta_part$n.txt" --reference-id 90e23b74530d433f915aba3ba2bdf596 --output "out/day_002_m_ta_part$n.mp3"
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: property-tamil-voice-repair
+          path: out/day_002_m_ta_part*.mp3
           retention-days: 2
           if-no-files-found: error
