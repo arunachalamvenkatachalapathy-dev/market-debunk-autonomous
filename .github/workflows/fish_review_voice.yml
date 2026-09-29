@@ -446,3 +446,25 @@ jobs:
           path: out/day_005_e_line*.mp3
           retention-days: 2
           if-no-files-found: error
+
+  tamil-brand-phonetic-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check 'requests>=2.31,<3'
+      - name: Pronunciation variants of exact brand
+        env:
+          FISH_AUDIO_API_KEY: ${{ secrets.FISH_AUDIO_API_KEY }}
+        run: |
+          test -n "$FISH_AUDIO_API_KEY" || exit 1
+          for n in 1 2 3 4 5 6; do python scripts/generate_fish_review.py --text-file "review_scripts/tamil-brand-$n.txt" --reference-id 90e23b74530d433f915aba3ba2bdf596 --output "out/tamil-brand-$n.mp3"; done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tamil-brand-phonetic-qa
+          path: out/tamil-brand-*.mp3
+          retention-days: 2
+          if-no-files-found: error
