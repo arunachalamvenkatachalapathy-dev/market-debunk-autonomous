@@ -761,7 +761,7 @@ jobs:
           FISH_AUDIO_API_KEY: ${{ secrets.FISH_AUDIO_API_KEY }}
         run: |
           test -n "$FISH_AUDIO_API_KEY" || exit 1
-          for n in 3a 3b 3c 4a 4b; do
+          for n in 3b 3c 3d 4b; do
             python scripts/generate_fish_review.py --text-file "review_scripts/property_clauses/$n.txt" --reference-id 90e23b74530d433f915aba3ba2bdf596 --output "out/property_clause_$n.mp3"
           done
       - uses: actions/upload-artifact@v4
