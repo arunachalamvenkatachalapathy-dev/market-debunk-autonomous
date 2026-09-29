@@ -1,0 +1,15 @@
+Liya: This Kite tutorial shows Buy, Sell and a GTT stop-loss. So if I set a trigger, I'm protected, right?
+
+Arun: A button is an instruction, not a guarantee. A GTT trigger places an order when its condition is met. That order may not fill. If a stock gaps past your sell limit, it can trigger and still remain unexecuted.
+
+Liya: So a red line on the chart isn't a receipt. What would I check?
+
+Arun: The order book. Was it only triggered, was the order placed, or did it actually execute? What is the limit price, and what price did it fill at? A market order improves the chance of execution but can fill at a worse price. A limit order controls price but may never fill.
+
+Liya: And the little profit number on the screen?
+
+Arun: A completed trade still has brokerage and statutory charges. The exact costs depend on product and order, so check the current broker charges and your contract note, not this tutorial's screenshot. If the price moves against you, the downside is yours. The app teaches buttons; it does not predict the next candle.
+
+Liya: Before I copy a trade, I need the fill, costs and downside, not just the setup.
+
+Arun: Exactly. Follow Market Debunk and share this with a friend learning to trade.

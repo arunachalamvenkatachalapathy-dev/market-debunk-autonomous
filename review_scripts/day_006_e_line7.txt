@@ -1,0 +1,1 @@
+Before I copy a trade, I need the fill, costs and downside, not just the setup.

@@ -1,0 +1,1 @@
+A button is an instruction, not a guarantee. A GTT trigger places an order when its condition is met. That order may not fill. If a stock gaps past your sell limit, it can trigger and still remain unexecuted.

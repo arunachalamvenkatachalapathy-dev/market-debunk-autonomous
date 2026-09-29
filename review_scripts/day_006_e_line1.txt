@@ -1,0 +1,1 @@
+This Kite tutorial shows Buy, Sell and a GTT stop-loss. So if I set a trigger, I'm protected, right?

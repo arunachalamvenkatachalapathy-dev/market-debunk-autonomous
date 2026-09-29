@@ -1,0 +1,1 @@
+The order book. Was it only triggered, was the order placed, or did it actually execute? What is the limit price, and what price did it fill at? A market order improves the chance of execution but can fill at a worse price. A limit order controls price but may never fill.
