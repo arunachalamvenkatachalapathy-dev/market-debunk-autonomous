@@ -513,3 +513,26 @@ jobs:
           path: out/day_001_e_ta_line*.mp3
           retention-days: 2
           if-no-files-found: error
+
+  day-001-e-tanglish-repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check 'requests>=2.31,<3'
+      - name: Repair two Tanglish lines in private review
+        env:
+          FISH_AUDIO_API_KEY: ${{ secrets.FISH_AUDIO_API_KEY }}
+        run: |
+          test -n "$FISH_AUDIO_API_KEY" || exit 1
+          python scripts/generate_fish_review.py --text-file review_scripts/day_001_e_ta_line5.txt --reference-id 31792949c082466bab25d6f3327ac216 --output out/day_001_e_ta_line5.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/day_001_e_ta_line6.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/day_001_e_ta_line6.mp3
+      - uses: actions/upload-artifact@v4
+        with:
+          name: day-001-e-tanglish-repair
+          path: out/day_001_e_ta_line*.mp3
+          retention-days: 2
+          if-no-files-found: error
