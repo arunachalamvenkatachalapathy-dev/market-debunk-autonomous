@@ -1,15 +1,13 @@
 name: Autonomous Topic Bank Builder (Evening - 8:30 PM IST)
 
 on:
-  schedule:
-    # Runs the evening before the 09:17 AM IST daily video run, so the
-    # pipeline always wakes up to a pre-researched topic bank instead of
-    # depending on live scanning at run time.
-    - cron: '0 15 * * *'  # 08:30 PM IST
+  # Retired legacy schedule. Only manual dispatch remains for inspection;
+  # automated production is handled by the reviewed render farm.
   workflow_dispatch: # Allow manual top-up from GitHub UI
 
 jobs:
   build-topic-bank:
+    if: false # retired legacy job; retained only for audit, never execute
     runs-on: ubuntu-latest
     permissions:
       contents: write # Needed to commit data/topic_queue.json back to repo
