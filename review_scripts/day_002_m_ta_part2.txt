@@ -1,1 +1,1 @@
-Booking amount கொடுக்கும் முன்னாடி, உங்கள் state-ஓட official RERA site-ல project-ஐ search பண்ணுங்க. Registration number மட்டும் பார்த்துட்டு நிறுத்தாதீங்க. Project status, promoter disclosures, completion date, complaints இருக்கான்னு check பண்ணுங்க.
+முன்பணம் கொடுக்கறதுக்கு முன், உங்கள் மாநில RERA இணையதளத்தில் அந்த project-ஐ தேடுங்க. Registration number இருக்கிறது மட்டும் போதாது. Project status, builder கொடுத்த தகவல்கள், முடிக்கும் தேதி, complaints எல்லாத்தையும் தனித்தனியா பாருங்க.
