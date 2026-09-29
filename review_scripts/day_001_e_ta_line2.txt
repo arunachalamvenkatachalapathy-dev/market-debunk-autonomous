@@ -1,0 +1,1 @@
+Calculator-ல போடலாம். வருஷத்துக்கு எட்டு percent return என்று assume பண்ணி, மாதம் மாதம் compounding-ன்னா, பத்தாயிரம் SIP இருபது வருஷத்துக்கு சுமார் ஐம்பத்தொன்பது லட்சம் தான். Tax, fees, inflation முன்னாடி.
