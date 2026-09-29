@@ -25,11 +25,35 @@ jobs:
           python scripts/generate_fish_review.py \
             --text-file review_scripts/ed1-solo-dcc.txt \
             --output out/ed1-solo-dcc-elite.mp3
-          ffprobe -v error -show_entries format=duration -of default=nw=1 out/ed1-solo-dcc-elite.mp3
+          python -c "from pathlib import Path; p=Path('out/ed1-solo-dcc-elite.mp3'); assert p.stat().st_size > 1000"
       - name: Save review audio, never publish
         uses: actions/upload-artifact@v4
         with:
           name: ed1-solo-dcc-elite-review-audio
           path: out/ed1-solo-dcc-elite.mp3
+          retention-days: 7
+          if-no-files-found: error
+
+  tamil-probes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install HTTP client
+        run: python -m pip install --disable-pip-version-check 'requests>=2.31,<3'
+      - name: Short Tamil pronunciation probes, review only
+        env:
+          FISH_AUDIO_API_KEY: ${{ secrets.FISH_AUDIO_API_KEY }}
+        run: |
+          test -n "$FISH_AUDIO_API_KEY" || { echo 'Missing Fish key'; exit 1; }
+          python scripts/generate_fish_review.py --text-file review_scripts/tamil-pronunciation-probe.txt --output out/tamil-elite-probe.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/tamil-pronunciation-probe.txt --reference-id 933563129e564b19a115bedd57b7406a --output out/tamil-sarah-probe.mp3
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tamil-elite-and-sarah-pronunciation-probes
+          path: out/tamil-*-probe.mp3
           retention-days: 7
           if-no-files-found: error

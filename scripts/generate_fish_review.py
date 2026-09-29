@@ -19,14 +19,14 @@ MODEL = "s2.1-pro-free"
 ELITE = "d8a1340984ee4b63ad1ffae27a6a4339"
 
 
-def generate(text: str, destination: Path, api_key: str, *, session=None, sleep=time.sleep) -> Path:
+def generate(text: str, destination: Path, api_key: str, *, reference_id=ELITE, session=None, sleep=time.sleep) -> Path:
     if not text.strip() or not api_key.strip():
         raise ValueError("Text and FISH_AUDIO_API_KEY are required")
     if destination.exists():
         raise FileExistsError(f"Refusing to overwrite {destination}")
     client = session or requests
     payload = {
-        "text": text.strip(), "reference_id": ELITE, "format": "mp3",
+        "text": text.strip(), "reference_id": reference_id, "format": "mp3",
         "temperature": 0.7, "top_p": 0.7, "prosody": {"speed": 1.0, "volume": 0},
         "chunk_length": 300, "normalize": True, "latency": "normal",
     }
@@ -57,8 +57,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--text-file", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
+    parser.add_argument("--reference-id", default=ELITE, help="Fish library voice ID")
     args = parser.parse_args()
-    generate(args.text_file.read_text(encoding="utf-8"), args.output, os.environ.get("FISH_AUDIO_API_KEY", ""))
+    generate(args.text_file.read_text(encoding="utf-8"), args.output, os.environ.get("FISH_AUDIO_API_KEY", ""), reference_id=args.reference_id)
     print(f"Review audio saved: {args.output}")
 
 
