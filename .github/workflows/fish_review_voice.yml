@@ -311,25 +311,6 @@ jobs:
           retention-days: 7
           if-no-files-found: error
 
-  tamil-private-owner-voice-qa:
-    runs-on: ubuntu-latest
-    timeout-minutes: 12
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      - name: Install private test dependencies
-        run: python -m pip install --disable-pip-version-check 'requests>=2.31,<3' 'yt-dlp>=2026.5.0'
-      - name: Create private voice from owner's public source, run in-job Tamil paragraph check
-        env:
-          FISH_AUDIO_API_KEY: ${{ secrets.FISH_AUDIO_API_KEY }}
-          TEMP_ARUN_TAMIL_AUDIO_KEY: ${{ secrets.TEMP_ARUN_TAMIL_AUDIO_KEY }}
-        run: |
-          test -n "$FISH_AUDIO_API_KEY" || exit 1
-          python scripts/tamil_private_clone_qa.py
-      # Deliberately NO artifact upload: source audio, model ID, generated speech and transcripts remain ephemeral.
-
   day-004-m-en-review:
     runs-on: ubuntu-latest
     timeout-minutes: 10
