@@ -1,1 +1,1 @@
-IMF World Economic Outlook-ல current US dollar GDP-க்கு ஒரு table இருக்கு. Purchasing power parity, அதாவது PPP, international dollar GDP-க்கு இன்னொரு table இருக்கு. ஒரே economy-யை இரண்டு விதமா compare பண்றாங்க. ஒன்று இன்னொன்றை பொய்யாக்காது.
+IMF-ஓட World Economic Outlook-ல இரண்டு GDP tables இருக்கு. ஒன்று அமெரிக்க டாலரில் கணக்கிடும் GDP. இன்னொன்று PPP, அதாவது purchasing power parity. அதை international dollar-ல கணக்கிடுறாங்க. ஒரே economy-யை இரண்டு method-ல பார்க்கிறோம். ஒரு table இன்னொன்றை பொய் என்று சொல்லாது.
