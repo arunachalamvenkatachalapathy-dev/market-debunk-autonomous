@@ -223,30 +223,10 @@ def generate_ass_file(
     story_mode = bool(getattr(settings, "STORY_MODE", False))
     total_voice = sum(r.get("duration", 0.0) for r in voice_results)
 
-    # Render prominent Scene 1 top-center visual hook banner (0.0s to 2.8s)
-    if hook_title and story_mode:
-        # Story Mode: the story title stays up for the whole video, plain serif.
-        clean = re.sub(r"(?i)#\w+", "", hook_title).strip()
-        clean = re.sub(r"[^\w\s$%:'!-]", "", clean).strip()
-        if clean:
-            lines.append(
-                f"Dialogue: 1,0:00:00.00,{_fmt_time(max(total_voice, 1.0))},HookBanner,,0,0,0,,{clean}"
-            )
-    elif hook_title:
-        clean = re.sub(r"(?i)#\w+", "", hook_title).strip()
-        clean = re.sub(r"[^\w\s$%₹:!-]", "", clean).strip()
-        if ":" in clean:
-            kw, _, ang = clean.partition(":")
-            ang_words = ang.strip().split()
-            ang_clean = " ".join(ang_words[:4])
-            banner_text = f"\\N⚠️ {kw.strip().upper()} ⚠️\\N{ang_clean.upper()}"
-        else:
-            words = clean.split()
-            if len(words) > 5:
-                clean = " ".join(words[:5])
-            banner_text = f"\\N⚠️ {clean.upper()} ⚠️"
-        if clean:
-            lines.append(f"Dialogue: 1,0:00:00.00,0:00:02.80,HookBanner,,0,0,0,,{banner_text}")
+    # One caption track only. No simultaneous top headline or repeated narration.
+    # The old HookBanner placed a paraphrase of the same spoken line above
+    # phrase captions, which the owner found redundant (2026-09-29).
+    # Keep hook_title as metadata, not a second on-screen subtitle.
 
     cumulative_offset = 0.0
     for result in voice_results:
