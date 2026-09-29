@@ -1,0 +1,9 @@
+ஒரு Reel-ல இந்தியா GDP ranking நாலாவது இடத்திலிருந்து ஆறாவது இடத்துக்கு போச்சுன்னு சொல்றாங்க. Share பண்ணறதுக்கு முன்னாடி அந்த table-ல எந்த year, எந்த release, GDP-யை எப்படி measure பண்ணாங்கன்னு பாருங்க.
+
+IMF World Economic Outlook-ல current US dollar GDP-க்கு ஒரு table இருக்கு. Purchasing power parity, அதாவது PPP, international dollar GDP-க்கு இன்னொரு table இருக்கு. ஒரே economy-யை இரண்டு விதமா compare பண்றாங்க. ஒன்று இன்னொன்றை பொய்யாக்காது.
+
+ஒரே IMF release-ல இருந்து இரண்டு table-ஐ எடுத்துக்கோங்க. Year-ஐயும் unit-ஐயும் மேலே எழுதுங்க. US dollar ranking-ல exchange rate மாறினாலும் இடம் மாறலாம். PPP என்பது உள்ளூரில் பணத்தால் என்ன வாங்க முடியும்னு பார்க்கும் முறை. அதனால order வேறா இருக்கலாம். ஆனால் இந்த இரண்டு number-மும் ஒரு குடும்பத்தின் சம்பளம் இல்லை.
+
+இன்னொரு check: அந்த year-க்கு actual data-வா, இல்ல projection-ஆ? IMF பழைய data-வையும் estimates-ஐயும் revise பண்ணலாம். Dated source-உம் measure-உம் இல்லாம நாலாவது, ஆறாவது என்று மட்டும் சொன்னா claim முழுமை இல்லை.
+
+அடுத்த GDP chart-க்கு நாலு கேள்வி: எந்த year, எந்த unit, எந்த method, எந்த release? Market Debunk-ஐ follow பண்ணுங்க. GDP chart share பண்ற நண்பருக்கும் இதை share பண்ணுங்க.
