@@ -1,0 +1,9 @@
+A reel claims India fell from fourth to sixth in the world GDP ranking. Before you share the alarm, stop on the table heading. Which year? Which release? And what does GDP mean on that chart?
+
+The IMF's World Economic Outlook has a GDP table in current US dollars. It also has a purchasing-power-parity table in international dollars. They are different conversions of the same economy, not two scoreboards where one proves the other a lie.
+
+Take two screenshots from the same IMF release. Write the year and unit above each. A ranking in US dollars can move when currency exchange rates move. PPP asks what money can buy locally, so it can produce a different order. Neither number tells you what a particular household earns.
+
+And check whether a year is actual data or a projection. IMF estimates and historical figures can be revised. Without a dated source table and a named measure, "fourth" or "sixth" is an incomplete claim.
+
+So the useful question is not "which viral rank wins?" It is "which year, unit, method, and release?" Follow Market Debunk and share this with someone posting GDP charts.
