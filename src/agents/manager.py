@@ -423,6 +423,8 @@ def run_pipeline():
             # Owner is supplying the music. Never choose a stock/default track.
             # Unset means a voice-only review render, not permission to improvise BGM.
             from os import environ
+            # Selected by owner on 2026-09-29 for YouTube review. Cross-platform
+            # music rights are not established, so require explicit opt-in.
             bgm_file = environ.get("OWNER_BGM_PATH", "").strip()
             bgm_path = Path(bgm_file) if bgm_file else None
             if bgm_path and not bgm_path.is_file():
