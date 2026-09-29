@@ -358,16 +358,11 @@ def synthesize_scene(
     log.info("🎙️ Synthesizing scene %d with Fish Audio S2.1 Pro (Voice ID: %s, temp: 0.92)...", scene_id, voice_id)
 
     if is_tamil:
-        # Tamil route (owner-locked 2026-09-28): Google Chirp3-HD, native Tamil script.
-        # ARUN -> Charon, HER -> Aoede. Fish remains the non-Tamil path.
-        gcp_key = getattr(settings, "GCP_TTS_API_KEY", "") or os.environ.get("GCP_TTS_API_KEY", "")
-        gcp_voice = (getattr(settings, "GCP_TTS_VOICE_HER_TA", "") or os.environ.get("GCP_TTS_VOICE_HER_TA", "ta-IN-Chirp3-HD-Aoede")) if (speaker or "").strip().upper() == "HER" else (getattr(settings, "GCP_TTS_VOICE_ARUN_TA", "") or os.environ.get("GCP_TTS_VOICE_ARUN_TA", "ta-IN-Chirp3-HD-Charon"))
-        log.info("🎙️ Tamil scene %d via Google Chirp3-HD (%s)...", scene_id, gcp_voice)
-        success = _synthesize_gcp_tts(
-            text=narration,
-            output_path=raw_mp3_path,
-            api_key=gcp_key,
-            voice_name=gcp_voice,
+        # GCP billing is closed. Tamil must not fall back to a cloud voice.
+        # Tamil synthesis is handled by the external Edge-TTS voice pack.
+        raise RuntimeError(
+            f"Tamil scene {scene_id} requires a reviewed Edge-TTS audio pack; "
+            "the retired GCP Chirp3 route is disabled."
         )
     else:
         success = _synthesize_fish_audio(

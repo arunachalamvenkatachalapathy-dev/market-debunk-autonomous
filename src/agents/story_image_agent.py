@@ -162,36 +162,9 @@ def generate_scene_image(scene: dict, output_dir: Path) -> Optional[Path]:
             f"Scene {scene_id}: externally supplied image missing or too small at {supplied}"
         )
 
-    # PRIMARY IMAGE PATH (owner instruction 2026-09-28, verbatim: "Use your inbuilt image
-    # generation should be primary"): Instinct's agent-side rendering supplies ALL
-    # scene/character images. When no inbox is configured the run halts here - Gemini image
-    # models are never called unless the owner explicitly re-enables them
-    # (GEMINI_IMAGE_FALLBACK=true; the 14-day images-provided mandate reviews after 2026-10-11).
-    if (os.environ.get("GEMINI_IMAGE_FALLBACK") or "").strip().lower() != "true":
-        raise StoryImageUnavailable(
-            f"Scene {scene_id}: STORY_IMAGES_INBOX is not set - agent-rendered images are the "
-            "PRIMARY image path (owner instruction 2026-09-28). Provide the scene pack via the "
-            "inbox, or set GEMINI_IMAGE_FALLBACK=true to explicitly re-enable Gemini image generation."
-        )
-
-    sheet_b64 = None
-    if CHARACTER_SHEET_PATH.exists() and CHARACTER_SHEET_PATH.stat().st_size > 10000:
-        sheet_b64 = base64.b64encode(CHARACTER_SHEET_PATH.read_bytes()).decode("ascii")
-    else:
-        log.warning("Character sheet missing at %s - using written character bible", CHARACTER_SHEET_PATH)
-
-    prompt = _build_prompt(scene, has_sheet=bool(sheet_b64))
-
-    for attempt in range(1, _RETRY_ROUNDS + 1):
-        if _try_gemini_image(prompt, sheet_b64, output_path):
-            log.info("Scene %s story image via Gemini (%d bytes)", scene_id, output_path.stat().st_size)
-            return output_path
-        if attempt < _RETRY_ROUNDS:
-            log.info("Scene %s Gemini attempt %d/%d failed; retrying in %ds",
-                     scene_id, attempt, _RETRY_ROUNDS, _RETRY_SLEEP_SECONDS)
-            time.sleep(_RETRY_SLEEP_SECONDS)
+    # Built-in agent rendering is the only allowed source. The runner cannot invoke
+    # the private image generator; an approved scene inbox must be supplied.
     raise StoryImageUnavailable(
-        f"Scene {scene_id}: Gemini image generation unavailable on all keys/models "
-        f"after {_RETRY_ROUNDS} attempts. Halting run (fail-closed); the next scheduled "
-        f"run retries after quota reset. Off-model substitutes are disabled by owner decision."
+        f"Scene {scene_id}: STORY_IMAGES_INBOX is not set. Provide all reviewed "
+        "agent-rendered images; no Gemini, stock, or off-model substitute is allowed."
     )
