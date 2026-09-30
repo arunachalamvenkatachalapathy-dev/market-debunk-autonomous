@@ -1,0 +1,97 @@
+name: Publish Drive-Staged Video (YT + IG + FB)
+
+# Publishes an externally-produced MP4 (staged by the scheduler as a direct URL,
+# e.g. a release asset in this repo) to the English channel's YouTube Shorts,
+# Instagram Reels and Facebook Reels using the repo's stored tokens.
+# Triggered only by workflow_dispatch - no schedule.
+
+on:
+  workflow_dispatch:
+    inputs:
+      video_url:
+        description: 'Direct HTTPS URL of the MP4 (release asset in this repo or any direct link)'
+        required: true
+        type: string
+      title:
+        description: 'YouTube title'
+        required: true
+        type: string
+      description:
+        description: 'YouTube description'
+        required: false
+        default: ''
+        type: string
+      hashtags:
+        description: 'Space or comma separated hashtags'
+        required: false
+        default: 'Shorts MarketDebunk'
+        type: string
+      privacy:
+        description: 'YouTube visibility'
+        type: choice
+        options: ['private', 'public']
+        default: private
+
+concurrency:
+  group: external-video-publisher
+  cancel-in-progress: false
+
+permissions:
+  contents: write  # Instagram fallback hosts the video binary via a temporary release
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Download staged video
+        env:
+          VIDEO_URL: ${{ inputs.video_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p assets
+          curl -fL --retry 3 -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/octet-stream" "$VIDEO_URL" -o assets/incoming.mp4
+          test -s assets/incoming.mp4
+          ls -lh assets/incoming.mp4
+
+      - name: Publish to YouTube, Instagram, Facebook + Telegram report
+        env:
+          VIDEO_PATH: assets/incoming.mp4
+          VIDEO_SOURCE: ${{ inputs.video_url }}
+          YT_TITLE: ${{ inputs.title }}
+          YT_DESCRIPTION: ${{ inputs.description }}
+          HASHTAGS: ${{ inputs.hashtags }}
+          PRIVACY: ${{ inputs.privacy }}
+          YT_API_KEY: ${{ secrets.YT_API_KEY }}
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+          YT_COOKIES: ${{ secrets.YT_COOKIES }}
+          ENABLE_YT_UPLOAD: ${{ secrets.ENABLE_YT_UPLOAD || 'true' }}
+          ALLOW_PUBLICATION: ${{ secrets.ALLOW_PUBLICATION || 'true' }}
+          ENABLE_INSTAGRAM: ${{ secrets.ENABLE_INSTAGRAM || 'true' }}
+          INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN || secrets.META_ACCESS_TOKEN }}
+          INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
+          ENABLE_FACEBOOK: ${{ secrets.ENABLE_FACEBOOK || 'true' }}
+          FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
+          FACEBOOK_ACCESS_TOKEN: ${{ secrets.FACEBOOK_ACCESS_TOKEN || secrets.INSTAGRAM_ACCESS_TOKEN || secrets.META_ACCESS_TOKEN }}
+          ENABLE_TELEGRAM: ${{ secrets.ENABLE_TELEGRAM || 'true' }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python scripts/publish_external_video.py
