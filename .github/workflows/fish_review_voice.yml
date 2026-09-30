@@ -17,9 +17,9 @@ jobs:
         env:
           FISH_AUDIO_API_KEY: ${{ secrets.FISH_AUDIO_API_KEY }}
         run: |
-          for x in A B; do python scripts/generate_fish_review.py --text-file "review_scripts/ta008_outro$x.txt" --reference-id 90e23b74530d433f915aba3ba2bdf596 --output "out/ta008_outro$x.mp3"; done
+          python scripts/generate_fish_review.py --text-file "review_scripts/ta008_outroA.txt" --reference-id 90e23b74530d433f915aba3ba2bdf596 --output "out/ta008_outroA.mp3"
       - uses: actions/upload-artifact@v4
         with:
-          name: ta008-outro-segmented
+          name: ta008-outro-a-clean
           path: out/*.mp3
           retention-days: 2
