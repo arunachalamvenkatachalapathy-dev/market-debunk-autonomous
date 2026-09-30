@@ -17,10 +17,9 @@ jobs:
         env:
           FISH_AUDIO_API_KEY: ${{ secrets.FISH_AUDIO_API_KEY }}
         run: |
-          for n in 3 5 7; do python scripts/generate_fish_review.py --text-file "review_scripts/ta008_fix$n.txt" --reference-id 470085b5522b4579a0c7b02f1029d257 --output "out/ta008_line$n.mp3"; done
-          python scripts/generate_fish_review.py --text-file "review_scripts/ta008_fix8.txt" --reference-id 90e23b74530d433f915aba3ba2bdf596 --output "out/ta008_line8.mp3"
+          python scripts/generate_fish_review.py --text-file "review_scripts/ta008_final8.txt" --reference-id 90e23b74530d433f915aba3ba2bdf596 --output "out/ta008_line8.mp3"
       - uses: actions/upload-artifact@v4
         with:
-          name: ta008-pronunciation-repair
+          name: ta008-final-outro
           path: out/*.mp3
           retention-days: 2
