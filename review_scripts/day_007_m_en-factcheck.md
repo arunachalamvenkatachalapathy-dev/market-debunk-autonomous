@@ -1,0 +1,6 @@
+PDF rank 013 title exactly "Policybazaar share-price fall". The source Reel's editorial label does not confirm its footage, date, figures or causes. This script explicitly illustrates a documented September 2026 fall, not the Reel's unknown date.
+India Today live September 24 at 12:57pm: 30.02% intraday decline, not closing performance: https://www.indiatoday.in/business/market/story/pb-fintech-share-price-crash-today-policybazaar-parent-falls-on-irdai-commission-proposal-3001829-2026-09-24
+Original IRDAI consultation paper (third-party hosted copy of the regulator's PDF; text inspected): https://mail.caalley.com/exp_drafts/irdai_draft_0923.pdf . It explicitly seeks comment, proposals not law.
+Company FAQ identifies Policybazaar's direct broker status and commission/fee revenue: https://www.pbfintech.in/faq/
+September 27 company clarification as reported by New Indian Express: https://www.newindianexpress.com/business/2026/Sep/27/changes-in-commission-structure-to-affect-economics-of-online-insurance-sale-pb-fintech . The original stock exchange filing was not independently retrieved; do not quote its text as independently verified.
+No buy/sell call. Regulatory risk is a plain description, not a named academic concept or predicted outcome.
