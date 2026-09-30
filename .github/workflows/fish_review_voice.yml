@@ -819,3 +819,25 @@ jobs:
           path: out/0*.mp3
           retention-days: 2
           if-no-files-found: error
+
+  liya-selected-tanglish-probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check 'requests>=2.31,<3'
+      - name: Private Tanglish pronunciation probe for selected Liya voice
+        env:
+          FISH_AUDIO_API_KEY: ${{ secrets.FISH_AUDIO_API_KEY }}
+        run: |
+          test -n "$FISH_AUDIO_API_KEY" || exit 1
+          python scripts/generate_fish_review.py --text-file review_scripts/liya-selected-tanglish-probe.txt --reference-id 470085b5522b4579a0c7b02f1029d257 --output out/liya-selected-tanglish-probe.mp3
+      - uses: actions/upload-artifact@v4
+        with:
+          name: liya-selected-tanglish-probe
+          path: out/liya-selected-tanglish-probe.mp3
+          retention-days: 2
+          if-no-files-found: error
