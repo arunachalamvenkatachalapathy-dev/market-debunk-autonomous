@@ -7,7 +7,7 @@ permissions:
   contents: read
 
 jobs:
-  english-013-elite-correction:
+  tamil-005-final-cta-repair:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -16,15 +16,15 @@ jobs:
         with:
           python-version: '3.11'
       - run: python -m pip install --disable-pip-version-check 'requests>=2.31,<3'
-      - name: Private English rank013 approved Elite voice
+      - name: Private Tamil005 same-as-TA001 male CTA repair
         env:
           FISH_AUDIO_API_KEY: ${{ secrets.FISH_AUDIO_API_KEY }}
         run: |
           test -n "$FISH_AUDIO_API_KEY" || exit 1
-          for n in 1 2 3 4 5 6 7; do python scripts/generate_fish_review.py --text-file "review_scripts/day_007_m_en_line$n.txt" --reference-id d8a1340984ee4b63ad1ffae27a6a4339 --output "out/policy_line$n.mp3"; done
+          for n in 6; do python scripts/generate_fish_review.py --text-file "review_scripts/day_003_m_ta_line$n.txt" --reference-id 90e23b74530d433f915aba3ba2bdf596 --output "out/crypto_line$n.mp3"; done
       - uses: actions/upload-artifact@v4
         with:
-          name: english-013-elite-corrected-audio
-          path: out/policy_line*.mp3
+          name: tamil-005-final-cta-repair-audio
+          path: out/crypto_line*.mp3
           retention-days: 2
           if-no-files-found: error
