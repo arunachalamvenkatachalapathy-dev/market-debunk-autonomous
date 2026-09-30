@@ -1,4 +1,4 @@
-name: TA006 Liya scripting sample
+name: TA003 accurate closing repair
 on:
   workflow_dispatch:
 permissions:
@@ -13,13 +13,13 @@ jobs:
         with:
           python-version: '3.11'
       - run: python -m pip install 'requests>=2.31,<3'
-      - name: User-linked Liya, free model
+      - name: Selected Tamil male free model
         env:
           FISH_AUDIO_API_KEY: ${{ secrets.FISH_AUDIO_API_KEY }}
         run: |
-          python scripts/generate_fish_review.py --text-file "review_scripts/ta006_liya_scriptreview.txt" --reference-id 470085b5522b4579a0c7b02f1029d257 --output "out/ta006_liya_scriptreview.mp3"
+          for n in 4 6; do python scripts/generate_fish_review.py --text-file "review_scripts/ta003_repair$n.txt" --reference-id 90e23b74530d433f915aba3ba2bdf596 --output "out/ta003_line$n.mp3"; done
       - uses: actions/upload-artifact@v4
         with:
-          name: ta006-liya-scriptreview
+          name: ta003-repair
           path: out/*.mp3
           retention-days: 2
