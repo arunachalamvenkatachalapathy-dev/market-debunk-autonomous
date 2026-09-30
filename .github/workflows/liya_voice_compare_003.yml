@@ -1,0 +1,28 @@
+name: Private Liya voice comparison 003
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check 'requests>=2.31,<3'
+      - name: Generate identical Tamil question with candidate female voices
+        env:
+          FISH_AUDIO_API_KEY: ${{ secrets.FISH_AUDIO_API_KEY }}
+        run: |
+          test -n "$FISH_AUDIO_API_KEY" || exit 1
+          python scripts/generate_fish_review.py --text-file review_scripts/liya_voice_compare_003.txt --reference-id 31792949c082466bab25d6f3327ac216 --output out/01-Sneha-31792949c082466bab25d6f3327ac216.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/liya_voice_compare_003.txt --reference-id 933563129e564b19a115bedd57b7406a --output out/02-Sarah-933563129e564b19a115bedd57b7406a.mp3
+      - uses: actions/upload-artifact@v4
+        with:
+          name: liya-003-tamil-voice-comparison
+          path: out/*.mp3
+          retention-days: 2
+          if-no-files-found: error
