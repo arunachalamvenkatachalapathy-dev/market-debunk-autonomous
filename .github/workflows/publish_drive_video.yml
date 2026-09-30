@@ -30,6 +30,14 @@ on:
         description: 'Publish to YouTube (set false when the video is already live on YT)'
         type: boolean
         default: true
+      publish_instagram:
+        description: 'Publish to Instagram'
+        type: boolean
+        default: true
+      publish_facebook:
+        description: 'Publish to Facebook'
+        type: boolean
+        default: true
       privacy:
         description: 'YouTube visibility'
         type: choice
@@ -81,6 +89,8 @@ jobs:
           HASHTAGS: ${{ inputs.hashtags }}
           PRIVACY: ${{ inputs.privacy }}
           PUBLISH_YOUTUBE: ${{ inputs.publish_youtube }}
+          PUBLISH_INSTAGRAM: ${{ inputs.publish_instagram }}
+          PUBLISH_FACEBOOK: ${{ inputs.publish_facebook }}
           YT_API_KEY: ${{ secrets.YT_API_KEY }}
           YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
           YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}

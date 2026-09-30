@@ -32,8 +32,16 @@ def main() -> int:
         yt_url = upload_video(video_path, title, description, hashtags, privacy=privacy)
     else:
         log.info("PUBLISH_YOUTUBE=false - skipping YouTube (already live elsewhere)")
-    ig_url = ig_publish_reel(video_path, title, description, hashtags)
-    fb_url = fb_publish_reel(video_path, title, description, hashtags)
+    ig_url = None
+    if os.environ.get("PUBLISH_INSTAGRAM", "true").lower() != "false":
+        ig_url = ig_publish_reel(video_path, title, description, hashtags)
+    else:
+        log.info("PUBLISH_INSTAGRAM=false - skipping Instagram")
+    fb_url = None
+    if os.environ.get("PUBLISH_FACEBOOK", "true").lower() != "false":
+        fb_url = fb_publish_reel(video_path, title, description, hashtags)
+    else:
+        log.info("PUBLISH_FACEBOOK=false - skipping Facebook")
 
     send_completion_notification(
         title=title,
