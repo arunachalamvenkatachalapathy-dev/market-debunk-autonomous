@@ -17,9 +17,9 @@ jobs:
         env:
           FISH_AUDIO_API_KEY: ${{ secrets.FISH_AUDIO_API_KEY }}
         run: |
-          for n in 1 3 5 7; do python scripts/generate_fish_review.py --text-file "review_scripts/ta006_liya_fix$n.txt" --reference-id 470085b5522b4579a0c7b02f1029d257 --output "out/ta006_liya_fix$n.mp3"; done
+          for n in 3; do python scripts/generate_fish_review.py --text-file "review_scripts/ta006_liya_fix$n.txt" --reference-id 470085b5522b4579a0c7b02f1029d257 --output "out/ta006_liya_fix$n.mp3"; done
       - uses: actions/upload-artifact@v4
         with:
-          name: liya-tamil-script-review
+          name: liya-chart-repair
           path: out/*.mp3
           retention-days: 2
