@@ -74,5 +74,9 @@ with every scene so Arun looks like Arun across all episodes.
 | Age | 25 |
 | Role | The curious friend in the daily 4pm two-character dialogue. She asks the question the viewer is thinking; Arun answers as the expert. Roles fixed for the 14-day sprint - never alternate. |
 | Look | Young Indian woman, chin-length dark bob haircut, teal denim jacket, small nose stud (face option C). Reference sheet: `assets/character/liya_sheet.png` - rendered in the fintech-cool grade from the start. |
-| Voice | Fish library voice - owner's pick pending. |
+| Voice | English: existing Fish Sarah voice (unchanged by owner, 2026-09-30). Tamil even-rank duos: owner-selected Fish voice `470085b5522b4579a0c7b02f1029d257` (https://fish.audio/m/470085b5522b4579a0c7b02f1029d257), with native Tanglish script and per-line pronunciation QA. This is an owner pick, not independent proof of clone ownership or cross-platform rights. |
 | World | Same modern city apartment world as Arun, same illustration style. |
+
+## Ranked relaunch routing (owner clarification, 2026-09-30 07:37 IST)
+
+Odd-numbered PDF ranks are Arun solo; even-numbered ranks are Liya-Arun duo, in both English and Tamil. The approved format paper describes the duo quality gate but does not override this later explicit owner instruction. Tamil rank 003 is solo; the selected Liya Tamil voice applies to even-rank Tamil duo work only.
