@@ -1,0 +1,29 @@
+name: Property Tamil duo private voice review
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  property-duo-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check 'requests>=2.31,<3'
+      - name: Generate short female dialogue lines for private review
+        env:
+          FISH_AUDIO_API_KEY: ${{ secrets.FISH_AUDIO_API_KEY }}
+        run: |
+          test -n "$FISH_AUDIO_API_KEY" || exit 1
+          for n in 01 02 03 04 05; do
+            python scripts/generate_fish_review.py --text-file "review_scripts/property_duo/$n.txt" --reference-id 31792949c082466bab25d6f3327ac216 --output "out/property_duo_$n.mp3"
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: property-tamil-duo-female-review
+          path: out/property_duo_*.mp3
+          retention-days: 2
+          if-no-files-found: error
