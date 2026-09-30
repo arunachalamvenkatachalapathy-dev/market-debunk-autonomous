@@ -1,0 +1,1 @@
+இந்த example-ல் மொத்த brokerage, tax, மற்ற costs நாற்பது ரூபாய் என்று வைத்துக்கொள்வோம். அப்போ net profit அறுபது ரூபாய்தான். நாற்பது ரூபாய் actual broker quote இல்லை. உங்க charges-ஐ சரி பாருங்க.
