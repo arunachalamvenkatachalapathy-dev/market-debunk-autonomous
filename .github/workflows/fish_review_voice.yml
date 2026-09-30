@@ -1,4 +1,4 @@
-name: TA003 accurate closing repair
+name: TA008 selected duo voice review
 on:
   workflow_dispatch:
 permissions:
@@ -13,13 +13,14 @@ jobs:
         with:
           python-version: '3.11'
       - run: python -m pip install 'requests>=2.31,<3'
-      - name: Selected Tamil male free model
+      - name: Selected Tamil duo free models
         env:
           FISH_AUDIO_API_KEY: ${{ secrets.FISH_AUDIO_API_KEY }}
         run: |
-          python scripts/generate_fish_review.py --text-file "review_scripts/ta006_liya_creator_sample.txt" --reference-id 470085b5522b4579a0c7b02f1029d257 --output "out/ta006_liya_creator_sample.mp3"
+          for n in 1 3 5 7; do python scripts/generate_fish_review.py --text-file "review_scripts/ta008_line$n.txt" --reference-id 470085b5522b4579a0c7b02f1029d257 --output "out/ta008_line$n.mp3"; done
+          for n in 2 4 6 8; do python scripts/generate_fish_review.py --text-file "review_scripts/ta008_line$n.txt" --reference-id 90e23b74530d433f915aba3ba2bdf596 --output "out/ta008_line$n.mp3"; done
       - uses: actions/upload-artifact@v4
         with:
-          name: liya-creator-sample
+          name: ta008-review-audio
           path: out/*.mp3
           retention-days: 2
