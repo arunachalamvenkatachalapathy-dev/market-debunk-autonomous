@@ -1,0 +1,5 @@
+PDF rank 005 exact title: "Investigating Logan Paul's Biggest Scam". The title is the source video title, not a legal conclusion in the script. Arun's solo Tamil retelling directly addresses Coffeezilla's CryptoZoo investigation and gives Indian viewers a testable money question, rather than changing topic to a generic crypto warning.
+Original source video (transcript inspected, includes buyers' stated failed hatching/yield and token/egg mechanics): https://www.youtube.com/watch?v=386p68_lDHA . Do not represent interviewee claims as independently established facts.
+BBC 5 Jan 2024 on NFT buyback terms and legal release, not full refund for every token buyer: https://www.bbc.com/news/technology-67891239 .
+Public court docket confirms litigation exists, but it is incomplete and as-of last known filing February 2026: https://www.courtlistener.com/docket/66783398/holland-v-cryptozoo-inc/ . Avoid claiming a legal verdict or adjudicated fraud.
+No copy of source footage, audio, character likeness, logo, or wording. Do not imply Arun owns CryptoZoo NFTs or that this supplies current trading advice.
