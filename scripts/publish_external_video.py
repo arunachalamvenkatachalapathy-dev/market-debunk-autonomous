@@ -27,7 +27,11 @@ def main() -> int:
     privacy = os.environ.get("PRIVACY", "private")
 
     log.info("Publishing %s (%s) - title: %s", video_path, privacy, title)
-    yt_url = upload_video(video_path, title, description, hashtags, privacy=privacy)
+    yt_url = None
+    if os.environ.get("PUBLISH_YOUTUBE", "true").lower() != "false":
+        yt_url = upload_video(video_path, title, description, hashtags, privacy=privacy)
+    else:
+        log.info("PUBLISH_YOUTUBE=false - skipping YouTube (already live elsewhere)")
     ig_url = ig_publish_reel(video_path, title, description, hashtags)
     fb_url = fb_publish_reel(video_path, title, description, hashtags)
 

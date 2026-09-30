@@ -26,6 +26,10 @@ on:
         required: false
         default: 'Shorts MarketDebunk'
         type: string
+      publish_youtube:
+        description: 'Publish to YouTube (set false when the video is already live on YT)'
+        type: boolean
+        default: true
       privacy:
         description: 'YouTube visibility'
         type: choice
@@ -76,6 +80,7 @@ jobs:
           YT_DESCRIPTION: ${{ inputs.description }}
           HASHTAGS: ${{ inputs.hashtags }}
           PRIVACY: ${{ inputs.privacy }}
+          PUBLISH_YOUTUBE: ${{ inputs.publish_youtube }}
           YT_API_KEY: ${{ secrets.YT_API_KEY }}
           YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
           YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
