@@ -17,9 +17,10 @@ jobs:
         env:
           FISH_AUDIO_API_KEY: ${{ secrets.FISH_AUDIO_API_KEY }}
         run: |
-          for n in 4 6; do python scripts/generate_fish_review.py --text-file "review_scripts/ta003_repair$n.txt" --reference-id 90e23b74530d433f915aba3ba2bdf596 --output "out/ta003_line$n.mp3"; done
+          python scripts/generate_fish_review.py --text-file "review_scripts/ta003_final6.txt" --reference-id 90e23b74530d433f915aba3ba2bdf596 --output "out/ta003_final6.mp3"
+          python scripts/generate_fish_review.py --text-file "review_scripts/ta006_liya_scriptreview.txt" --reference-id 470085b5522b4579a0c7b02f1029d257 --output "out/ta006_liya_scriptreview.mp3"
       - uses: actions/upload-artifact@v4
         with:
-          name: ta003-repair
+          name: ta003-liya-finalwords
           path: out/*.mp3
           retention-days: 2
