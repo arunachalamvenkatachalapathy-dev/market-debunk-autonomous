@@ -18,10 +18,11 @@ jobs:
           FISH_AUDIO_API_KEY: ${{ secrets.FISH_AUDIO_API_KEY }}
         run: |
           test -n "$FISH_AUDIO_API_KEY" || exit 1
-          python scripts/generate_fish_review.py --text-file review_scripts/ta018_fix4b.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta018_fix4b.mp3
+          for n in 1 2 3 4 5 6; do python scripts/generate_fish_review.py --text-file "review_scripts/ta019_line$n.txt" --reference-id 90e23b74530d433f915aba3ba2bdf596 --output "out/ta019_line$n.mp3"; done
+          for n in 1 2 3 4 5 6; do python scripts/generate_fish_review.py --text-file "review_scripts/en019_line$n.txt" --output "out/en019_line$n.mp3"; done
       - uses: actions/upload-artifact@v4
         with:
-          name: audit018-repair4b
-          path: out/*018_fix*.mp3
+          name: tax019-voices
+          path: out/*019_line*.mp3
           retention-days: 2
           if-no-files-found: error
