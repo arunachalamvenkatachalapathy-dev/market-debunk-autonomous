@@ -18,11 +18,25 @@ jobs:
           FISH_AUDIO_API_KEY: ${{ secrets.FISH_AUDIO_API_KEY }}
         run: |
           test -n "$FISH_AUDIO_API_KEY" || exit 1
-          python scripts/generate_fish_review.py --text-file review_scripts/ta021_fix1b.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta021_fix1b.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta021_fix4b.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta021_fix4b.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/en022_line1.txt --reference-id 933563129e564b19a115bedd57b7406a --output out/en022_line1.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/en022_line2.txt --reference-id d8a1340984ee4b63ad1ffae27a6a4339 --output out/en022_line2.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/en022_line3.txt --reference-id 933563129e564b19a115bedd57b7406a --output out/en022_line3.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/en022_line4.txt --reference-id d8a1340984ee4b63ad1ffae27a6a4339 --output out/en022_line4.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/en022_line5.txt --reference-id 933563129e564b19a115bedd57b7406a --output out/en022_line5.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/en022_line6.txt --reference-id d8a1340984ee4b63ad1ffae27a6a4339 --output out/en022_line6.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/en022_line7.txt --reference-id 933563129e564b19a115bedd57b7406a --output out/en022_line7.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/en022_line8.txt --reference-id d8a1340984ee4b63ad1ffae27a6a4339 --output out/en022_line8.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta022_line1.txt --reference-id 470085b5522b4579a0c7b02f1029d257 --output out/ta022_line1.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta022_line2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta022_line2.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta022_line3.txt --reference-id 470085b5522b4579a0c7b02f1029d257 --output out/ta022_line3.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta022_line4.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta022_line4.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta022_line5.txt --reference-id 470085b5522b4579a0c7b02f1029d257 --output out/ta022_line5.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta022_line6.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta022_line6.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta022_line7.txt --reference-id 470085b5522b4579a0c7b02f1029d257 --output out/ta022_line7.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta022_line8.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta022_line8.mp3
       - uses: actions/upload-artifact@v4
         with:
-          name: debt021-repair14b
-          path: out/ta021_fix*.mp3
+          name: traps022-voices
+          path: out/*022_line*.mp3
           retention-days: 2
           if-no-files-found: error
