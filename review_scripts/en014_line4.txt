@@ -1,0 +1,1 @@
+Third mistake: counting names instead of checking holdings. Funds can own the same companies. Look at the underlying assets and concentration. Diversification can spread risk; it cannot remove market losses.
