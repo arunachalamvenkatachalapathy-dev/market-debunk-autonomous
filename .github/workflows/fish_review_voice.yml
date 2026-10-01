@@ -1,10 +1,10 @@
-name: TA008 selected duo voice review
+name: TA009 solo free voice production
 on:
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
-  review:
+  voice:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -13,13 +13,14 @@ jobs:
         with:
           python-version: '3.11'
       - run: python -m pip install 'requests>=2.31,<3'
-      - name: Selected Tamil duo free models
+      - name: Generate selected Tamil male free model only
         env:
           FISH_AUDIO_API_KEY: ${{ secrets.FISH_AUDIO_API_KEY }}
         run: |
-          python scripts/generate_fish_review.py --text-file "review_scripts/ta008_outroA.txt" --reference-id 90e23b74530d433f915aba3ba2bdf596 --output "out/ta008_outroA.mp3"
+          for n in 1 2 3 4 5 6 7 8; do python scripts/generate_fish_review.py --text-file "review_scripts/ta009_line$n.txt" --reference-id 90e23b74530d433f915aba3ba2bdf596 --output "out/ta009_line$n.mp3"; done
       - uses: actions/upload-artifact@v4
         with:
-          name: ta008-outro-a-clean
+          name: ta009-solo-audio
           path: out/*.mp3
           retention-days: 2
+          if-no-files-found: error
