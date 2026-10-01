@@ -22,7 +22,7 @@ jobs:
           python scripts/generate_fish_review.py --text-file "review_scripts/ta012_line8.txt" --reference-id 90e23b74530d433f915aba3ba2bdf596 --output "out/ta012_line8.mp3"
       - uses: actions/upload-artifact@v4
         with:
-          name: ta012-final-repairs
+          name: ta012-short-repairs
           path: out/*.mp3
           retention-days: 2
           if-no-files-found: error
