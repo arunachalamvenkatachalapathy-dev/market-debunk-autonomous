@@ -1,4 +1,4 @@
-name: Tamil006 duo free voice review
+name: Selected bilingual review voices
 on:
   workflow_dispatch:
 permissions:
@@ -13,15 +13,18 @@ jobs:
         with:
           python-version: '3.11'
       - run: python -m pip install --disable-pip-version-check 'requests>=2.31,<3'
-      - name: Generate selected Tamil voices only
+      - name: Generate selected review voices only
         env:
           FISH_AUDIO_API_KEY: ${{ secrets.FISH_AUDIO_API_KEY }}
         run: |
           test -n "$FISH_AUDIO_API_KEY" || exit 1
-          python scripts/generate_fish_review.py --text-file "review_scripts/ta015_fix6.txt" --reference-id 90e23b74530d433f915aba3ba2bdf596 --output "out/ta015_fix6.mp3"
+          for n in 1 3 5 7; do python scripts/generate_fish_review.py --text-file "review_scripts/ta016_line$n.txt" --reference-id 470085b5522b4579a0c7b02f1029d257 --output "out/ta016_line$n.mp3"; done
+          for n in 2 4 6 8; do python scripts/generate_fish_review.py --text-file "review_scripts/ta016_line$n.txt" --reference-id 90e23b74530d433f915aba3ba2bdf596 --output "out/ta016_line$n.mp3"; done
+          for n in 1 3 5 7; do python scripts/generate_fish_review.py --text-file "review_scripts/en016_line$n.txt" --reference-id 933563129e564b19a115bedd57b7406a --output "out/en016_line$n.mp3"; done
+          for n in 2 4 6 8; do python scripts/generate_fish_review.py --text-file "review_scripts/en016_line$n.txt" --output "out/en016_line$n.mp3"; done
       - uses: actions/upload-artifact@v4
         with:
-          name: nl015-fix6
-          path: out/*015_fix*.mp3
+          name: credit016-voices
+          path: out/*016_line*.mp3
           retention-days: 2
           if-no-files-found: error
