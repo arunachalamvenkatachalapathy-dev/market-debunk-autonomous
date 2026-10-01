@@ -17,10 +17,10 @@ jobs:
         env:
           FISH_AUDIO_API_KEY: ${{ secrets.FISH_AUDIO_API_KEY }}
         run: |
-          python scripts/generate_fish_review.py --text-file "review_scripts/ta012_line1.txt" --reference-id 470085b5522b4579a0c7b02f1029d257 --output "out/ta012_line1.mp3"
+          for n in 1 2 3 4 5 6 7 8; do python scripts/generate_fish_review.py --text-file "review_scripts/ta013_line$n.txt" --reference-id 90e23b74530d433f915aba3ba2bdf596 --output "out/ta013_line$n.mp3"; done
       - uses: actions/upload-artifact@v4
         with:
-          name: ta012-hook-final
+          name: ta013-voice
           path: out/*.mp3
           retention-days: 2
           if-no-files-found: error
