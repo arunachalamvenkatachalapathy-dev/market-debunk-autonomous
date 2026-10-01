@@ -18,13 +18,13 @@ jobs:
           FISH_AUDIO_API_KEY: ${{ secrets.FISH_AUDIO_API_KEY }}
         run: |
           test -n "$FISH_AUDIO_API_KEY" || exit 1
-          for n in 1 3 5 7; do python scripts/generate_fish_review.py --text-file "review_scripts/ta018_line$n.txt" --reference-id 470085b5522b4579a0c7b02f1029d257 --output "out/ta018_line$n.mp3"; done
-          for n in 2 4 6 8; do python scripts/generate_fish_review.py --text-file "review_scripts/ta018_line$n.txt" --reference-id 90e23b74530d433f915aba3ba2bdf596 --output "out/ta018_line$n.mp3"; done
-          for n in 1 3 5 7; do python scripts/generate_fish_review.py --text-file "review_scripts/en018_line$n.txt" --reference-id 933563129e564b19a115bedd57b7406a --output "out/en018_line$n.mp3"; done
-          for n in 2 4 6 8; do python scripts/generate_fish_review.py --text-file "review_scripts/en018_line$n.txt" --output "out/en018_line$n.mp3"; done
+          python scripts/generate_fish_review.py --text-file review_scripts/ta018_fix1.txt --reference-id 470085b5522b4579a0c7b02f1029d257 --output out/ta018_fix1.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta018_fix4.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta018_fix4.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta018_fix5.txt --reference-id 470085b5522b4579a0c7b02f1029d257 --output out/ta018_fix5.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta018_fix8.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta018_fix8.mp3
       - uses: actions/upload-artifact@v4
         with:
-          name: audit018-voices
-          path: out/*018_line*.mp3
+          name: audit018-repair1458
+          path: out/*018_fix*.mp3
           retention-days: 2
           if-no-files-found: error
