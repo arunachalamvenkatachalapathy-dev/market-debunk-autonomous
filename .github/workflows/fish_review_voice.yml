@@ -18,11 +18,10 @@ jobs:
           FISH_AUDIO_API_KEY: ${{ secrets.FISH_AUDIO_API_KEY }}
         run: |
           test -n "$FISH_AUDIO_API_KEY" || exit 1
-          python scripts/generate_fish_review.py --text-file "review_scripts/ta014_fix3.txt" --reference-id 470085b5522b4579a0c7b02f1029d257 --output "out/ta014_fix3.mp3"
-          python scripts/generate_fish_review.py --text-file "review_scripts/en014_fix7.txt" --reference-id 933563129e564b19a115bedd57b7406a --output "out/en014_fix7.mp3"
+          python scripts/generate_fish_review.py --text-file "review_scripts/ta014_fix5.txt" --reference-id 470085b5522b4579a0c7b02f1029d257 --output "out/ta014_fix5.mp3"
       - uses: actions/upload-artifact@v4
         with:
-          name: mf014-last
+          name: mf014-last5
           path: out/*014_fix*.mp3
           retention-days: 2
           if-no-files-found: error
