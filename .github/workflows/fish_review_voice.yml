@@ -19,9 +19,10 @@ jobs:
         run: |
           test -n "$FISH_AUDIO_API_KEY" || exit 1
           python scripts/generate_fish_review.py --text-file review_scripts/ta023_fix1.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta023_fix1.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta023_fix5.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta023_fix5.mp3
       - uses: actions/upload-artifact@v4
         with:
-          name: car023-repair1
-          path: out/ta023_fix1.mp3
+          name: car023-repair15
+          path: out/ta023_fix*.mp3
           retention-days: 2
           if-no-files-found: error
