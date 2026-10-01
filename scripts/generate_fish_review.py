@@ -45,7 +45,7 @@ def generate(text: str, destination: Path, api_key: str, *, reference_id=ELITE, 
             destination.parent.mkdir(parents=True, exist_ok=True)
             destination.write_bytes(res.content)
             return destination
-        if res.status_code in (429, 500, 502, 503, 504) and attempt < 3:
+        if res.status_code in (500, 502, 503, 504) and attempt < 3:
             sleep(2 ** attempt + random.random())
             continue
         # Do not print the response body: providers sometimes echo input or secrets.
