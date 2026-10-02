@@ -1,0 +1,1 @@
+Here is the SEC's example. A stock trades at sixty eight. A call with a seventy strike costs two dollars twenty a share, and one contract covers a hundred shares, so you pay two hundred twenty up front.
