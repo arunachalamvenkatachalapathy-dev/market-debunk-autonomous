@@ -18,21 +18,15 @@ jobs:
           FISH_AUDIO_API_KEY: ${{ secrets.FISH_AUDIO_API_KEY }}
         run: |
           test -n "$FISH_AUDIO_API_KEY" || exit 1
-          python scripts/generate_fish_review.py --text-file review_scripts/en033_line1.txt --output out/en033_line1.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/en033_line2.txt --output out/en033_line2.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/en033_line3.txt --output out/en033_line3.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/en033_line4.txt --output out/en033_line4.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/en033_line5.txt --output out/en033_line5.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/en033_line6.txt --output out/en033_line6.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta033_line1.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta033_line1.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta033_line2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta033_line2.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta033_line3.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta033_line3.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta033_line4.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta033_line4.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta033_line5.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta033_line5.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta033_line6.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta033_line6.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta033_line1.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta033_r1a.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta033_line1.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta033_r1b.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta033_line1.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta033_r1c.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta033_line3.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta033_r3a.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta033_line3.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta033_r3b.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta033_line3.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta033_r3c.mp3
       - uses: actions/upload-artifact@v4
         with:
-          name: intraday033-voices
-          path: out/*033_line*.mp3
+          name: intraday033-repair1
+          path: out/ta033_r*.mp3
           retention-days: 2
           if-no-files-found: error
