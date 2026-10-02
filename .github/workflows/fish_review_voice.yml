@@ -18,13 +18,12 @@ jobs:
           FISH_AUDIO_API_KEY: ${{ secrets.FISH_AUDIO_API_KEY }}
         run: |
           test -n "$FISH_AUDIO_API_KEY" || exit 1
-          python scripts/generate_fish_review.py --text-file review_scripts/ta031_line5.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta031_r5a.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta031_line5.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta031_r5b.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta031_line6.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta031_r6a.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta031_line6.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta031_r6b.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta031_line6.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta031_s6a.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta031_line6.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta031_s6b.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta031_line6.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta031_s6c.mp3
       - uses: actions/upload-artifact@v4
         with:
-          name: brics031-repair1
-          path: out/ta031_r*.mp3
+          name: brics031-repair2
+          path: out/ta031_s6*.mp3
           retention-days: 2
           if-no-files-found: error
