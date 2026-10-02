@@ -18,21 +18,12 @@ jobs:
           FISH_AUDIO_API_KEY: ${{ secrets.FISH_AUDIO_API_KEY }}
         run: |
           test -n "$FISH_AUDIO_API_KEY" || exit 1
-          python scripts/generate_fish_review.py --text-file review_scripts/ta040_line2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta040_l2c.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta040_line2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta040_l2d.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta040_line2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta040_l2e.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta040_line3.txt --reference-id 470085b5522b4579a0c7b02f1029d257 --output out/ta040_l3c.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta040_line3.txt --reference-id 470085b5522b4579a0c7b02f1029d257 --output out/ta040_l3d.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta040_line3.txt --reference-id 470085b5522b4579a0c7b02f1029d257 --output out/ta040_l3e.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta040_line4.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta040_l4c.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta040_line4.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta040_l4d.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta040_line4.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta040_l4e.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta040_line6.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta040_l6c.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta040_line6.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta040_l6d.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta040_line6.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta040_l6e.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta040_line6.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta040_l6f.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta040_line6.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta040_l6g.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta040_line6.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta040_l6h.mp3
       - uses: actions/upload-artifact@v4
         with:
-          name: china040-ta-repair1
+          name: china040-ta-repair2
           path: out/ta040_l*.mp3
           retention-days: 2
           if-no-files-found: error
