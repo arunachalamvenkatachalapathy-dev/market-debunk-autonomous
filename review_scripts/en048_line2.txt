@@ -1,0 +1,1 @@
+First, how to read one candle. It shows four prices, open, high, low and close. Close above open gives a white candle, close below open gives a black one. The thin lines are the high and the low.
