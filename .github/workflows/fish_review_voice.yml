@@ -18,18 +18,13 @@ jobs:
           FISH_AUDIO_API_KEY: ${{ secrets.FISH_AUDIO_API_KEY }}
         run: |
           test -n "$FISH_AUDIO_API_KEY" || exit 1
-          python scripts/generate_fish_review.py --text-file review_scripts/ta038_line1.txt --reference-id 470085b5522b4579a0c7b02f1029d257 --output out/ta038_r1a.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta038_line1.txt --reference-id 470085b5522b4579a0c7b02f1029d257 --output out/ta038_r1b.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta038_line1.txt --reference-id 470085b5522b4579a0c7b02f1029d257 --output out/ta038_r1c.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta038_line2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta038_r2a.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta038_line2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta038_r2b.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta038_line2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta038_r2c.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta038_line4.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta038_r4a.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta038_line4.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta038_r4b.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta038_line4.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta038_r4c.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta038_line4.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta038_r4d.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta038_line4.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta038_r4e.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta038_line4.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta038_r4f.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta038_line4.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta038_r4g.mp3
       - uses: actions/upload-artifact@v4
         with:
-          name: mortgage038-repair1
+          name: mortgage038-repair2
           path: out/ta038_r*.mp3
           retention-days: 2
           if-no-files-found: error
