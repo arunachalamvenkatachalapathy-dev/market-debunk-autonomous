@@ -1,0 +1,4 @@
+03:38 027 EN voices clear (run 36932713592 /downloads/passive027-voices/passive027-voices). TA1/3/5 flawed (brand/SEBI/fees mispronounced) -> rewritten, repair run artifact passive027-repair1 ta027_fix{1,3,5}. TA2/4/6 ok. Images 6 generated, need inspect. NOT normalized.
+09:08 028 (EDLI insurance, duo, 7 lines/6 scenes... 7 lines, 6 scenes? see scene map) builder build_edli028_scripts.py, images /tmp/epf028/gen.sh, voices workflow edli028-voices launched
+09:30 029 candlestick solo (2026-10-14_m): builder build_candle029_scripts.py (SEO final), images /tmp/c029/gen.sh (ref passive027-scene01), voices run launched artifact candle029-voices
+09:40 030 payday duo (2026-10-14_e): builder build_payday030_scripts.py, images /tmp/p030/gen.sh (ref wolf024-scene01), voices workflow payday030-voices launched. Odd lines Liya, even Arun.
