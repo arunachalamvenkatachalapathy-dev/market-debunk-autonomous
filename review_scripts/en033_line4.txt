@@ -1,0 +1,1 @@
+Hypothetical example. Capital one lakh rupees, risk one percent, so one thousand rupees per trade. You plan to buy at one hundred, with a stop loss at ninety five, a five rupee risk per share. One thousand divided by five means two hundred shares.

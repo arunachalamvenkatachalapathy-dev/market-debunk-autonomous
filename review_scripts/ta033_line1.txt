@@ -1,0 +1,1 @@
+Intraday trading னா, ஒரே நாள்ல ஒரே stock ஐ வாங்கி விக்கிறது, market முடியறதுக்குள்ள position ஐ close பண்ணிடணும். Overnight எதுவும் hold பண்ண மாட்டீங்க. Beginners இதை ஒரு quick ஆ சம்பாதிக்கிற வழின்னு கேள்விப்படுறாங்க.

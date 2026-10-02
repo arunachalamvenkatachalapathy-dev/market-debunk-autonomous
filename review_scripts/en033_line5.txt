@@ -1,0 +1,1 @@
+Now add costs. Brokerage, taxes and slippage can eat a few hundred rupees on a trade like that, so you must win by more than the costs just to break even. Many beginners forget this and wonder where their profit went.

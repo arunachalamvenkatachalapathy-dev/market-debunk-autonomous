@@ -1,0 +1,1 @@
+Many brokers let you trade intraday with leverage, which means a small amount of your money controls a bigger position. That works both ways. A small move in your favour grows your profit, and a small move against you grows your loss.
