@@ -18,45 +18,45 @@ jobs:
           FISH_AUDIO_API_KEY: ${{ secrets.FISH_AUDIO_API_KEY }}
         run: |
           test -n "$FISH_AUDIO_API_KEY" || exit 1
-          python scripts/generate_fish_review.py --text-file review_scripts/en056_line1.txt --reference-id 933563129e564b19a115bedd57b7406a --output out/en056_l1a.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/en056_line1.txt --reference-id 933563129e564b19a115bedd57b7406a --output out/en056_l1b.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/en056_line1.txt --reference-id 933563129e564b19a115bedd57b7406a --output out/en056_l1c.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/en056_line2.txt --output out/en056_l2a.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/en056_line2.txt --output out/en056_l2b.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/en056_line2.txt --output out/en056_l2c.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/en056_line3.txt --reference-id 933563129e564b19a115bedd57b7406a --output out/en056_l3a.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/en056_line3.txt --reference-id 933563129e564b19a115bedd57b7406a --output out/en056_l3b.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/en056_line3.txt --reference-id 933563129e564b19a115bedd57b7406a --output out/en056_l3c.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/en056_line4.txt --output out/en056_l4a.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/en056_line4.txt --output out/en056_l4b.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/en056_line4.txt --output out/en056_l4c.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/en056_line5.txt --reference-id 933563129e564b19a115bedd57b7406a --output out/en056_l5a.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/en056_line5.txt --reference-id 933563129e564b19a115bedd57b7406a --output out/en056_l5b.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/en056_line5.txt --reference-id 933563129e564b19a115bedd57b7406a --output out/en056_l5c.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/en056_line6.txt --output out/en056_l6a.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/en056_line6.txt --output out/en056_l6b.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/en056_line6.txt --output out/en056_l6c.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta056_line1.txt --reference-id 470085b5522b4579a0c7b02f1029d257 --output out/ta056_l1a.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta056_line1.txt --reference-id 470085b5522b4579a0c7b02f1029d257 --output out/ta056_l1b.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta056_line1.txt --reference-id 470085b5522b4579a0c7b02f1029d257 --output out/ta056_l1c.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta056_line2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta056_l2a.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta056_line2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta056_l2b.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta056_line2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta056_l2c.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta056_line3.txt --reference-id 470085b5522b4579a0c7b02f1029d257 --output out/ta056_l3a.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta056_line3.txt --reference-id 470085b5522b4579a0c7b02f1029d257 --output out/ta056_l3b.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta056_line3.txt --reference-id 470085b5522b4579a0c7b02f1029d257 --output out/ta056_l3c.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta056_line4.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta056_l4a.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta056_line4.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta056_l4b.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta056_line4.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta056_l4c.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta056_line5.txt --reference-id 470085b5522b4579a0c7b02f1029d257 --output out/ta056_l5a.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta056_line5.txt --reference-id 470085b5522b4579a0c7b02f1029d257 --output out/ta056_l5b.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta056_line5.txt --reference-id 470085b5522b4579a0c7b02f1029d257 --output out/ta056_l5c.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta056_line6.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta056_l6a.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta056_line6.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta056_l6b.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta056_line6.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta056_l6c.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/en057_line1.txt --output out/en057_l1a.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/en057_line1.txt --output out/en057_l1b.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/en057_line1.txt --output out/en057_l1c.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/en057_line2.txt --output out/en057_l2a.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/en057_line2.txt --output out/en057_l2b.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/en057_line2.txt --output out/en057_l2c.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/en057_line3.txt --output out/en057_l3a.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/en057_line3.txt --output out/en057_l3b.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/en057_line3.txt --output out/en057_l3c.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/en057_line4.txt --output out/en057_l4a.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/en057_line4.txt --output out/en057_l4b.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/en057_line4.txt --output out/en057_l4c.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/en057_line5.txt --output out/en057_l5a.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/en057_line5.txt --output out/en057_l5b.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/en057_line5.txt --output out/en057_l5c.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/en057_line6.txt --output out/en057_l6a.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/en057_line6.txt --output out/en057_l6b.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/en057_line6.txt --output out/en057_l6c.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta057_line1.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta057_l1a.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta057_line1.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta057_l1b.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta057_line1.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta057_l1c.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta057_line2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta057_l2a.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta057_line2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta057_l2b.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta057_line2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta057_l2c.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta057_line3.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta057_l3a.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta057_line3.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta057_l3b.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta057_line3.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta057_l3c.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta057_line4.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta057_l4a.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta057_line4.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta057_l4b.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta057_line4.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta057_l4c.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta057_line5.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta057_l5a.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta057_line5.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta057_l5b.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta057_line5.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta057_l5c.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta057_line6.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta057_l6a.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta057_line6.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta057_l6b.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta057_line6.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta057_l6c.mp3
       - uses: actions/upload-artifact@v4
         with:
-          name: dbt056-voices
-          path: out/*056_l*.mp3
+          name: car057-voices
+          path: out/*057_l*.mp3
           retention-days: 2
           if-no-files-found: error
