@@ -18,15 +18,15 @@ jobs:
           FISH_AUDIO_API_KEY: ${{ secrets.FISH_AUDIO_API_KEY }}
         run: |
           test -n "$FISH_AUDIO_API_KEY" || exit 1
-          python scripts/generate_fish_review.py --text-file review_scripts/ta041_line1.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta041_l1c.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta041_line1.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta041_l1d.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta041_line1.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta041_l1e.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta041_line2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta041_l2c.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta041_line2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta041_l2d.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta041_line2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta041_l2e.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta041_line1.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta041_l1f.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta041_line1.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta041_l1g.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta041_line1.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta041_l1h.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta041_line2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta041_l2f.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta041_line2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta041_l2g.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta041_line2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta041_l2h.mp3
       - uses: actions/upload-artifact@v4
         with:
-          name: rent041-ta-repair
+          name: rent041-ta-repair2
           path: out/ta041_l*.mp3
           retention-days: 2
           if-no-files-found: error
