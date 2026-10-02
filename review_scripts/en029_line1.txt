@@ -1,0 +1,1 @@
+Candlestick charts look like a secret code. They are not. Each candle just summarises one time period: where price opened, where it closed, and the high and low in between.

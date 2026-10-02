@@ -1,0 +1,1 @@
+Candlestick chart ஒரு secret code மாதிரி தெரியும். ஆனா இல்லை. ஒவ்வொரு candle உம் ஒரு time period ஓட summary. Price எங்க open ஆச்சு, எங்க close ஆச்சு, நடுவுல high low என்ன.
