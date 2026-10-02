@@ -18,15 +18,13 @@ jobs:
           FISH_AUDIO_API_KEY: ${{ secrets.FISH_AUDIO_API_KEY }}
         run: |
           test -n "$FISH_AUDIO_API_KEY" || exit 1
-          python scripts/generate_fish_review.py --text-file review_scripts/ta028_line1.txt --reference-id 470085b5522b4579a0c7b02f1029d257 --output out/ta028_fix1a.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta028_line1.txt --reference-id 470085b5522b4579a0c7b02f1029d257 --output out/ta028_fix1b.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta028_line3.txt --reference-id 470085b5522b4579a0c7b02f1029d257 --output out/ta028_fix3a.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta028_line3.txt --reference-id 470085b5522b4579a0c7b02f1029d257 --output out/ta028_fix3b.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta028_line5.txt --reference-id 470085b5522b4579a0c7b02f1029d257 --output out/ta028_fix5a.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta028_line5.txt --reference-id 470085b5522b4579a0c7b02f1029d257 --output out/ta028_fix5b.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta028_line3v1.txt --reference-id 470085b5522b4579a0c7b02f1029d257 --output out/ta028_g3v1a.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta028_line3v1.txt --reference-id 470085b5522b4579a0c7b02f1029d257 --output out/ta028_g3v1b.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta028_line3v2.txt --reference-id 470085b5522b4579a0c7b02f1029d257 --output out/ta028_g3v2a.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta028_line3v2.txt --reference-id 470085b5522b4579a0c7b02f1029d257 --output out/ta028_g3v2b.mp3
       - uses: actions/upload-artifact@v4
         with:
-          name: edli028-repair1
-          path: out/ta028_fix*.mp3
+          name: edli028-repair2
+          path: out/ta028_g3*.mp3
           retention-days: 2
           if-no-files-found: error
