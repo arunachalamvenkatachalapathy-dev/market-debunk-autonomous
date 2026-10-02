@@ -1,0 +1,1 @@
+Intraday and options are different. Intraday is twenty rupees or zero point zero three percent per order, whichever is lower. Options are a flat twenty rupees per order, plus tax on the premium.
