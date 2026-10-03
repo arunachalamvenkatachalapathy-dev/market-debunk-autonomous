@@ -1,0 +1,1 @@
+Investor.gov says a market order guarantees the order will be executed, but not the price. It generally fills at or near the current bid or ask price.

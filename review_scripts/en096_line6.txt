@@ -1,0 +1,1 @@
+No. A buy limit order only executes if the price is at your limit or lower. This is education, not financial advice. Follow Market Debunk for the next money check.

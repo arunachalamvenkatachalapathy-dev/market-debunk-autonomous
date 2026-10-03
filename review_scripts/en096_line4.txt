@@ -1,0 +1,1 @@
+Use a limit order. It buys or sells at a specific price or better. As my own example, a buy limit at ten dollars for one hundred shares costs at most one thousand dollars, before fees.
