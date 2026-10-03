@@ -18,10 +18,10 @@ jobs:
           FISH_AUDIO_API_KEY: ${{ secrets.FISH_AUDIO_API_KEY }}
         run: |
           test -n "$FISH_AUDIO_API_KEY" || exit 1
-          python scripts/generate_fish_review.py --text-file review_scripts/ta090_line3.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta090_l3d.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta090_line3.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta090_l3e.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta090_line3.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta090_l3f.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta090_line3.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta090_l3g.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta090_line3.txt --reference-id 470085b5522b4579a0c7b02f1029d257 --output out/ta090_l3d.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta090_line3.txt --reference-id 470085b5522b4579a0c7b02f1029d257 --output out/ta090_l3e.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta090_line3.txt --reference-id 470085b5522b4579a0c7b02f1029d257 --output out/ta090_l3f.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta090_line3.txt --reference-id 470085b5522b4579a0c7b02f1029d257 --output out/ta090_l3g.mp3
       - uses: actions/upload-artifact@v4
         with:
           name: v090-voices
