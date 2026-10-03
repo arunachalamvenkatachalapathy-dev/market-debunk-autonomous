@@ -1,0 +1,25 @@
+name: Independent transcription check
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  t:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check faster-whisper
+      - name: Transcribe
+        run: |
+          python - <<'PY'
+          from faster_whisper import WhisperModel
+          import glob
+          m=WhisperModel('small',device='cpu',compute_type='int8')
+          for f in sorted(glob.glob('qa_audio/*.mp3')):
+              segs,_=m.transcribe(f,language='en',beam_size=5)
+              print('RESULT',f,'|',' '.join(s.text.strip() for s in segs))
+          PY
