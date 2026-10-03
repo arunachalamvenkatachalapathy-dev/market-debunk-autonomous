@@ -2,3 +2,4 @@
 09:08 028 (EDLI insurance, duo, 7 lines/6 scenes... 7 lines, 6 scenes? see scene map) builder build_edli028_scripts.py, images /tmp/epf028/gen.sh, voices workflow edli028-voices launched
 09:30 029 candlestick solo (2026-10-14_m): builder build_candle029_scripts.py (SEO final), images /tmp/c029/gen.sh (ref passive027-scene01), voices run launched artifact candle029-voices
 09:40 030 payday duo (2026-10-14_e): builder build_payday030_scripts.py, images /tmp/p030/gen.sh (ref wolf024-scene01), voices workflow payday030-voices launched. Odd lines Liya, even Arun.
+17:16 040 EN picks=l?a (all clean). TA: l1a, l5a ok; rewrote TA 2,3,4,6; repair run 37002463771 takes c/d/e -> /downloads/v040b
