@@ -18,13 +18,13 @@ jobs:
           FISH_AUDIO_API_KEY: ${{ secrets.FISH_AUDIO_API_KEY }}
         run: |
           test -n "$FISH_AUDIO_API_KEY" || exit 1
-          python scripts/generate_fish_review.py --text-file review_scripts/ta083_line4.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta083_l4d.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta083_line4.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta083_l4e.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta083_line4.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta083_l4f.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta083_line4.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta083_l4g.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta083_line2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta083_l2d.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta083_line2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta083_l2e.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta083_line2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta083_l2f.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta083_line2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta083_l2g.mp3
       - uses: actions/upload-artifact@v4
         with:
-          name: v083b-voices
+          name: v083c-voices
           path: out/*083_l*.mp3
           retention-days: 2
           if-no-files-found: error
