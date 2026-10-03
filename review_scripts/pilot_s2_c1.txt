@@ -1,0 +1,1 @@
+ஒரு order-க்கு brokerage மட்டும் பார்த்தா முழுச் செலவு தெரியாது. Brokerage என்பது broker எடுக்கும் fee. அதற்கு மேல exchange transaction charge, STT, GST, stamp duty, SEBI charges மாதிரி statutory charges இருக்கலாம். Share விற்கும்போது DP charge-ம் இருக்கலாம். Demat account வைத்திருப்பதற்கான AMC வேறு. இவை ஒன்றல்ல.

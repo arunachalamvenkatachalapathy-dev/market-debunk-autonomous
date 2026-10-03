@@ -1,0 +1,1 @@
+Options பற்றி கேட்பவர்களுக்கு: இந்த மூன்று brokers-உடைய current published schedule-ல் F&O brokerage flat ₹20 per executed order என்று காட்டப்படுகிறது. இது brokerage மட்டும். Option premium, lot size, buy/sell side, STT, exchange transaction charges, GST, stamp duty போன்றவை final bill-ஐ மாற்றும்.

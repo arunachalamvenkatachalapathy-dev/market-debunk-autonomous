@@ -1,0 +1,1 @@
+அதனால் ‘zero brokerage’ என்று பார்த்தவுடன் ‘மொத்தமும் zero’ என்று நினைக்காதீங்க. ஒவ்வொரு broker-உடைய charge calculator-ல உங்கள் trade-ஐ போட்டு, buy மற்றும் sell இரண்டையும் சேர்த்து total charges பாருங்கள்.
