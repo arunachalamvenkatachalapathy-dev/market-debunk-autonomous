@@ -1,0 +1,1 @@
+Here is my own example, using assumed numbers, not a promise. Ten thousand dollars growing five percent a year before costs, for twenty years. A fund costing a quarter of a percent ends near twenty-five thousand three hundred dollars.
