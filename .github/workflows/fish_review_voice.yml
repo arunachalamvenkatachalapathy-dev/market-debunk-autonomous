@@ -18,55 +18,36 @@ jobs:
           FISH_AUDIO_API_KEY: ${{ secrets.FISH_AUDIO_API_KEY }}
         run: |
           test -n "$FISH_AUDIO_API_KEY" || exit 1
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s1_c1.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s1_c1a.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s1_c1.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s1_c1b.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s1_c2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s1_c2a.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s1_c2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s1_c2b.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s2_c1.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s2_c1a.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s2_c1.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s2_c1b.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s2_c2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s2_c2a.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s2_c2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s2_c2b.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s3_c1.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s3_c1a.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s3_c1.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s3_c1b.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s3_c2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s3_c2a.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s3_c2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s3_c2b.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s3_c3.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s3_c3a.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s3_c3.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s3_c3b.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s4_c1.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s4_c1a.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s4_c1.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s4_c1b.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s4_c2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s4_c2a.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s4_c2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s4_c2b.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s5_c1.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s5_c1a.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s5_c1.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s5_c1b.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s5_c2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s5_c2a.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s5_c2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s5_c2b.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s5_c3.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s5_c3a.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s5_c3.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s5_c3b.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s6_c1.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s6_c1a.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s6_c1.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s6_c1b.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s6_c2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s6_c2a.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s6_c2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s6_c2b.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s6_c3.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s6_c3a.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s6_c3.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s6_c3b.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s7_c1.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s7_c1a.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s7_c1.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s7_c1b.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s7_c2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s7_c2a.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s7_c2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s7_c2b.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s7_c3.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s7_c3a.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s7_c3.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s7_c3b.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s8_c1.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s8_c1a.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s8_c1.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s8_c1b.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s8_c2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s8_c2a.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s8_c2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s8_c2b.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s8_c3.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s8_c3a.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s8_c3.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s8_c3b.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s8_c4.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s8_c4a.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s8_c4.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s8_c4b.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s8_c5.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s8_c5a.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/pilot_s8_c5.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot_s8_c5b.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/pilot2_s1_c1.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot2_s1_c1a.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/pilot2_s1_c1.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot2_s1_c1b.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/pilot2_s1_c1.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot2_s1_c1c.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/pilot2_s3_c1.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot2_s3_c1a.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/pilot2_s3_c1.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot2_s3_c1b.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/pilot2_s3_c1.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot2_s3_c1c.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/pilot2_s3_c2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot2_s3_c2a.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/pilot2_s3_c2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot2_s3_c2b.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/pilot2_s3_c2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot2_s3_c2c.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/pilot2_s4_c1.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot2_s4_c1a.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/pilot2_s4_c1.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot2_s4_c1b.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/pilot2_s4_c1.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot2_s4_c1c.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/pilot2_s4_c2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot2_s4_c2a.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/pilot2_s4_c2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot2_s4_c2b.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/pilot2_s4_c2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot2_s4_c2c.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/pilot2_s5_c1.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot2_s5_c1a.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/pilot2_s5_c1.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot2_s5_c1b.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/pilot2_s5_c1.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot2_s5_c1c.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/pilot2_s5_c2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot2_s5_c2a.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/pilot2_s5_c2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot2_s5_c2b.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/pilot2_s5_c2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot2_s5_c2c.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/pilot2_s6_c2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot2_s6_c2a.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/pilot2_s6_c2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot2_s6_c2b.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/pilot2_s6_c2.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot2_s6_c2c.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/pilot2_s8_c3.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot2_s8_c3a.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/pilot2_s8_c3.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot2_s8_c3b.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/pilot2_s8_c3.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/pilot2_s8_c3c.mp3
       - uses: actions/upload-artifact@v4
         with:
-          name: pilot-voices
-          path: out/pilot_*.mp3
+          name: pilot2-voices
+          path: out/pilot2_*.mp3
           retention-days: 2
           if-no-files-found: error
