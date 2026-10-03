@@ -19,13 +19,14 @@ jobs:
         run: |
           test -n "$FISH_AUDIO_API_KEY" || exit 1
           python scripts/generate_fish_review.py --text-file review_scripts/ta078_line6.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta078_l6a.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta078_line6x.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta078_l6xa.mp3
           python scripts/generate_fish_review.py --text-file review_scripts/ta078_line6.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta078_l6b.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta078_line6x.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta078_l6xb.mp3
           python scripts/generate_fish_review.py --text-file review_scripts/ta078_line6.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta078_l6c.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta078_line6.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta078_l6d.mp3
-          python scripts/generate_fish_review.py --text-file review_scripts/ta078_line6.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta078_l6e.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/ta078_line6x.txt --reference-id 90e23b74530d433f915aba3ba2bdf596 --output out/ta078_l6xc.mp3
       - uses: actions/upload-artifact@v4
         with:
-          name: v078b-voices
+          name: v078c-voices
           path: out/*078_l*.mp3
           retention-days: 2
           if-no-files-found: error
