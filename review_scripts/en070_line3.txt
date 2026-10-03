@@ -1,0 +1,1 @@
+The unit price is called NAV. It is the scheme's net assets, meaning total assets minus liabilities, divided by the number of units outstanding.
