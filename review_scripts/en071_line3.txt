@@ -1,0 +1,1 @@
+It lists tools like moving averages, the relative strength index and candlestick charts, and says the method assumes past price patterns tend to repeat.
