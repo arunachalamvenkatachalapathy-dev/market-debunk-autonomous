@@ -17,21 +17,22 @@ jobs:
         env:
           FISH_AUDIO_API_KEY: ${{ secrets.FISH_AUDIO_API_KEY }}
         run: |
-          mkdir -p out; echo ok > out/qa099_l.mp3
-          python -m pip install --disable-pip-version-check faster-whisper
-          cat > qa_run.py <<'PYEOF'
-          from faster_whisper import WhisperModel
-          import glob
-          m=WhisperModel('small',device='cpu',compute_type='int8')
-          for f in sorted(glob.glob('qa_audio/*.mp3')):
-              lang='ta' if '/ta' in f else 'en'
-              segs,_=m.transcribe(f,language=lang,beam_size=5)
-              print('RESULT',f,'|',' '.join(x.text.strip() for x in segs))
-          PYEOF
-          python qa_run.py
+          test -n "$FISH_AUDIO_API_KEY" || exit 1
+          python scripts/generate_fish_review.py --text-file review_scripts/en099_line1.txt --output out/en099_l1d.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/en099_line1.txt --output out/en099_l1e.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/en099_line1.txt --output out/en099_l1f.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/en099_line2.txt --output out/en099_l2d.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/en099_line2.txt --output out/en099_l2e.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/en099_line2.txt --output out/en099_l2f.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/en099_line3.txt --output out/en099_l3d.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/en099_line3.txt --output out/en099_l3e.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/en099_line3.txt --output out/en099_l3f.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/en099_line4.txt --output out/en099_l4d.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/en099_line4.txt --output out/en099_l4e.mp3
+          python scripts/generate_fish_review.py --text-file review_scripts/en099_line4.txt --output out/en099_l4f.mp3
       - uses: actions/upload-artifact@v4
         with:
-          name: v099-voices
+          name: v099b-voices
           path: out/*099_l*.mp3
           retention-days: 2
           if-no-files-found: error
