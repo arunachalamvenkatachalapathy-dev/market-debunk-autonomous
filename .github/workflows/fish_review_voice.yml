@@ -57,6 +57,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: ta072-voices
-          path: out/*071_l*.mp3
+          path: out/*072_l*.mp3
           retention-days: 2
           if-no-files-found: error
